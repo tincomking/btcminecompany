@@ -498,7 +498,8 @@
       "net_income_yoy_pct": 982.9,
       "shares_outstanding_m": 52.99,
       "gross_profit_yoy_pct": null,
-      "adjusted_ebitda_yoy_pct": 3.3
+      "adjusted_ebitda_yoy_pct": 3.3,
+      "total_debt_usd_m": 0.0
     },
     {
       "ticker": "ABTC",
@@ -622,7 +623,7 @@
       "shares_outstanding_m": null,
       "cash_and_equivalents_usd_m": null,
       "btc_held": null,
-      "total_debt_usd_m": null,
+      "total_debt_usd_m": 0.0,
       "notes": "Source: American Bitcoin FY2025 press release. NI includes $227M non-cash BTC mark-to-market."
     },
     {
@@ -1116,7 +1117,8 @@
       "adjusted_ebitda_yoy_pct": 39.9,
       "shares_outstanding_m": 25.45,
       "gross_profit_yoy_pct": null,
-      "net_income_yoy_pct": 59.5
+      "net_income_yoy_pct": 59.5,
+      "total_debt_usd_m": 0.0
     },
     {
       "ticker": "ANY",
@@ -1548,7 +1550,7 @@
       "shares_outstanding_m": 139.05,
       "cash_and_equivalents_usd_m": null,
       "btc_held": null,
-      "total_debt_usd_m": null,
+      "total_debt_usd_m": 150.0,
       "notes": "Source: SEC EDGAR XBRL (10-K filed 2025-07-30). EBITDA estimated from operating_income + depreciation."
     },
     {
@@ -1640,7 +1642,7 @@
       "shares_outstanding_m": 224.91,
       "cash_and_equivalents_usd_m": null,
       "btc_held": null,
-      "total_debt_usd_m": null,
+      "total_debt_usd_m": 688.2,
       "notes": "Source: SEC EDGAR XBRL (10-K filed 2025-07-30). EBITDA estimated from operating_income + depreciation."
     },
     {
@@ -1901,7 +1903,7 @@
       "estimated_report_date": null,
       "cash_and_equivalents_usd_m": null,
       "btc_held": null,
-      "total_debt_usd_m": null
+      "total_debt_usd_m": 1.4
     },
     {
       "ticker": "BITF",
@@ -1925,7 +1927,7 @@
       "shares_outstanding_m": 500.2,
       "cash_and_equivalents_usd_m": null,
       "btc_held": null,
-      "total_debt_usd_m": null,
+      "total_debt_usd_m": 51.6,
       "notes": "Source: Bitfarms Q1 2025 press release. IFRS GP negative; mining margin 43%."
     },
     {
@@ -1950,7 +1952,7 @@
       "shares_outstanding_m": 555.8,
       "cash_and_equivalents_usd_m": null,
       "btc_held": null,
-      "total_debt_usd_m": null,
+      "total_debt_usd_m": 51.6,
       "notes": "Source: Bitfarms Q2 2025 press release. Rev +87% YoY (Stronghold acq)."
     },
     {
@@ -1975,7 +1977,7 @@
       "shares_outstanding_m": 556.5,
       "cash_and_equivalents_usd_m": null,
       "btc_held": null,
-      "total_debt_usd_m": null,
+      "total_debt_usd_m": 51.6,
       "notes": "Source: Bitfarms Q3 2025 press release. Continuing ops only."
     },
     {
@@ -2188,7 +2190,7 @@
       "shares_outstanding_m": 179.13,
       "cash_and_equivalents_usd_m": null,
       "btc_held": null,
-      "total_debt_usd_m": null,
+      "total_debt_usd_m": 0.0,
       "notes": "FY2024 revenue $108M, up 141% YoY. Cloud services revenue $45.7M first year. | SEC EDGAR XBRL verified."
     },
     {
@@ -2473,7 +2475,7 @@
       "shares_outstanding_m": 192.32,
       "cash_and_equivalents_usd_m": null,
       "btc_held": null,
-      "total_debt_usd_m": null,
+      "total_debt_usd_m": 468.0,
       "notes": "Source: SEC EDGAR XBRL (20-F filed 2025-04-21). EBITDA estimated from operating_income + depreciation."
     },
     {
@@ -2523,7 +2525,7 @@
       "shares_outstanding_m": 204.7,
       "cash_and_equivalents_usd_m": null,
       "btc_held": null,
-      "total_debt_usd_m": null,
+      "total_debt_usd_m": 1000.0,
       "notes": "Source: Bitdeer FY2025 press release. Diluted EPS -$1.43, basic $0.32."
     },
     {
@@ -2986,7 +2988,7 @@
       "shares_outstanding_m": 350.78,
       "cash_and_equivalents_usd_m": null,
       "btc_held": null,
-      "total_debt_usd_m": null,
+      "total_debt_usd_m": 56.4,
       "notes": "Source: SEC EDGAR XBRL (10-K filed 2026-02-24). EBITDA estimated from operating_income + depreciation."
     },
     {
@@ -3670,7 +3672,7 @@
       "shares_outstanding_m": 317.76,
       "cash_and_equivalents_usd_m": null,
       "btc_held": null,
-      "total_debt_usd_m": null,
+      "total_debt_usd_m": 644.6,
       "notes": "Source: SEC EDGAR XBRL (10-K filed 2025-11-25). EBITDA estimated from operating_income + depreciation."
     },
     {
@@ -4136,7 +4138,7 @@
       "shares_outstanding_m": 292.61,
       "cash_and_equivalents_usd_m": null,
       "btc_held": null,
-      "total_debt_usd_m": null,
+      "total_debt_usd_m": 1085.0,
       "notes": "Source: SEC EDGAR XBRL (10-K filed 2025-02-27). EBITDA estimated from operating_income + depreciation."
     },
     {
@@ -4320,7 +4322,8 @@
       "eps_diluted": -0.21,
       "gross_profit_yoy_pct": -16.5,
       "net_income_yoy_pct": 68.9,
-      "adjusted_ebitda_yoy_pct": null
+      "adjusted_ebitda_yoy_pct": null,
+      "total_debt_usd_m": 0.0
     },
     {
       "ticker": "FUFU",
@@ -4524,7 +4527,7 @@
       "shares_outstanding_m": 163.1,
       "cash_and_equivalents_usd_m": 45.1,
       "btc_held": 1720,
-      "total_debt_usd_m": 35.0,
+      "total_debt_usd_m": 141.3,
       "notes": "FY2024: Revenue $463.3M (+63% YoY). Net income $54.0M. Adj EBITDA $117.5M. 1,720 BTC held. D&A ($24.7M) included in COGS. Operating income includes unrealized BTC gain $44.3M. Source: 20-F filed 2025-04-21, press release 2025-03-25. | SEC EDGAR XBRL verified."
     },
     {
@@ -4549,7 +4552,7 @@
       "shares_outstanding_m": 168.5,
       "cash_and_equivalents_usd_m": null,
       "btc_held": 1835,
-      "total_debt_usd_m": null,
+      "total_debt_usd_m": 141.3,
       "notes": "Source: BitFuFu Q1 2025 press release. Post-halving impact."
     },
     {
@@ -4574,7 +4577,7 @@
       "shares_outstanding_m": 168.6,
       "cash_and_equivalents_usd_m": null,
       "btc_held": 1792,
-      "total_debt_usd_m": null,
+      "total_debt_usd_m": 141.3,
       "notes": "Source: BitFuFu Q2 2025 press release. Strong BTC fair value gains."
     },
     {
@@ -4599,7 +4602,7 @@
       "shares_outstanding_m": 169.9,
       "cash_and_equivalents_usd_m": null,
       "btc_held": 1962,
-      "total_debt_usd_m": null,
+      "total_debt_usd_m": 141.3,
       "notes": "Source: BitFuFu Q3 2025 press release. Record revenue."
     },
     {
@@ -5094,7 +5097,8 @@
       "adjusted_ebitda_yoy_pct": 73.1,
       "shares_outstanding_m": 0.9,
       "gross_profit_yoy_pct": -2.4,
-      "net_income_yoy_pct": 73.5
+      "net_income_yoy_pct": 73.5,
+      "total_debt_usd_m": 27.3
     },
     {
       "ticker": "GPUS",
@@ -5661,7 +5665,8 @@
       "shares_outstanding_m": 13.03,
       "gross_profit_yoy_pct": null,
       "net_income_yoy_pct": 32.9,
-      "adjusted_ebitda_yoy_pct": 32.5
+      "adjusted_ebitda_yoy_pct": 32.5,
+      "total_debt_usd_m": 68.5
     },
     {
       "ticker": "GREE",
@@ -5856,7 +5861,8 @@
       "revenue_yoy_pct": 8.4,
       "gross_profit_yoy_pct": null,
       "net_income_yoy_pct": -38.1,
-      "adjusted_ebitda_yoy_pct": null
+      "adjusted_ebitda_yoy_pct": null,
+      "total_debt_usd_m": 30.1
     },
     {
       "ticker": "HIVE",
@@ -5951,7 +5957,8 @@
       "eps_diluted": -0.52,
       "gross_profit_yoy_pct": null,
       "net_income_yoy_pct": 61.7,
-      "adjusted_ebitda_yoy_pct": 49.9
+      "adjusted_ebitda_yoy_pct": 49.9,
+      "total_debt_usd_m": 55.2
     },
     {
       "ticker": "HIVE",
@@ -6338,7 +6345,7 @@
       "shares_outstanding_m": 101.05,
       "cash_and_equivalents_usd_m": null,
       "btc_held": null,
-      "total_debt_usd_m": null,
+      "total_debt_usd_m": 235.6,
       "notes": "FY2024: Net income $331.4M, Adj EBITDA $555.7M | SEC EDGAR XBRL verified."
     },
     {
@@ -6651,7 +6658,7 @@
       "shares_outstanding_m": 99.6,
       "cash_and_equivalents_usd_m": null,
       "btc_held": null,
-      "total_debt_usd_m": null,
+      "total_debt_usd_m": 1.3,
       "notes": "Source: SEC EDGAR XBRL (10-K filed 2025-08-28). EBITDA estimated from operating_income + depreciation."
     },
     {
@@ -6738,7 +6745,7 @@
       "shares_outstanding_m": 223.2,
       "cash_and_equivalents_usd_m": null,
       "btc_held": null,
-      "total_debt_usd_m": null,
+      "total_debt_usd_m": 964.2,
       "notes": "Source: SEC EDGAR XBRL (10-K filed 2025-08-28). EBITDA estimated from operating_income + depreciation."
     },
     {
@@ -7958,7 +7965,8 @@
       "adjusted_ebitda_yoy_pct": 40.1,
       "shares_outstanding_m": 18.79,
       "gross_profit_yoy_pct": 35.3,
-      "net_income_yoy_pct": 23.7
+      "net_income_yoy_pct": 23.7,
+      "total_debt_usd_m": 21.4
     },
     {
       "ticker": "MIGI",
@@ -8057,7 +8065,7 @@
       "shares_outstanding_m": null,
       "cash_and_equivalents_usd_m": null,
       "btc_held": null,
-      "total_debt_usd_m": null,
+      "total_debt_usd_m": 21.4,
       "notes": "Source: Mawson FY2025 preliminary unaudited results Feb 6 2026. Rev -33% YoY."
     },
     {
@@ -8853,7 +8861,8 @@
       "revenue_yoy_pct": -18.3,
       "adjusted_ebitda_yoy_pct": -1.6,
       "gross_profit_yoy_pct": -300.0,
-      "net_income_yoy_pct": 3.8
+      "net_income_yoy_pct": 3.8,
+      "total_debt_usd_m": 1.6
     },
     {
       "ticker": "SLNH",
@@ -9372,7 +9381,8 @@
       "shares_outstanding_m": 5109.34,
       "gross_profit_yoy_pct": -946.4,
       "net_income_yoy_pct": -105.5,
-      "adjusted_ebitda_yoy_pct": -135.1
+      "adjusted_ebitda_yoy_pct": -135.1,
+      "total_debt_usd_m": 23.3
     },
     {
       "ticker": "SLNH",
@@ -9962,7 +9972,7 @@
       "shares_outstanding_m": 404.22,
       "cash_and_equivalents_usd_m": null,
       "btc_held": null,
-      "total_debt_usd_m": null,
+      "total_debt_usd_m": 500.0,
       "notes": "FY2024 Adj EBITDA $60.4M, up 89% from $31.9M in FY2023 | SEC EDGAR XBRL verified."
     },
     {

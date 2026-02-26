@@ -412,8 +412,21 @@ function renderCompanyGrid(sortBy = 'mktcap') {
           </div>
           <div class="metric-block">
             <div class="metric-label">${t('js.btc_holding')}</div>
-            <div class="metric-value">${fin && fin.btc_held ? fin.btc_held.toLocaleString() : ops && ops.btc_held ? ops.btc_held.toLocaleString() : '—'}</div>
-            <div class="metric-yoy" style="color:var(--text-muted);font-size:10px;">${t('js.btc_unit')}</div>
+            <div class="metric-value">${(() => {
+              // Find latest BTC held from operational (monthly) or financial data
+              const opsRecs = OPERATIONAL.filter(o => o.ticker === co.ticker && o.btc_held > 0)
+                .sort((a, b) => b.period.localeCompare(a.period));
+              if (opsRecs.length) return opsRecs[0].btc_held.toLocaleString();
+              if (fin && fin.btc_held) return fin.btc_held.toLocaleString();
+              return '—';
+            })()}</div>
+            <div class="metric-yoy" style="color:var(--text-muted);font-size:10px;">${(() => {
+              const opsRecs = OPERATIONAL.filter(o => o.ticker === co.ticker && o.btc_held > 0)
+                .sort((a, b) => b.period.localeCompare(a.period));
+              if (opsRecs.length) return opsRecs[0].period_label || opsRecs[0].period;
+              if (fin && fin.btc_held) return fin.period_label || '';
+              return t('js.btc_unit');
+            })()}</div>
           </div>
         </div>
 
@@ -519,11 +532,11 @@ function getFilteredFinancials() {
     data = data.filter(f => f.fiscal_quarter === quarterVal);
   }
 
-  // Sort: default by report_date descending (most recent filings first)
+  // Sort: fiscal_year desc, then within same year: FY first, Q4, Q3, Q2, Q1
+  const qOrd = { FY: 5, Q4: 4, Q3: 3, Q2: 2, Q1: 1 };
   data.sort((a, b) => {
-    const da = a.report_date || a.period_end_date || '';
-    const db = b.report_date || b.period_end_date || '';
-    return db.localeCompare(da);
+    if (a.fiscal_year !== b.fiscal_year) return b.fiscal_year - a.fiscal_year;
+    return (qOrd[b.fiscal_quarter] || 0) - (qOrd[a.fiscal_quarter] || 0);
   });
   return data;
 }
