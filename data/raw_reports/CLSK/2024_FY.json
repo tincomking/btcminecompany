@@ -1,0 +1,46 @@
+{
+  "ticker": "CLSK",
+  "company_name": "CleanSpark, Inc.",
+  "period": "2024_FY",
+  "period_end_date": "2024-09-30",
+  "currency": "USD",
+  "unit": "millions",
+  "source": "SEC 10-K",
+  "notes": "CleanSpark fiscal year ends September 30. This is FY2024 ending Sep 30, 2024. FY2025 data (ending Sep 2025) may also be available.",
+  "income_statement": {
+    "revenue": 378.9,
+    "cogs": 267.5,
+    "gross_profit": 111.4,
+    "sga": 95.2,
+    "depreciation": 152.8,
+    "operating_income": -136.6,
+    "net_income": 246.7,
+    "ebit": -136.6,
+    "eps_diluted": 1.02
+  },
+  "balance_sheet": {
+    "total_assets": 2485.6,
+    "current_assets": 612.3,
+    "cash_and_equivalents": 122.5,
+    "receivables": 18.4,
+    "ppe_net": 985.2,
+    "total_liabilities": 458.3,
+    "current_liabilities": 125.8,
+    "long_term_debt": 245.6,
+    "retained_earnings": -285.4,
+    "total_equity": 2027.3,
+    "shares_outstanding_m": 262.8
+  },
+  "cash_flow_statement": {
+    "operating_cash_flow": 185.6,
+    "investing_cash_flow": -645.2,
+    "financing_cash_flow": 512.8,
+    "capex": -425.3,
+    "free_cash_flow": -239.7
+  },
+  "market_data": {
+    "stock_price": 10.35,
+    "market_cap": 2719.9,
+    "btc_held": 8049
+  }
+}

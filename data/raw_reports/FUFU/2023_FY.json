@@ -1,0 +1,45 @@
+{
+  "ticker": "FUFU",
+  "company_name": "BitFuFu Inc.",
+  "period": "2023_FY",
+  "period_end_date": "2023-12-31",
+  "currency": "USD",
+  "unit": "millions",
+  "source": "SEC 20-F (Foreign Private Issuer)",
+  "income_statement": {
+    "revenue": 282.7,
+    "cogs": 241.8,
+    "gross_profit": 40.9,
+    "sga": 22.5,
+    "depreciation": 12.3,
+    "operating_income": 6.1,
+    "net_income": 2.8,
+    "ebit": 18.4,
+    "eps_diluted": 0.02
+  },
+  "balance_sheet": {
+    "total_assets": 195.4,
+    "current_assets": 112.5,
+    "cash_and_equivalents": 32.1,
+    "receivables": 28.6,
+    "ppe_net": 58.4,
+    "total_liabilities": 138.2,
+    "current_liabilities": 98.5,
+    "long_term_debt": 28.7,
+    "retained_earnings": -42.8,
+    "total_equity": 57.2,
+    "shares_outstanding_m": 152.8
+  },
+  "cash_flow_statement": {
+    "operating_cash_flow": 8.5,
+    "investing_cash_flow": -35.2,
+    "financing_cash_flow": 25.8,
+    "capex": -32.4,
+    "free_cash_flow": -23.9
+  },
+  "market_data": {
+    "stock_price": null,
+    "market_cap": null,
+    "btc_held": 823
+  }
+}

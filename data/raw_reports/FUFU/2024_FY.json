@@ -1,0 +1,46 @@
+{
+  "ticker": "FUFU",
+  "company_name": "BitFuFu Inc.",
+  "period": "2024_FY",
+  "period_end_date": "2024-12-31",
+  "currency": "USD",
+  "unit": "millions",
+  "source": "SEC 20-F (Foreign Private Issuer)",
+  "notes": "BitFuFu files 20-F/6-K as a foreign private issuer, not 10-K/10-Q.",
+  "income_statement": {
+    "revenue": 463.3,
+    "cogs": 370.6,
+    "gross_profit": 92.7,
+    "sga": 32.1,
+    "depreciation": 18.5,
+    "operating_income": 42.1,
+    "net_income": 54.0,
+    "ebit": 60.6,
+    "eps_diluted": 0.33
+  },
+  "balance_sheet": {
+    "total_assets": 377.7,
+    "current_assets": 198.2,
+    "cash_and_equivalents": 58.9,
+    "receivables": 35.4,
+    "ppe_net": 125.6,
+    "total_liabilities": 215.2,
+    "current_liabilities": 142.8,
+    "long_term_debt": 52.4,
+    "retained_earnings": 12.3,
+    "total_equity": 162.5,
+    "shares_outstanding_m": 164.3
+  },
+  "cash_flow_statement": {
+    "operating_cash_flow": -15.2,
+    "investing_cash_flow": -85.3,
+    "financing_cash_flow": 112.5,
+    "capex": -78.6,
+    "free_cash_flow": -93.8
+  },
+  "market_data": {
+    "stock_price": 2.66,
+    "market_cap": 437.0,
+    "btc_held": 1780
+  }
+}

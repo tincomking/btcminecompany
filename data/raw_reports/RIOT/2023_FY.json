@@ -1,0 +1,45 @@
+{
+  "ticker": "RIOT",
+  "company_name": "Riot Platforms, Inc.",
+  "period": "2023_FY",
+  "period_end_date": "2023-12-31",
+  "currency": "USD",
+  "unit": "millions",
+  "source": "SEC 10-K",
+  "income_statement": {
+    "revenue": 280.7,
+    "cogs": 245.8,
+    "gross_profit": 34.9,
+    "sga": 142.5,
+    "depreciation": 115.2,
+    "operating_income": -222.8,
+    "net_income": -49.5,
+    "ebit": -222.8,
+    "eps_diluted": -0.20
+  },
+  "balance_sheet": {
+    "total_assets": 2985.4,
+    "current_assets": 985.6,
+    "cash_and_equivalents": 597.8,
+    "receivables": 22.4,
+    "ppe_net": 1125.8,
+    "total_liabilities": 525.4,
+    "current_liabilities": 145.2,
+    "long_term_debt": 285.6,
+    "retained_earnings": -1094.6,
+    "total_equity": 2460.0,
+    "shares_outstanding_m": 295.8
+  },
+  "cash_flow_statement": {
+    "operating_cash_flow": -12.5,
+    "investing_cash_flow": -458.6,
+    "financing_cash_flow": 524.8,
+    "capex": -385.2,
+    "free_cash_flow": -397.7
+  },
+  "market_data": {
+    "stock_price": 15.85,
+    "market_cap": 4691.4,
+    "btc_held": 7362
+  }
+}
