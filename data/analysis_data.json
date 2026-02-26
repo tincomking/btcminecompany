@@ -1182,6 +1182,62 @@
         "revenue_growth_mean": 0.1,
         "revenue_growth_std": 0.04
       }
+    },
+    "HIVE": {
+      "name": "HIVE Digital Technologies Ltd.",
+      "current": {
+        "period": "FY2025",
+        "revenue": 257.14,
+        "cogs": 0,
+        "gross_profit": 0,
+        "sga": 0,
+        "operating_income": 0,
+        "ebit": 0,
+        "net_income": -125.06,
+        "total_assets": 0,
+        "current_assets": 0,
+        "current_liabilities": 0,
+        "long_term_debt": 0,
+        "total_liabilities": 0,
+        "total_equity": 0,
+        "retained_earnings": 0,
+        "ppe_net": 0,
+        "receivables": 0,
+        "depreciation": 0,
+        "operating_cash_flow": 0,
+        "shares_outstanding_m": 239.04
+      },
+      "prior": {
+        "period": "FY2024",
+        "revenue": 115.28,
+        "cogs": 0,
+        "gross_profit": 0,
+        "sga": 0,
+        "operating_income": 0,
+        "ebit": 0,
+        "net_income": -326.5,
+        "total_assets": 0,
+        "current_assets": 0,
+        "current_liabilities": 0,
+        "long_term_debt": 0,
+        "total_liabilities": 0,
+        "total_equity": 0,
+        "retained_earnings": 0,
+        "ppe_net": 0,
+        "receivables": 0,
+        "depreciation": 0,
+        "operating_cash_flow": 0,
+        "shares_outstanding_m": 165.62
+      },
+      "market": {
+        "stock_price": 2.67,
+        "market_cap": 638.3,
+        "equity_volatility": 0.95,
+        "asset_volatility": 0.95,
+        "risk_free_rate": 0.043,
+        "revenue_growth_mean": 1.23,
+        "revenue_growth_std": 0.45
+      }
     }
   }
 }
