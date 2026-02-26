@@ -540,7 +540,7 @@ function setupFinancialFilters() {
       finCurrentPeriod = btn.dataset.period;
       renderFinancialsTable();
     });
-  });
+  }
 }
 
 // ── PAGE: OPERATIONS ────────────────────────────────────────────────────────
