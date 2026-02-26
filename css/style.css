@@ -554,8 +554,30 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 /* ── AUTOCOMPLETE ─────────────────────────────────────── */
 .autocomplete-wrapper {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
 }
+
+.filter-clear-btn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  border: none;
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  transition: color 0.15s;
+}
+.filter-clear-btn:hover { color: var(--text-primary); }
 
 .filter-input {
   padding: 5px 12px;

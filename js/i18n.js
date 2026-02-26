@@ -59,7 +59,7 @@ const I18N = {
 
     // Financials
     'fin.revenue_chart_title': '各公司季度营收对比（最新期）',
-    'fin.summary': '财务数据汇总',
+    'fin.detail': '财务数据明细',
     'fin.unit_note': '单位：USD百万 | YoY=同比增长',
     'fin.earnings_calendar': '财报日历',
 
@@ -284,7 +284,7 @@ const I18N = {
     'filter.search_ticker': 'Search ticker...',
 
     'fin.revenue_chart_title': 'Quarterly Revenue Comparison (Latest)',
-    'fin.summary': 'Financial Summary',
+    'fin.detail': 'Financial Details',
     'fin.unit_note': 'Unit: USD Million | YoY = Year-over-Year',
     'fin.earnings_calendar': 'Earnings Calendar',
 

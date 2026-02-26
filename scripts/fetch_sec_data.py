@@ -263,8 +263,8 @@ def fetch_all_financials(ticker):
 
     records = []
     for (fy, q) in sorted(all_periods):
-        if fy < 2023:
-            continue  # Only recent data
+        if fy < 2020:
+            continue  # 5+ years of data
 
         rev = rev_lookup.get((fy, q))
         ni = ni_lookup.get((fy, q))

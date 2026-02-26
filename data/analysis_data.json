@@ -110,8 +110,8 @@
         "shares_outstanding_m": 470.13
       },
       "market": {
-        "stock_price": 8.57,
-        "market_cap": 4029.0,
+        "stock_price": 8.62,
+        "market_cap": 4052.5,
         "equity_volatility": 0.95,
         "asset_volatility": 0.95,
         "risk_free_rate": 0.043,
@@ -166,8 +166,8 @@
         "shares_outstanding_m": 403.18
       },
       "market": {
-        "stock_price": 17.08,
-        "market_cap": 6886.3,
+        "stock_price": 16.98,
+        "market_cap": 6846.0,
         "equity_volatility": 0.95,
         "asset_volatility": 0.95,
         "risk_free_rate": 0.043,
@@ -222,8 +222,8 @@
         "shares_outstanding_m": 325.59
       },
       "market": {
-        "stock_price": 10.45,
-        "market_cap": 3402.4,
+        "stock_price": 10.35,
+        "market_cap": 3369.9,
         "equity_volatility": 0.95,
         "asset_volatility": 0.95,
         "risk_free_rate": 0.043,
@@ -278,8 +278,8 @@
         "shares_outstanding_m": 386.88
       },
       "market": {
-        "stock_price": 18.08,
-        "market_cap": 6994.8,
+        "stock_price": 17.91,
+        "market_cap": 6929.0,
         "equity_volatility": 0.95,
         "asset_volatility": 0.95,
         "risk_free_rate": 0.043,
@@ -390,8 +390,8 @@
         "shares_outstanding_m": 121.76
       },
       "market": {
-        "stock_price": 55.3,
-        "market_cap": 6733.3,
+        "stock_price": 56.74,
+        "market_cap": 6908.7,
         "equity_volatility": 0.95,
         "asset_volatility": 0.95,
         "risk_free_rate": 0.043,
@@ -446,8 +446,8 @@
         "shares_outstanding_m": 439.21
       },
       "market": {
-        "stock_price": 17.92,
-        "market_cap": 7870.6,
+        "stock_price": 18.16,
+        "market_cap": 7976.1,
         "equity_volatility": 0.95,
         "asset_volatility": 0.95,
         "risk_free_rate": 0.043,
@@ -502,8 +502,8 @@
         "shares_outstanding_m": 99.6
       },
       "market": {
-        "stock_price": 44.03,
-        "market_cap": 15924.8,
+        "stock_price": 45.17,
+        "market_cap": 16337.1,
         "equity_volatility": 0.75,
         "asset_volatility": 0.75,
         "risk_free_rate": 0.043,
@@ -614,8 +614,8 @@
         "shares_outstanding_m": 192.32
       },
       "market": {
-        "stock_price": 8.55,
-        "market_cap": 1644.3,
+        "stock_price": 8.46,
+        "market_cap": 1627.0,
         "equity_volatility": 0.95,
         "asset_volatility": 0.95,
         "risk_free_rate": 0.043,
@@ -670,8 +670,8 @@
         "shares_outstanding_m": 323.67
       },
       "market": {
-        "stock_price": 1.81,
-        "market_cap": 585.8,
+        "stock_price": 1.8,
+        "market_cap": 582.6,
         "equity_volatility": 0.95,
         "asset_volatility": 0.95,
         "risk_free_rate": 0.043,
@@ -726,8 +726,8 @@
         "shares_outstanding_m": 279.69
       },
       "market": {
-        "stock_price": 29.08,
-        "market_cap": 8133.4,
+        "stock_price": 29.23,
+        "market_cap": 8175.3,
         "equity_volatility": 0.95,
         "asset_volatility": 0.95,
         "risk_free_rate": 0.043,
@@ -894,8 +894,8 @@
         "shares_outstanding_m": 77.27
       },
       "market": {
-        "stock_price": 1.44,
-        "market_cap": 111.3,
+        "stock_price": 1.45,
+        "market_cap": 112.0,
         "equity_volatility": 0.95,
         "asset_volatility": 0.95,
         "risk_free_rate": 0.043,
@@ -950,8 +950,8 @@
         "shares_outstanding_m": 11146.14
       },
       "market": {
-        "stock_price": 1.0,
-        "market_cap": 11146.1,
+        "stock_price": 0.96,
+        "market_cap": 10700.3,
         "equity_volatility": 0.95,
         "asset_volatility": 0.95,
         "risk_free_rate": 0.043,
@@ -1062,8 +1062,8 @@
         "shares_outstanding_m": 33.01
       },
       "market": {
-        "stock_price": 2.66,
-        "market_cap": 87.8,
+        "stock_price": 2.72,
+        "market_cap": 89.8,
         "equity_volatility": 0.95,
         "asset_volatility": 0.95,
         "risk_free_rate": 0.043,
@@ -1118,8 +1118,8 @@
         "shares_outstanding_m": 539.19
       },
       "market": {
-        "stock_price": 3.32,
-        "market_cap": 1790.1,
+        "stock_price": 3.21,
+        "market_cap": 1730.8,
         "equity_volatility": 0.95,
         "asset_volatility": 0.95,
         "risk_free_rate": 0.043,

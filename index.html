@@ -163,6 +163,7 @@
       <span class="filter-label" data-i18n="filter.company">公司：</span>
       <div class="autocomplete-wrapper" id="fin-company-ac-wrapper">
         <input type="text" class="filter-input" id="fin-company-input" placeholder="输入代码搜索..." autocomplete="off">
+        <button class="filter-clear-btn" id="fin-company-clear" title="Clear" style="display:none;">✕</button>
         <div class="autocomplete-dropdown" id="fin-company-dropdown"></div>
       </div>
       <span class="filter-label" data-i18n="filter.period">报告期：</span>
@@ -171,7 +172,7 @@
 
     <!-- Financials Table -->
     <div class="section-header">
-      <div class="section-title" data-i18n="fin.summary">财务数据汇总</div>
+      <div class="section-title" data-i18n="fin.detail">财务数据明细</div>
       <span class="text-muted text-mono" style="font-size:10px;" data-i18n="fin.unit_note">单位：USD百万 | YoY=同比增长</span>
     </div>
     <div class="table-wrapper mb-24">

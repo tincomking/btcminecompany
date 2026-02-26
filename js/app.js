@@ -90,10 +90,11 @@ function avgTargetPrice(ticker) {
 function companyLogo(ticker, size) {
   size = size || 24;
   const co = COMPANIES.find(c => c.ticker === ticker);
-  const domain = co && co.website ? co.website.replace(/^https?:\/\//, '').replace(/\/$/, '') : null;
+  const url = co && co.website ? co.website.replace(/\/$/, '') : null;
   const fallback = `<span class="logo-placeholder" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.45)}px;">${ticker[0]}</span>`;
-  if (!domain) return fallback;
-  return `<img class="company-logo" src="https://logo.clearbit.com/${domain}" width="${size}" height="${size}" alt="${ticker}" onerror="this.outerHTML='${fallback.replace(/'/g, "\\'")}'">`;
+  if (!url) return fallback;
+  const src = `https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(url)}&size=${size}`;
+  return `<img class="company-logo" src="${src}" width="${size}" height="${size}" alt="${ticker}" onerror="this.outerHTML='${fallback.replace(/'/g, "\\'")}'">`;
 }
 
 // ── SENTIMENT TAB STATE ──────────────────────────────────────────────────
@@ -436,22 +437,28 @@ function buildPeriodSelectors() {
 
 function getFilteredFinancials() {
   let data = FINANCIALS.filter(f => f.is_reported);
+
+  // Company filter
   if (finCurrentCompany !== 'ALL') data = data.filter(f => f.ticker === finCurrentCompany);
 
+  // Year filter
   const yearSel = document.getElementById('fin-year-select');
   const quarterSel = document.getElementById('fin-quarter-select');
   const yearVal = yearSel ? yearSel.value : 'latest';
   const quarterVal = quarterSel ? quarterSel.value : 'ALL';
 
   if (yearVal === 'latest') {
-    // Get latest reported for each company
-    const map = {};
-    data.forEach(f => {
-      if (!map[f.ticker] || f.period_end_date > map[f.ticker].period_end_date) {
-        map[f.ticker] = f;
-      }
-    });
-    data = Object.values(map);
+    if (finCurrentCompany !== 'ALL') {
+      // Single company selected → show ALL data for that company, sorted newest first
+      data.sort((a, b) => b.period_end_date.localeCompare(a.period_end_date));
+    } else {
+      // All companies → show latest per company
+      const map = {};
+      data.forEach(f => {
+        if (!map[f.ticker] || f.period_end_date > map[f.ticker].period_end_date) map[f.ticker] = f;
+      });
+      data = Object.values(map);
+    }
   } else {
     const year = parseInt(yearVal);
     data = data.filter(f => f.fiscal_year === year);
@@ -459,7 +466,19 @@ function getFilteredFinancials() {
       data = data.filter(f => f.fiscal_quarter === quarterVal);
     }
   }
-  return data.sort((a, b) => ((b.revenue_usd_m)||0) - ((a.revenue_usd_m)||0));
+
+  // Quarter filter also applies in "latest" mode when a specific quarter is chosen
+  if (yearVal === 'latest' && quarterVal !== 'ALL') {
+    data = data.filter(f => f.fiscal_quarter === quarterVal);
+  }
+
+  // Sort: single company by date desc, multiple by revenue desc
+  if (finCurrentCompany !== 'ALL') {
+    data.sort((a, b) => b.period_end_date.localeCompare(a.period_end_date));
+  } else {
+    data.sort((a, b) => ((b.revenue_usd_m) || 0) - ((a.revenue_usd_m) || 0));
+  }
+  return data;
 }
 
 function renderFinancialsTable() {
@@ -612,6 +631,8 @@ function setupFinancialFilters() {
     input.addEventListener('focus', () => showDropdown(input.value));
     input.addEventListener('input', () => showDropdown(input.value));
 
+    const clearBtn = document.getElementById('fin-company-clear');
+
     dropdown.addEventListener('click', (e) => {
       const item = e.target.closest('.ac-item[data-value]');
       if (!item) return;
@@ -620,8 +641,19 @@ function setupFinancialFilters() {
       input.value = val === 'ALL' ? '' : item.textContent;
       input.placeholder = val === 'ALL' ? t('filter.all_companies') : '';
       dropdown.classList.remove('open');
+      if (clearBtn) clearBtn.style.display = val === 'ALL' ? 'none' : 'flex';
       renderFinancialsTable();
     });
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        finCurrentCompany = 'ALL';
+        input.value = '';
+        input.placeholder = t('filter.all_companies');
+        clearBtn.style.display = 'none';
+        renderFinancialsTable();
+      });
+    }
 
     document.addEventListener('click', (e) => {
       if (!e.target.closest('#fin-company-ac-wrapper')) {
@@ -635,11 +667,7 @@ function setupFinancialFilters() {
   const quarterSelect = document.getElementById('fin-quarter-select');
   if (yearSelect && !yearSelect._init) {
     yearSelect._init = true;
-    yearSelect.addEventListener('change', () => {
-      // When "Latest" is selected, disable quarter filter
-      if (quarterSelect) quarterSelect.disabled = yearSelect.value === 'latest';
-      renderFinancialsTable();
-    });
+    yearSelect.addEventListener('change', () => renderFinancialsTable());
   }
   if (quarterSelect && !quarterSelect._init) {
     quarterSelect._init = true;
@@ -989,12 +1017,13 @@ function openRatingDetail(globalIdx) {
       <div class="rating-detail-item"><div class="rating-detail-label">${t('th.action') || 'Action'}</div><div class="rating-detail-value">${actionLabel(r.action)}</div></div>
       <div class="rating-detail-item"><div class="rating-detail-label">${t('th.target_price') || 'Target'}</div><div class="rating-detail-value">${r.target_price_usd ? '$' + r.target_price_usd.toFixed(2) : '—'}${r.prev_target_price_usd ? ' <span style="font-size:11px;color:var(--text-muted);">(prev: $' + r.prev_target_price_usd.toFixed(2) + ')</span>' : ''}</div></div>
       <div class="rating-detail-item"><div class="rating-detail-label">${t('th.date') || 'Date'}</div><div class="rating-detail-value">${r.date}</div></div>
-      <div class="rating-detail-item"><div class="rating-detail-label">${t('js.source') || 'Source'}</div><div class="rating-detail-value">${r.source || r.analyst_firm || '—'}</div></div>
+      <div class="rating-detail-item"><div class="rating-detail-label">${t('js.source') || 'Source'}</div><div class="rating-detail-value">${r.source_url ? `<a href="${r.source_url}" target="_blank" rel="noopener" style="color:var(--accent-blue);text-decoration:underline;">${r.analyst_firm}</a>` : (r.analyst_firm || '—')}</div></div>
     </div>
     <div style="margin-top:16px;">
       <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted);margin-bottom:8px;">${t('th.notes') || 'Notes'}</div>
       <div style="font-size:13px;line-height:1.6;color:var(--text-secondary);background:var(--bg-elevated);padding:14px;border-radius:var(--radius-md);">${r.note || '—'}</div>
-    </div>`;
+    </div>
+    ${r.source_url ? `<div style="margin-top:12px;text-align:right;"><a href="${r.source_url}" target="_blank" rel="noopener" style="color:var(--accent-blue);font-size:12px;">View Original Report ↗</a></div>` : ''}`;
   overlay.classList.add('open');
 }
 
