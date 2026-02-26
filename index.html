@@ -190,6 +190,7 @@
             <th class="td-right" data-i18n="th.eps">EPS（摊薄）</th>
             <th data-i18n="th.status">财报状态</th>
             <th data-i18n="th.report_date">财报日期</th>
+            <th style="width:50px;"></th>
           </tr>
         </thead>
         <tbody id="financialsBody"></tbody>
@@ -488,6 +489,18 @@
   <span data-i18n="footer.left">BTC Mining Intelligence © 2026 | MOCK DATA — 仅供演示</span>
   <span data-i18n="footer.right">数据更新: 2026-02-26 | 公司: 12 US-listed miners</span>
 </footer>
+
+<!-- ═══════════════════════════ FINANCIAL DETAIL MODAL ════════════ -->
+<div class="modal-overlay" id="finDetailModal" onclick="if(event.target===this)this.classList.remove('open');">
+  <div class="modal" style="max-width:720px;">
+    <div class="modal-header">
+      <div id="finDetailHeader"></div>
+      <button class="modal-close" onclick="document.getElementById('finDetailModal').classList.remove('open');">✕</button>
+    </div>
+    <div id="finDetailSummary" class="modal-metric-grid"></div>
+    <div id="finDetailFull"></div>
+  </div>
+</div>
 
 <!-- ═══════════════════════════ RATING DETAIL MODAL ═══════════════ -->
 <div class="modal-overlay" id="ratingDetailModal" onclick="if(event.target===this)this.classList.remove('open');">

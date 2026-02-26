@@ -556,7 +556,7 @@ function renderFinancialsTable() {
   const allData = getFilteredFinancials();
 
   if (!allData.length) {
-    body.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:32px;color:var(--text-muted);">${t('js.no_data')}</td></tr>`;
+    body.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:32px;color:var(--text-muted);">${t('js.no_data')}</td></tr>`;
     renderFinPagination(0, 0);
     return;
   }
@@ -572,8 +572,9 @@ function renderFinancialsTable() {
     const co = COMPANIES.find(c => c.ticker === f.ticker);
     const niStr = f.net_income_usd_m == null ? '<span class="no-data">—</span>' :
       `<span class="${f.net_income_usd_m >= 0 ? 'text-green' : 'text-red'} text-mono">${f.net_income_usd_m >= 0 ? '' : ''}${fmt.usd(f.net_income_usd_m)}</span>`;
+    const fKey = `${f.ticker}|${f.fiscal_year}|${f.fiscal_quarter}`;
 
-    return `<tr>
+    return `<tr class="fin-row-clickable" onclick="openFinancialDetail('${fKey}')">
       <td>
         <div style="display:flex;align-items:center;gap:6px;">
           ${companyLogo(f.ticker, 20)}
@@ -593,10 +594,94 @@ function renderFinancialsTable() {
       <td class="td-right td-mono">${f.eps_diluted == null ? '<span class="no-data">—</span>' : (f.eps_diluted >= 0 ? '+' : '') + f.eps_diluted.toFixed(2)}</td>
       <td><span class="status-badge status-reported"><span class="dot"></span>${t('js.reported')}</span></td>
       <td class="td-mono">${fmt.date(f.report_date)}</td>
+      <td style="text-align:center;"><button class="fin-detail-btn" onclick="event.stopPropagation();openFinancialDetail('${fKey}',true);" title="${currentLang === 'zh' ? '查看完整财报' : 'View full report'}">&#9776;</button></td>
     </tr>`;
   }).join('');
   renderFinPagination(allData.length, totalPages);
 }
+
+function openFinancialDetail(key, showFull) {
+  const [ticker, fy, fq] = key.split('|');
+  const f = FINANCIALS.find(r => r.ticker === ticker && String(r.fiscal_year) === fy && r.fiscal_quarter === fq);
+  if (!f) return;
+  const co = COMPANIES.find(c => c.ticker === ticker);
+  const isZh = currentLang === 'zh';
+
+  // Header
+  document.getElementById('finDetailHeader').innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+      ${companyLogo(ticker, 28)}
+      <span class="ticker-badge">${ticker}</span>
+      <span style="font-size:15px;font-weight:600;">${co ? co.name : ''}</span>
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);">${f.period_label} &middot; ${isZh ? '报告期截止' : 'Period ending'}: ${f.period_end_date || '—'} &middot; ${isZh ? '发布日期' : 'Filed'}: ${f.report_date || '—'}</div>`;
+
+  // Summary metrics grid
+  const metrics = [
+    { label: isZh ? '营收' : 'Revenue', value: fmt.usd(f.revenue_usd_m), yoy: f.revenue_yoy_pct },
+    { label: isZh ? '毛利' : 'Gross Profit', value: fmt.usd(f.gross_profit_usd_m), yoy: f.gross_profit_yoy_pct },
+    { label: isZh ? '营业利润' : 'Operating Income', value: fmt.usd(f.operating_income_usd_m), yoy: null, color: f.operating_income_usd_m },
+    { label: isZh ? '净利润' : 'Net Income', value: fmt.usd(f.net_income_usd_m), yoy: f.net_income_yoy_pct, color: f.net_income_usd_m },
+    { label: 'Adj. EBITDA', value: fmt.usd(f.adjusted_ebitda_usd_m), yoy: f.adjusted_ebitda_yoy_pct },
+    { label: isZh ? 'EPS（摊薄）' : 'EPS (Diluted)', value: f.eps_diluted != null ? (f.eps_diluted >= 0 ? '+' : '') + f.eps_diluted.toFixed(2) : '—', yoy: null, color: f.eps_diluted },
+  ];
+  document.getElementById('finDetailSummary').innerHTML = metrics.map(m => `
+    <div class="modal-metric">
+      <div class="modal-metric-label">${m.label}</div>
+      <div class="modal-metric-value" ${m.color != null && m.color < 0 ? 'style="color:var(--red);"' : ''}>${m.value}</div>
+      ${m.yoy != null ? `<div class="modal-metric-yoy">${fmt.pct(m.yoy, 'yoy')}</div>` : ''}
+    </div>`).join('');
+
+  // Full detail table
+  const allFields = [
+    [isZh ? '报告期' : 'Period', f.period_label],
+    [isZh ? '报告期截止日' : 'Period End Date', f.period_end_date || '—'],
+    [isZh ? '财报发布日' : 'Report Date', f.report_date || '—'],
+    ['', ''],
+    [isZh ? '营收 (百万美元)' : 'Revenue (USD M)', fmtVal(f.revenue_usd_m)],
+    [isZh ? '营收同比' : 'Revenue YoY', fmtPctVal(f.revenue_yoy_pct)],
+    [isZh ? '毛利 (百万美元)' : 'Gross Profit (USD M)', fmtVal(f.gross_profit_usd_m)],
+    [isZh ? '毛利同比' : 'Gross Profit YoY', fmtPctVal(f.gross_profit_yoy_pct)],
+    [isZh ? '营业利润 (百万美元)' : 'Operating Income (USD M)', fmtVal(f.operating_income_usd_m)],
+    [isZh ? '净利润 (百万美元)' : 'Net Income (USD M)', fmtVal(f.net_income_usd_m)],
+    [isZh ? '净利润同比' : 'Net Income YoY', fmtPctVal(f.net_income_yoy_pct)],
+    [isZh ? '调整后 EBITDA (百万美元)' : 'Adj. EBITDA (USD M)', fmtVal(f.adjusted_ebitda_usd_m)],
+    [isZh ? 'EBITDA 同比' : 'EBITDA YoY', fmtPctVal(f.adjusted_ebitda_yoy_pct)],
+    ['', ''],
+    [isZh ? 'EPS（摊薄）' : 'EPS (Diluted)', f.eps_diluted != null ? f.eps_diluted.toFixed(2) : '—'],
+    [isZh ? '流通股数 (百万)' : 'Shares Outstanding (M)', f.shares_outstanding_m != null ? f.shares_outstanding_m.toFixed(2) : '—'],
+    [isZh ? '现金及等价物 (百万美元)' : 'Cash & Equivalents (USD M)', fmtVal(f.cash_and_equivalents_usd_m)],
+    [isZh ? 'BTC 持仓' : 'BTC Holdings', f.btc_held != null ? f.btc_held.toLocaleString() + ' BTC' : '—'],
+    [isZh ? '总债务 (百万美元)' : 'Total Debt (USD M)', fmtVal(f.total_debt_usd_m)],
+    ['', ''],
+    [isZh ? '备注' : 'Notes', f.notes || '—'],
+  ];
+
+  const fullHtml = `
+    <div style="margin-top:16px;border-top:1px solid var(--border-subtle);padding-top:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;cursor:pointer;" onclick="this.parentElement.querySelector('.fin-detail-body').classList.toggle('collapsed');this.querySelector('.fin-toggle').classList.toggle('open');">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);">${isZh ? '完整财报数据' : 'Full Report Data'}</div>
+        <span class="fin-toggle ${showFull ? 'open' : ''}" style="font-size:10px;color:var(--text-muted);transition:transform 0.2s;">&#9660;</span>
+      </div>
+      <div class="fin-detail-body ${showFull ? '' : 'collapsed'}">
+        <table style="width:100%;font-size:12px;">
+          ${allFields.map(([label, val]) =>
+            label === '' ? '<tr><td colspan="2" style="height:8px;"></td></tr>' :
+            `<tr>
+              <td style="padding:5px 10px 5px 0;color:var(--text-muted);white-space:nowrap;width:40%;vertical-align:top;">${label}</td>
+              <td style="padding:5px 0;font-family:var(--font-mono);color:var(--text-primary);word-break:break-word;">${val}</td>
+            </tr>`
+          ).join('')}
+        </table>
+      </div>
+    </div>`;
+  document.getElementById('finDetailFull').innerHTML = fullHtml;
+
+  document.getElementById('finDetailModal').classList.add('open');
+}
+
+function fmtVal(v) { return v != null ? (v < 0 ? '' : '') + v.toFixed(1) : '—'; }
+function fmtPctVal(v) { return v != null ? (v > 0 ? '+' : '') + v.toFixed(1) + '%' : '—'; }
 
 function renderFinPagination(total, totalPages) {
   let container = document.getElementById('finPagination');
@@ -1255,6 +1340,11 @@ function setupSentimentFilters() {
 function renderRatingsPieChart() {
   const canvas = document.getElementById('ratingsPieChart');
   if (!canvas) return;
+  // Set explicit size for responsive:false
+  const container = canvas.parentElement;
+  const w = container.clientWidth || 280;
+  canvas.width = w;
+  canvas.height = Math.min(w, 220);
 
   const buy = SENTIMENT.analyst_ratings.filter(r => r.rating_normalized === 'buy').length;
   const hold = SENTIMENT.analyst_ratings.filter(r => r.rating_normalized === 'hold').length;
@@ -1269,13 +1359,15 @@ function renderRatingsPieChart() {
       datasets: [{ data: [buy, hold, sell], backgroundColor: ['rgba(16,185,129,0.8)','rgba(245,158,11,0.8)','rgba(239,68,68,0.8)'], borderWidth: 0 }]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: true,
+      responsive: false,
       cutout: '60%',
       animation: false,
+      animations: { colors: false, x: false, y: false },
+      transitions: { active: { animation: { duration: 0 } }, resize: { animation: { duration: 0 } } },
+      hover: { mode: null },
       plugins: {
         legend: { position:'bottom', labels: { color: cc5.legend, font: { size: 11 }, padding: 12, usePointStyle: true } },
-        tooltip: { backgroundColor: cc5.tooltip.bg, borderColor: cc5.tooltip.border, borderWidth: 1, titleColor: cc5.tooltip.title, bodyColor: cc5.tooltip.body }
+        tooltip: { mode: 'nearest', backgroundColor: cc5.tooltip.bg, borderColor: cc5.tooltip.border, borderWidth: 1, titleColor: cc5.tooltip.title, bodyColor: cc5.tooltip.body }
       }
     }
   });

@@ -1088,6 +1088,19 @@ footer {
 .pagination-btn:disabled { opacity: 0.3; cursor: default; }
 .pagination-ellipsis { color: var(--text-muted); padding: 0 4px; }
 
+/* ── FINANCIAL DETAIL ─────────────────────────────────── */
+.fin-row-clickable { cursor: pointer; transition: background 0.15s; }
+.fin-row-clickable:hover { background: var(--bg-elevated) !important; }
+.fin-detail-btn {
+  background: none; border: 1px solid var(--border-subtle); color: var(--text-muted);
+  border-radius: 4px; padding: 3px 7px; cursor: pointer; font-size: 11px;
+  transition: all 0.15s;
+}
+.fin-detail-btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+.fin-detail-body.collapsed { display: none; }
+.fin-toggle { display: inline-block; transition: transform 0.2s; }
+.fin-toggle.open { transform: rotate(180deg); }
+
 /* ── RATING DETAIL MODAL ─────────────────────────────── */
 .rating-detail-grid {
   display: grid;
