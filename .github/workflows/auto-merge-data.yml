@@ -1,0 +1,65 @@
+name: Auto-merge data PRs
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'data/**'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check PR only modifies data files
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            const allDataOnly = files.every(f => f.filename.startsWith('data/'));
+            console.log(`Files changed: ${files.map(f => f.filename).join(', ')}`);
+            console.log(`All data-only: ${allDataOnly}`);
+            core.setOutput('data_only', allDataOnly.toString());
+
+      - name: Validate JSON syntax
+        if: steps.check.outputs.data_only == 'true'
+        run: |
+          for f in data/*.json; do
+            echo "Validating $f ..."
+            python3 -m json.tool "$f" > /dev/null || { echo "INVALID JSON: $f"; exit 1; }
+          done
+          echo "All JSON files valid."
+
+      - name: Auto-merge PR
+        if: steps.check.outputs.data_only == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Approve the PR
+            await github.rest.pulls.createReview({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              event: 'APPROVE',
+              body: 'Auto-approved: data-only change with valid JSON.',
+            });
+            // Merge the PR
+            await github.rest.pulls.merge({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              merge_method: 'squash',
+              commit_title: `data: ${context.payload.pull_request.title}`,
+            });
+            console.log('PR merged successfully.');
