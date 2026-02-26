@@ -22,8 +22,11 @@ const I18N = {
     'stats.hashrate_sub': '10月 运营算力',
     'stats.monthly': '合并月产量',
     'stats.monthly_sub': 'BTC / 2024年10月',
+    'stats.companies_disclosed': '家公司已披露',
 
     // Overview
+    'overview.intro_title': '关于本站',
+    'overview.intro_text': '本平台追踪美国上市的比特币矿业公司，汇集财务数据、运营披露、新闻动态、市场情绪、财务分析模型和 BTC 价格预测，为投资者和研究人员提供一站式挖矿行业信息。',
     'overview.upcoming_earnings': '即将发布财报',
     'overview.estimated_date': '预估日期',
     'overview.all_companies': '所有公司',
@@ -239,8 +242,11 @@ const I18N = {
     'stats.hashrate_sub': 'Oct operational',
     'stats.monthly': 'Monthly Output',
     'stats.monthly_sub': 'BTC / Oct 2024',
+    'stats.companies_disclosed': ' companies disclosed',
 
     'overview.upcoming_earnings': 'Upcoming Earnings',
+    'overview.intro_title': 'About This Site',
+    'overview.intro_text': 'This platform tracks US-listed Bitcoin mining companies, aggregating financial data, operational disclosures, news, market sentiment, financial analysis models, and BTC price predictions — providing a one-stop intelligence hub for mining industry investors and researchers.',
     'overview.estimated_date': 'Estimated',
     'overview.all_companies': 'All Companies',
 

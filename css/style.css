@@ -1160,6 +1160,55 @@ canvas { max-width: 100%; }
 .verdict-caution { background: var(--orange-dim); color: var(--orange); }
 .verdict-danger { background: var(--red-dim); color: var(--red); }
 
+/* ================================================================
+   Site Introduction
+   ================================================================ */
+
+.site-intro {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+
+.site-intro-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.site-intro-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin: 0 0 14px 0;
+}
+
+.site-intro-features {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.intro-feature {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.intro-icon {
+  font-size: 13px;
+}
+
 /* Responsive: Analysis */
 @media (max-width: 900px) {
   .analysis-model-selector { width: 100%; }

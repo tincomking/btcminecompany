@@ -149,27 +149,59 @@ function updateStatsBar() {
   document.getElementById('stat-companies').textContent = COMPANIES.length;
 
   // Total market cap
-  const totalMktCap = COMPANIES.reduce((s, c) => s + (c.market_cap_usd_m || 0), 0);
+  const companiesWithMktCap = COMPANIES.filter(c => c.market_cap_usd_m > 0);
+  const totalMktCap = companiesWithMktCap.reduce((s, c) => s + c.market_cap_usd_m, 0);
   document.getElementById('stat-mktcap').textContent = totalMktCap > 0 ? `$${(totalMktCap / 1000).toFixed(1)}B` : '—';
+  const mktCapSub = document.getElementById('stat-mktcap').closest('.stat-item').querySelector('.stat-sub');
+  if (mktCapSub) {
+    const n = companiesWithMktCap.length;
+    mktCapSub.textContent = n < COMPANIES.length
+      ? `${n}/${COMPANIES.length} ${t('stats.companies_disclosed')}`
+      : t('stats.mktcap_sub');
+  }
 
   // Total BTC held (from latest financial or operational)
   let totalBtc = 0;
+  let btcCount = 0;
   COMPANIES.forEach(co => {
     const fin = getLatestFinancial(co.ticker);
     const ops = getLatestOperational(co.ticker);
     const btc = (fin && fin.btc_held) || (ops && ops.btc_held) || 0;
+    if (btc > 0) btcCount++;
     totalBtc += btc;
   });
   document.getElementById('stat-btc').textContent = totalBtc > 0 ? totalBtc.toLocaleString() : '—';
+  const btcSub = document.getElementById('stat-btc').closest('.stat-item').querySelector('.stat-sub');
+  if (btcSub) {
+    btcSub.textContent = btcCount > 0 && btcCount < COMPANIES.length
+      ? `${btcCount}/${COMPANIES.length} ${t('stats.companies_disclosed')}`
+      : t('stats.btc_held_sub');
+  }
 
   // Total hashrate & BTC mined from latest operational period
   const latestP = getLatestPeriod();
   const latestOps = OPERATIONAL.filter(o => o.period === latestP);
-  const totalHash = latestOps.reduce((s, o) => s + (o.hash_rate_eh || 0), 0);
-  const totalMined = latestOps.reduce((s, o) => s + (o.btc_mined || 0), 0);
+  const opsWithHash = latestOps.filter(o => o.hash_rate_eh > 0);
+  const opsWithMined = latestOps.filter(o => o.btc_mined > 0);
+  const totalHash = opsWithHash.reduce((s, o) => s + o.hash_rate_eh, 0);
+  const totalMined = opsWithMined.reduce((s, o) => s + o.btc_mined, 0);
+  const hashPeriodLabel = latestOps.length ? latestOps[0].period_label : '';
 
   document.getElementById('stat-hashrate').textContent = totalHash > 0 ? `${totalHash.toFixed(1)} EH/s` : '—';
+  const hashSub = document.getElementById('stat-hashrate').closest('.stat-item').querySelector('.stat-sub');
+  if (hashSub) {
+    hashSub.textContent = opsWithHash.length > 0 && opsWithHash.length < COMPANIES.length
+      ? `${opsWithHash.length}/${COMPANIES.length} ${t('stats.companies_disclosed')}`
+      : t('stats.hashrate_sub');
+  }
+
   document.getElementById('stat-btcmined').textContent = totalMined > 0 ? totalMined.toLocaleString() : '—';
+  const minedSub = document.getElementById('stat-btcmined').closest('.stat-item').querySelector('.stat-sub');
+  if (minedSub) {
+    minedSub.textContent = opsWithMined.length > 0 && opsWithMined.length < COMPANIES.length
+      ? `${opsWithMined.length}/${COMPANIES.length} ${t('stats.companies_disclosed')}`
+      : `BTC / ${hashPeriodLabel}`;
+  }
 }
 
 function renderEarningsCalendar() {
