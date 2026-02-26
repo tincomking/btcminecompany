@@ -140,7 +140,7 @@ document.querySelectorAll('.nav-tab').forEach(btn => {
 function renderOverview() {
   updateStatsBar();
   renderEarningsCalendar();
-  renderCompanyGrid('revenue');
+  renderCompanyGrid('relevance');
   setupOverviewFilters();
 }
 
@@ -204,7 +204,10 @@ function renderCompanyGrid(sortBy = 'mktcap') {
   const grid = document.getElementById('companyGrid');
 
   let sorted = [...COMPANIES];
-  if (sortBy === 'mktcap') {
+  if (sortBy === 'relevance') {
+    sorted.sort((a, b) => (b.market_cap_usd_m||0) - (a.market_cap_usd_m||0));
+    ensureFufuFirst(sorted);
+  } else if (sortBy === 'mktcap') {
     sorted.sort((a, b) => (b.market_cap_usd_m||0) - (a.market_cap_usd_m||0));
   } else if (sortBy === 'revenue') {
     sorted.sort((a, b) => {
@@ -447,16 +450,51 @@ function renderRevenueChart() {
 }
 
 function setupFinancialFilters() {
-  // Company filter select
-  const sel = document.getElementById('fin-company-filter');
-  if (sel && !sel._init) {
-    sel._init = true;
-    COMPANIES.forEach(co => {
-      const opt = document.createElement('option');
-      opt.value = co.ticker; opt.textContent = `${co.ticker} · ${co.name}`;
-      sel.appendChild(opt);
+  // Company autocomplete
+  const input = document.getElementById('fin-company-input');
+  const dropdown = document.getElementById('fin-company-dropdown');
+  if (input && !input._init) {
+    input._init = true;
+    input.placeholder = t('filter.all_companies');
+
+    function showDropdown(query) {
+      const q = (query || '').toUpperCase().trim();
+      let items = [{ ticker: 'ALL', label: t('filter.all_companies') }];
+      COMPANIES.forEach(co => {
+        items.push({ ticker: co.ticker, label: `${co.ticker} · ${co.name}` });
+      });
+      if (q) {
+        items = items.filter(it => it.ticker.includes(q) || it.label.toUpperCase().includes(q));
+      }
+      if (!items.length) {
+        dropdown.innerHTML = `<div class="ac-item ac-empty">${t('js.no_data')}</div>`;
+      } else {
+        dropdown.innerHTML = items.map(it =>
+          `<div class="ac-item" data-value="${it.ticker}">${it.label}</div>`
+        ).join('');
+      }
+      dropdown.classList.add('open');
+    }
+
+    input.addEventListener('focus', () => showDropdown(input.value));
+    input.addEventListener('input', () => showDropdown(input.value));
+
+    dropdown.addEventListener('click', (e) => {
+      const item = e.target.closest('.ac-item[data-value]');
+      if (!item) return;
+      const val = item.dataset.value;
+      finCurrentCompany = val;
+      input.value = val === 'ALL' ? '' : item.textContent;
+      input.placeholder = val === 'ALL' ? t('filter.all_companies') : '';
+      dropdown.classList.remove('open');
+      renderFinancialsTable();
     });
-    sel.addEventListener('change', () => { finCurrentCompany = sel.value; renderFinancialsTable(); });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#fin-company-ac-wrapper')) {
+        dropdown.classList.remove('open');
+      }
+    });
   }
 
   // Period filter
@@ -927,6 +965,11 @@ document.getElementById('companyModal').addEventListener('click', (e) => {
 let currentAnalysisModel = 'beneish';
 
 function renderAnalysis() {
+  if (!window.ANALYSIS_MODELS || !Object.keys(window.ANALYSIS_MODELS).length) {
+    document.getElementById('analysisInfoPanel').innerHTML =
+      '<div class="empty-state"><div class="empty-text">Loading models...</div></div>';
+    return;
+  }
   setupAnalysisModelSelector();
   renderAnalysisModel(currentAnalysisModel);
 }
@@ -935,7 +978,7 @@ function setupAnalysisModelSelector() {
   const container = document.getElementById('analysisModelSelector');
   const modelKeys = ['beneish', 'piotroski', 'jones', 'altman', 'kmv', 'montecarlo'];
   container.innerHTML = modelKeys.map(key => {
-    const model = ANALYSIS_MODELS[key];
+    const model = window.ANALYSIS_MODELS[key];
     if (!model) return '';
     const info = model.info[currentLang] || model.info.zh;
     const active = key === currentAnalysisModel ? ' active' : '';
@@ -953,7 +996,7 @@ function setupAnalysisModelSelector() {
 }
 
 function renderAnalysisModel(modelKey) {
-  const model = ANALYSIS_MODELS[modelKey];
+  const model = window.ANALYSIS_MODELS[modelKey];
   if (!model) return;
   const lang = currentLang;
   const info = model.info[lang] || model.info.zh;

@@ -90,7 +90,8 @@
     <div class="section-header mt-24">
       <div class="section-title" data-i18n="overview.all_companies">所有公司</div>
       <div class="section-actions">
-        <button class="filter-btn active" data-sort="mktcap" data-i18n="sort.mktcap">市值排序</button>
+        <button class="filter-btn active" data-sort="relevance" data-i18n="sort.relevance">相关</button>
+        <button class="filter-btn" data-sort="mktcap" data-i18n="sort.mktcap">市值排序</button>
         <button class="filter-btn" data-sort="revenue" data-i18n="sort.revenue">营收排序</button>
         <button class="filter-btn" data-sort="ebitda" data-i18n="sort.ebitda">EBITDA排序</button>
         <button class="filter-btn" data-sort="hashrate" data-i18n="sort.hashrate">算力排序</button>
@@ -111,9 +112,10 @@
     <!-- Filter Bar -->
     <div class="filter-bar">
       <span class="filter-label" data-i18n="filter.company">公司：</span>
-      <select class="filter-select" id="fin-company-filter">
-        <option value="ALL" data-i18n="filter.all_companies">全部公司</option>
-      </select>
+      <div class="autocomplete-wrapper" id="fin-company-ac-wrapper">
+        <input type="text" class="filter-input" id="fin-company-input" placeholder="输入代码搜索..." autocomplete="off">
+        <div class="autocomplete-dropdown" id="fin-company-dropdown"></div>
+      </div>
       <span class="filter-label" data-i18n="filter.period">报告期：</span>
       <button class="filter-btn active" data-period="latest" data-i18n="filter.latest">最新期</button>
       <button class="filter-btn" data-period="Q3-2024">Q3 2024</button>

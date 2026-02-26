@@ -538,6 +538,56 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 
 .filter-select:focus { border-color: var(--accent-blue); }
 
+/* ── AUTOCOMPLETE ─────────────────────────────────────── */
+.autocomplete-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.filter-input {
+  padding: 5px 12px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  outline: none;
+  width: 180px;
+}
+
+.filter-input::placeholder { color: var(--text-muted); font-family: var(--font-sans); }
+.filter-input:focus { border-color: var(--accent-blue); }
+
+.autocomplete-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 240px;
+  max-height: 260px;
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  z-index: 50;
+}
+
+.autocomplete-dropdown.open { display: block; }
+
+.ac-item {
+  padding: 7px 12px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.1s;
+  font-family: var(--font-mono);
+}
+
+.ac-item:hover { background: var(--bg-elevated); color: var(--text-primary); }
+.ac-item.ac-empty { color: var(--text-muted); cursor: default; font-family: var(--font-sans); }
+
 /* ── EARNINGS CALENDAR ─────────────────────────────────── */
 .earnings-calendar {
   display: grid;

@@ -29,6 +29,7 @@ const I18N = {
     'overview.all_companies': '所有公司',
 
     // Sort
+    'sort.relevance': '相关',
     'sort.mktcap': '市值排序',
     'sort.revenue': '营收排序',
     'sort.ebitda': 'EBITDA排序',
@@ -42,6 +43,7 @@ const I18N = {
     'filter.fy': '全年',
     'filter.filter': '筛选：',
     'filter.all': '全部',
+    'filter.search_ticker': '输入代码搜索...',
 
     // Financials
     'fin.revenue_chart_title': '各公司季度营收对比（最新期）',
@@ -204,6 +206,7 @@ const I18N = {
     'overview.estimated_date': 'Estimated',
     'overview.all_companies': 'All Companies',
 
+    'sort.relevance': 'Relevance',
     'sort.mktcap': 'Mkt Cap',
     'sort.revenue': 'Revenue',
     'sort.ebitda': 'EBITDA',
@@ -216,6 +219,7 @@ const I18N = {
     'filter.fy': 'Full Year',
     'filter.filter': 'Filter:',
     'filter.all': 'All',
+    'filter.search_ticker': 'Search ticker...',
 
     'fin.revenue_chart_title': 'Quarterly Revenue Comparison (Latest)',
     'fin.summary': 'Financial Summary',
