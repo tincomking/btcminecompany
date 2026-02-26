@@ -29,7 +29,7 @@ const I18N = {
     'overview.all_companies': '所有公司',
 
     // Sort
-    'sort.relevance': '相关',
+    'sort.relevance': '相关排序',
     'sort.mktcap': '市值排序',
     'sort.revenue': '营收排序',
     'sort.ebitda': 'EBITDA排序',

@@ -292,9 +292,12 @@ function renderCompanyGrid(sortBy = 'mktcap') {
 }
 
 function setupOverviewFilters() {
-  document.querySelectorAll('[data-sort]').forEach(btn => {
+  const container = document.getElementById('page-overview');
+  if (!container || container._sortInit) return;
+  container._sortInit = true;
+  container.querySelectorAll('[data-sort]').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('[data-sort]').forEach(b => b.classList.remove('active'));
+      container.querySelectorAll('[data-sort]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       renderCompanyGrid(btn.dataset.sort);
     });
