@@ -456,6 +456,36 @@
       "btc_held": null,
       "hash_rate_eh": null,
       "notes": "Nov 2025"
+    },
+    {
+      "ticker": "CORZ",
+      "period": "2024-12",
+      "period_label": "12 2024",
+      "report_date": "2025-01-06",
+      "btc_mined": 291,
+      "btc_held": null,
+      "hash_rate_eh": null,
+      "notes": "Dec 2024: 291 BTC"
+    },
+    {
+      "ticker": "CORZ",
+      "period": "2025-03",
+      "period_label": "03 2025",
+      "report_date": "2025-04-07",
+      "btc_mined": 247,
+      "btc_held": null,
+      "hash_rate_eh": null,
+      "notes": "Mar 2025: 247 BTC"
+    },
+    {
+      "ticker": "CORZ",
+      "period": "2025-11",
+      "period_label": "11 2025",
+      "report_date": null,
+      "btc_mined": null,
+      "btc_held": 1612,
+      "hash_rate_eh": null,
+      "notes": "Nov 2025: 1,612 BTC held"
     }
   ]
 }
