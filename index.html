@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BTC Mining Intelligence — US Public Miners</title>
+  <meta name="description" content="Financial intelligence dashboard for US-listed Bitcoin mining companies">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ═══════════════════════════ HEADER ═══════════════════════════ -->
+<header id="header">
+  <a class="logo" href="#">
+    <div class="logo-icon">₿</div>
+    <div>
+      <div class="logo-text">Mining Intelligence</div>
+      <div class="logo-badge">US Public Miners</div>
+    </div>
+  </a>
+
+  <nav class="header-nav">
+    <button class="nav-tab active" data-page="overview">概览</button>
+    <button class="nav-tab" data-page="financials">财务数据</button>
+    <button class="nav-tab" data-page="operations">运营披露</button>
+    <button class="nav-tab" data-page="news">新闻动态</button>
+    <button class="nav-tab" data-page="sentiment">市场情绪</button>
+  </nav>
+
+  <div class="header-right">
+    <div class="btc-ticker">
+      <span style="color:var(--orange);font-size:11px;font-weight:700;">BTC</span>
+      <span class="btc-price" id="btcPrice">$95,240</span>
+      <span class="btc-change-pos" id="btcChange">+2.34%</span>
+    </div>
+    <span class="data-badge">MOCK DATA</span>
+  </div>
+</header>
+
+<!-- ═══════════════════════════ APP ═══════════════════════════ -->
+<div id="app">
+
+  <!-- ─────────────────────── PAGE: OVERVIEW ─────────────────────── -->
+  <div class="page active" id="page-overview">
+    <!-- Aggregate Stats Bar -->
+    <div class="stats-bar" id="statsBar">
+      <div class="stat-item">
+        <div class="stat-label">追踪公司</div>
+        <div class="stat-value" id="stat-companies">12</div>
+        <div class="stat-sub">US上市矿商</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">总市值</div>
+        <div class="stat-value" id="stat-mktcap">$19.6B</div>
+        <div class="stat-sub">合并市值</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">合并持仓 BTC</div>
+        <div class="stat-value" id="stat-btc">73,421</div>
+        <div class="stat-sub">各公司合计持有</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">合并算力</div>
+        <div class="stat-value" id="stat-hashrate">168 EH/s</div>
+        <div class="stat-sub">10月 运营算力</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">合并月产量</div>
+        <div class="stat-value" id="stat-btcmined">3,282</div>
+        <div class="stat-sub">BTC / 2024年10月</div>
+      </div>
+    </div>
+
+    <!-- Earnings Calendar Alert -->
+    <div class="section-header">
+      <div class="section-title">即将发布财报</div>
+      <span class="data-badge">预估日期</span>
+    </div>
+    <div class="earnings-calendar" id="earningsCalendar"></div>
+
+    <!-- Company Cards -->
+    <div class="section-header mt-24">
+      <div class="section-title">所有公司</div>
+      <div class="section-actions">
+        <button class="filter-btn active" data-sort="mktcap">市值排序</button>
+        <button class="filter-btn" data-sort="revenue">营收排序</button>
+        <button class="filter-btn" data-sort="ebitda">EBITDA排序</button>
+        <button class="filter-btn" data-sort="hashrate">算力排序</button>
+      </div>
+    </div>
+    <div class="company-grid" id="companyGrid"></div>
+  </div>
+
+  <!-- ─────────────────────── PAGE: FINANCIALS ─────────────────────── -->
+  <div class="page" id="page-financials">
+
+    <!-- Revenue & EBITDA Chart -->
+    <div class="chart-container">
+      <div class="chart-title">各公司季度营收对比（最新期）</div>
+      <canvas id="revenueChart" height="80"></canvas>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <span class="filter-label">公司：</span>
+      <select class="filter-select" id="fin-company-filter">
+        <option value="ALL">全部公司</option>
+      </select>
+      <span class="filter-label">报告期：</span>
+      <button class="filter-btn active" data-period="latest">最新期</button>
+      <button class="filter-btn" data-period="Q3-2024">Q3 2024</button>
+      <button class="filter-btn" data-period="Q2-2024">Q2 2024</button>
+      <button class="filter-btn" data-period="Q1-2024">Q1 2024</button>
+      <button class="filter-btn" data-period="FY">全年</button>
+    </div>
+
+    <!-- Financials Table -->
+    <div class="section-header">
+      <div class="section-title">财务数据汇总</div>
+      <span class="text-muted text-mono" style="font-size:10px;">单位：USD百万 | YoY=同比增长</span>
+    </div>
+    <div class="table-wrapper mb-24">
+      <table id="financialsTable">
+        <thead>
+          <tr>
+            <th>公司</th>
+            <th>报告期</th>
+            <th class="td-right" data-sort="revenue">营收 (M)</th>
+            <th class="td-right">营收 YoY</th>
+            <th class="td-right" data-sort="net_income">净利润 (M)</th>
+            <th class="td-right">净利润 YoY</th>
+            <th class="td-right" data-sort="ebitda">Adj. EBITDA (M)</th>
+            <th class="td-right">EBITDA YoY</th>
+            <th class="td-right">EPS（摊薄）</th>
+            <th>财报状态</th>
+            <th>财报日期</th>
+          </tr>
+        </thead>
+        <tbody id="financialsBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Upcoming Earnings -->
+    <div class="section-header">
+      <div class="section-title">财报日历</div>
+    </div>
+    <div class="table-wrapper">
+      <table id="earningsTable">
+        <thead>
+          <tr>
+            <th>公司</th>
+            <th>报告期</th>
+            <th>财报日期</th>
+            <th>状态</th>
+            <th>营收预期</th>
+            <th>EPS预期</th>
+            <th>备注</th>
+          </tr>
+        </thead>
+        <tbody id="earningsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ─────────────────────── PAGE: OPERATIONS ─────────────────────── -->
+  <div class="page" id="page-operations">
+
+    <!-- Op Highlights -->
+    <div class="section-header">
+      <div class="section-title">行业汇总（2024年10月）</div>
+      <span class="data-badge">最新月度数据</span>
+    </div>
+    <div class="op-highlights">
+      <div class="op-highlight-card">
+        <div class="op-h-label">合计 BTC 产量</div>
+        <div class="op-h-value">3,282</div>
+        <div class="op-h-sub">BTC / Oct 2024</div>
+      </div>
+      <div class="op-highlight-card">
+        <div class="op-h-label">合计算力</div>
+        <div class="op-h-value">168.4 EH/s</div>
+        <div class="op-h-sub">平均算力</div>
+      </div>
+      <div class="op-highlight-card">
+        <div class="op-h-label">合计持有 BTC</div>
+        <div class="op-h-value">46,384</div>
+        <div class="op-h-sub">各公司合计（月底）</div>
+      </div>
+      <div class="op-highlight-card">
+        <div class="op-h-label">最低电力成本</div>
+        <div class="op-h-value">$0.018/kWh</div>
+        <div class="op-h-sub">RIOT（需量响应后）</div>
+      </div>
+    </div>
+
+    <!-- Operations Table -->
+    <div class="section-header mt-8">
+      <div class="section-title">月度运营披露</div>
+      <div class="section-actions">
+        <select class="filter-select" id="ops-month-filter">
+          <option value="2024-10">2024年10月</option>
+          <option value="2024-09">2024年9月</option>
+          <option value="2024-08">2024年8月</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrapper mb-24">
+      <table id="opsTable">
+        <thead>
+          <tr>
+            <th>公司</th>
+            <th>报告期</th>
+            <th class="td-right">BTC产量</th>
+            <th class="td-right">BTC持仓</th>
+            <th class="td-right">BTC销售</th>
+            <th class="td-right">算力 (EH/s)</th>
+            <th class="td-right">装机算力 (EH/s)</th>
+            <th class="td-right">电力容量 (MW)</th>
+            <th class="td-right">机队效率 (J/TH)</th>
+            <th class="td-right">电价 (¢/kWh)</th>
+            <th>来源</th>
+          </tr>
+        </thead>
+        <tbody id="opsBody"></tbody>
+      </table>
+    </div>
+
+    <!-- BTC Production Chart -->
+    <div class="chart-container">
+      <div class="chart-title">月度 BTC 产量趋势（主要公司）</div>
+      <canvas id="btcProductionChart" height="100"></canvas>
+    </div>
+  </div>
+
+  <!-- ─────────────────────── PAGE: NEWS ─────────────────────── -->
+  <div class="page" id="page-news">
+    <div class="filter-bar">
+      <span class="filter-label">筛选：</span>
+      <button class="filter-btn active" data-news-filter="all">全部</button>
+      <button class="filter-btn" data-news-filter="earnings">财报</button>
+      <button class="filter-btn" data-news-filter="expansion">扩张</button>
+      <button class="filter-btn" data-news-filter="regulatory">监管</button>
+      <button class="filter-btn" data-news-filter="market">市场</button>
+      <button class="filter-btn" data-news-filter="business">商业</button>
+      <span class="filter-label" style="margin-left:8px;">公司：</span>
+      <select class="filter-select" id="news-company-filter">
+        <option value="ALL">全部公司</option>
+        <option value="MARA">MARA</option>
+        <option value="RIOT">RIOT</option>
+        <option value="CLSK">CLSK</option>
+        <option value="CORZ">CORZ</option>
+        <option value="HUT">HUT</option>
+        <option value="WULF">WULF</option>
+        <option value="IREN">IREN</option>
+        <option value="CIFR">CIFR</option>
+        <option value="APLD">APLD</option>
+        <option value="BITF">BITF</option>
+      </select>
+    </div>
+
+    <div class="news-grid">
+      <div>
+        <div class="section-header mb-16">
+          <div class="section-title">新闻列表 <span id="newsCount" class="text-muted">(12)</span></div>
+        </div>
+        <div class="news-list" id="newsList"></div>
+      </div>
+      <div>
+        <div class="section-header mb-16">
+          <div class="section-title">情绪分布</div>
+        </div>
+        <div class="card mb-16">
+          <canvas id="sentimentDonut" height="160"></canvas>
+        </div>
+        <div class="section-header mb-16 mt-16">
+          <div class="section-title">分类统计</div>
+        </div>
+        <div class="card">
+          <canvas id="categoryChart" height="160"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────────────── PAGE: SENTIMENT ─────────────────────── -->
+  <div class="page" id="page-sentiment">
+
+    <div class="two-col mb-24">
+      <!-- Analyst Ratings -->
+      <div>
+        <div class="section-header mb-16">
+          <div class="section-title">机构评级</div>
+          <span class="text-muted text-mono" style="font-size:10px;">最新研报</span>
+        </div>
+        <div class="table-wrapper">
+          <table id="ratingsTable">
+            <thead>
+              <tr>
+                <th>公司</th>
+                <th>机构</th>
+                <th>评级</th>
+                <th class="td-right">目标价</th>
+                <th>变动</th>
+                <th>日期</th>
+                <th>备注</th>
+              </tr>
+            </thead>
+            <tbody id="ratingsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Rating Summary -->
+      <div>
+        <div class="section-header mb-16">
+          <div class="section-title">评级汇总</div>
+        </div>
+        <div class="card mb-16">
+          <canvas id="ratingsPieChart" height="180"></canvas>
+        </div>
+        <div class="section-header mb-16 mt-16">
+          <div class="section-title">各公司目标价 vs 当前价</div>
+        </div>
+        <div class="table-wrapper">
+          <table id="targetPriceTable">
+            <thead>
+              <tr>
+                <th>公司</th>
+                <th class="td-right">现价</th>
+                <th class="td-right">平均目标价</th>
+                <th class="td-right">上涨空间</th>
+                <th>评级</th>
+              </tr>
+            </thead>
+            <tbody id="targetPriceBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Social Sentiment -->
+    <div class="section-header mb-16">
+      <div class="section-title">社交媒体情绪</div>
+      <span class="data-badge">2026-02-25</span>
+    </div>
+    <div class="sentiment-panel" id="sentimentPanel"></div>
+  </div>
+
+</div><!-- /#app -->
+
+<!-- ═══════════════════════════ FOOTER ═══════════════════════════ -->
+<footer>
+  <span>BTC Mining Intelligence © 2026 | MOCK DATA — 仅供演示</span>
+  <span>数据更新: 2026-02-26 | 公司: 12 US-listed miners</span>
+</footer>
+
+<!-- ═══════════════════════════ MODAL ═══════════════════════════ -->
+<div class="modal-overlay" id="companyModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+          <span class="ticker-badge" id="modal-ticker">MARA</span>
+          <span id="modal-name" style="font-size:15px;font-weight:600;"></span>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);" id="modal-desc"></div>
+      </div>
+      <button class="modal-close" id="modalClose">✕</button>
+    </div>
+    <div class="modal-metric-grid" id="modalMetrics"></div>
+    <div id="modalQuarterHistory"></div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
