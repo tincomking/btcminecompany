@@ -5,42 +5,50 @@
   "period_end_date": "2024-12-31",
   "currency": "USD",
   "unit": "millions",
-  "source": "SEC 20-F (Foreign Private Issuer)",
-  "notes": "BitFuFu files 20-F/6-K as a foreign private issuer, not 10-K/10-Q.",
+  "source": "SEC 20-F (FY2024 audited, filed 2025-04-21); Unaudited press release 2025-03-25",
+  "notes": "Foreign private issuer (20-F/6-K). D&A of $24.7M is included within COGS per company presentation. Operating income includes unrealized BTC fair value gain ($44.3M) and realized BTC gain ($31.3M). Adjusted EBITDA: $117.5M. IPO via SPAC March 2024.",
   "income_statement": {
     "revenue": 463.3,
-    "cogs": 370.6,
-    "gross_profit": 92.7,
-    "sga": 32.1,
-    "depreciation": 18.5,
-    "operating_income": 42.1,
+    "cogs": 433.6,
+    "gross_profit": 29.7,
+    "sga": 32.7,
+    "depreciation": 24.7,
+    "operating_income": 58.9,
     "net_income": 54.0,
-    "ebit": 60.6,
-    "eps_diluted": 0.33
+    "ebit": 58.9,
+    "eps_diluted": 0.34,
+    "revenue_breakdown": {
+      "cloud_mining": 271.0,
+      "self_mining": 157.5,
+      "equipment_sales": 30.5,
+      "hosting_other": 4.3
+    }
   },
   "balance_sheet": {
     "total_assets": 377.7,
-    "current_assets": 198.2,
-    "cash_and_equivalents": 58.9,
-    "receivables": 35.4,
-    "ppe_net": 125.6,
+    "current_assets": 265.3,
+    "cash_and_equivalents": 45.1,
+    "digital_assets": 129.9,
+    "receivables": 10.9,
+    "ppe_net": 56.0,
     "total_liabilities": 215.2,
-    "current_liabilities": 142.8,
-    "long_term_debt": 52.4,
-    "retained_earnings": 12.3,
+    "current_liabilities": 63.4,
+    "long_term_debt": 35.0,
+    "long_term_payables": 101.3,
+    "retained_earnings": 78.2,
     "total_equity": 162.5,
-    "shares_outstanding_m": 164.3
+    "shares_outstanding_m": 163.1
   },
   "cash_flow_statement": {
-    "operating_cash_flow": -15.2,
-    "investing_cash_flow": -85.3,
-    "financing_cash_flow": 112.5,
-    "capex": -78.6,
-    "free_cash_flow": -93.8
+    "operating_cash_flow": -219.9,
+    "investing_cash_flow": 167.9,
+    "financing_cash_flow": 65.1,
+    "capex": -16.9,
+    "free_cash_flow": -236.7
   },
   "market_data": {
     "stock_price": 2.66,
-    "market_cap": 437.0,
-    "btc_held": 1780
+    "market_cap": 434.0,
+    "btc_held": 1720
   }
 }
