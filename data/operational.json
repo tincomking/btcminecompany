@@ -396,6 +396,66 @@
       "avg_power_cost_cents_kwh": null,
       "source_url": "https://www.prnewswire.com/news-releases/cleanspark-releases-december-2025-bitcoin-mining-update-302653478.html",
       "notes": "December 2025: 622 BTC produced, 50.0 EH/s operational, 47.2 EH/s average, 13,099 BTC held"
+    },
+    {
+      "ticker": "MARA",
+      "period": "2025-08",
+      "period_label": "08 2025",
+      "report_date": "2025-09-04",
+      "btc_mined": 705,
+      "btc_held": 52477,
+      "hash_rate_eh": 59.4,
+      "notes": "Aug 2025: 705 BTC, 59.4 EH/s"
+    },
+    {
+      "ticker": "MARA",
+      "period": "2025-10",
+      "period_label": "10 2025",
+      "report_date": null,
+      "btc_mined": 717,
+      "btc_held": null,
+      "hash_rate_eh": null,
+      "notes": "Oct 2025: 717 BTC"
+    },
+    {
+      "ticker": "RIOT",
+      "period": "2025-10",
+      "period_label": "10 2025",
+      "report_date": "2025-11-04",
+      "btc_mined": null,
+      "btc_held": null,
+      "hash_rate_eh": null,
+      "notes": "Oct 2025"
+    },
+    {
+      "ticker": "CLSK",
+      "period": "2025-09",
+      "period_label": "09 2025",
+      "report_date": "2025-10-03",
+      "btc_mined": 629,
+      "btc_held": 13011,
+      "hash_rate_eh": null,
+      "notes": "Sep 2025"
+    },
+    {
+      "ticker": "CLSK",
+      "period": "2025-10",
+      "period_label": "10 2025",
+      "report_date": "2025-11-04",
+      "btc_mined": null,
+      "btc_held": null,
+      "hash_rate_eh": null,
+      "notes": "Oct 2025"
+    },
+    {
+      "ticker": "CLSK",
+      "period": "2025-11",
+      "period_label": "11 2025",
+      "report_date": "2025-12-03",
+      "btc_mined": null,
+      "btc_held": null,
+      "hash_rate_eh": null,
+      "notes": "Nov 2025"
     }
   ]
 }

@@ -270,6 +270,90 @@
         "stocks",
         "bitcoin"
       ]
+    },
+    {
+      "id": "news_15",
+      "ticker": "MARA",
+      "title": "MARA Holdings Reports Q3 2025 Revenue of $252.4M, Net Income $123.1M",
+      "source": "Stock Analysis",
+      "url": null,
+      "published_at": "2025-12-15T12:00:00Z",
+      "category": "earnings",
+      "sentiment": "positive",
+      "summary": "MARA reported Q3 2025 revenue of $252.4M, up 92% YoY, with net income of $123.1M reversing prior losses.",
+      "tags": [
+        "earnings"
+      ]
+    },
+    {
+      "id": "news_16",
+      "ticker": "RIOT",
+      "title": "Riot Platforms Q3 2025 Revenue $180.2M, Net Income $104.5M",
+      "source": "Stock Analysis",
+      "url": null,
+      "published_at": "2025-12-15T12:00:00Z",
+      "category": "earnings",
+      "sentiment": "positive",
+      "summary": "RIOT reported Q3 2025 revenue of $180.2M with net income of $104.5M, compared to loss in prior year.",
+      "tags": [
+        "earnings"
+      ]
+    },
+    {
+      "id": "news_17",
+      "ticker": "CLSK",
+      "title": "CleanSpark Reports Record December 2025 Production: 622 BTC",
+      "source": "PR Newswire",
+      "url": null,
+      "published_at": "2025-12-15T12:00:00Z",
+      "category": "operations",
+      "sentiment": "positive",
+      "summary": "CLSK produced 622 BTC in December 2025 with 50 EH/s operational hashrate, holding 13,099 BTC.",
+      "tags": [
+        "operations"
+      ]
+    },
+    {
+      "id": "news_18",
+      "ticker": "CORZ",
+      "title": "Core Scientific Announces AI Hosting Expansion",
+      "source": "Business Wire",
+      "url": null,
+      "published_at": "2025-12-15T12:00:00Z",
+      "category": "expansion",
+      "sentiment": "positive",
+      "summary": "CORZ pivoting from Bitcoin mining to AI data center hosting, targeting billions in revenue.",
+      "tags": [
+        "expansion"
+      ]
+    },
+    {
+      "id": "news_19",
+      "ticker": "HUT",
+      "title": "Hut 8 Enters $7B Google-Backed AI Data Center Deal",
+      "source": "Carbon Credits",
+      "url": null,
+      "published_at": "2025-12-15T12:00:00Z",
+      "category": "partnership",
+      "sentiment": "positive",
+      "summary": "HUT signs $7B deal with Google-backed partners to power AI data centers.",
+      "tags": [
+        "partnership"
+      ]
+    },
+    {
+      "id": "news_20",
+      "ticker": null,
+      "title": "Bitcoin Mining Difficulty Reaches Record 1.031 EH/s",
+      "source": "The Miner Mag",
+      "url": null,
+      "published_at": "2025-12-15T12:00:00Z",
+      "category": "market",
+      "sentiment": "negative",
+      "summary": "Network hashrate reached new high in September 2025, impacting miner profitability.",
+      "tags": [
+        "market"
+      ]
     }
   ]
 }
