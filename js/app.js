@@ -94,7 +94,8 @@ function companyLogo(ticker, size) {
   const fallback = `<span class="logo-placeholder" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.45)}px;">${ticker[0]}</span>`;
   if (!url) return fallback;
   const src = `https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(url)}&size=${size}`;
-  return `<img class="company-logo" src="${src}" width="${size}" height="${size}" alt="${ticker}" onerror="this.outerHTML='${fallback.replace(/'/g, "\\'")}'">`;
+  const esc = fallback.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  return `<img class="company-logo" src="${src}" width="${size}" height="${size}" alt="${ticker}" onerror="this.outerHTML='${esc}'">`;
 }
 
 // ── SENTIMENT TAB STATE ──────────────────────────────────────────────────
