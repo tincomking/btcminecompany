@@ -144,7 +144,7 @@
   },
 
   "priority_companies": ["MARA", "RIOT", "CLSK", "CORZ", "HUT"],
-  "secondary_companies": ["WULF", "IREN", "CIFR", "APLD", "BITF", "SDIG", "BTBT"],
+  "secondary_companies": ["WULF", "IREN", "CIFR", "APLD", "BITF", "BTBT", "DGXX", "GPUS", "SAIH"],
 
   "financial_data_priority": {
     "must_have": ["revenue_usd_m", "net_income_usd_m", "adjusted_ebitda_usd_m", "report_date"],
