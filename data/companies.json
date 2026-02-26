@@ -2,7 +2,7 @@
   "_meta": {
     "description": "US-listed Bitcoin mining companies master data",
     "last_updated": "2026-02-26",
-    "source_agent": "manual / data-agent"
+    "source_agent": "data-agent"
   },
   "companies": [
     {
@@ -17,9 +17,6 @@
       "founded": 2010,
       "headquarters": "Fort Lauderdale, FL",
       "fiscal_year_end": "December",
-      "stock_price": 14.82,
-      "market_cap_usd_m": 3840,
-      "price_updated": "2026-02-25",
       "active": true
     },
     {
@@ -34,9 +31,6 @@
       "founded": 2000,
       "headquarters": "Castle Rock, CO",
       "fiscal_year_end": "December",
-      "stock_price": 10.34,
-      "market_cap_usd_m": 2890,
-      "price_updated": "2026-02-25",
       "active": true
     },
     {
@@ -51,9 +45,6 @@
       "founded": 2014,
       "headquarters": "Henderson, NV",
       "fiscal_year_end": "September",
-      "stock_price": 9.67,
-      "market_cap_usd_m": 2140,
-      "price_updated": "2026-02-25",
       "active": true
     },
     {
@@ -68,9 +59,6 @@
       "founded": 2017,
       "headquarters": "Austin, TX",
       "fiscal_year_end": "December",
-      "stock_price": 12.56,
-      "market_cap_usd_m": 3120,
-      "price_updated": "2026-02-25",
       "active": true
     },
     {
@@ -85,9 +73,6 @@
       "founded": 2021,
       "headquarters": "New York, NY",
       "fiscal_year_end": "December",
-      "stock_price": 4.21,
-      "market_cap_usd_m": 780,
-      "price_updated": "2026-02-25",
       "active": true
     },
     {
@@ -102,9 +87,6 @@
       "founded": 2018,
       "headquarters": "Miami, FL",
       "fiscal_year_end": "December",
-      "stock_price": 16.43,
-      "market_cap_usd_m": 1560,
-      "price_updated": "2026-02-25",
       "active": true
     },
     {
@@ -119,9 +101,6 @@
       "founded": 2021,
       "headquarters": "Easton, MD",
       "fiscal_year_end": "December",
-      "stock_price": 6.78,
-      "market_cap_usd_m": 1230,
-      "price_updated": "2026-02-25",
       "active": true
     },
     {
@@ -136,9 +115,6 @@
       "founded": 2018,
       "headquarters": "Sydney, Australia (ops in US/Canada)",
       "fiscal_year_end": "June",
-      "stock_price": 8.94,
-      "market_cap_usd_m": 870,
-      "price_updated": "2026-02-25",
       "active": true
     },
     {
@@ -153,9 +129,6 @@
       "founded": 2001,
       "headquarters": "Dallas, TX",
       "fiscal_year_end": "May",
-      "stock_price": 7.35,
-      "market_cap_usd_m": 1120,
-      "price_updated": "2026-02-25",
       "active": true
     },
     {
@@ -170,9 +143,6 @@
       "founded": 2017,
       "headquarters": "Toronto, Canada",
       "fiscal_year_end": "December",
-      "stock_price": 2.18,
-      "market_cap_usd_m": 540,
-      "price_updated": "2026-02-25",
       "active": true
     },
     {
@@ -187,9 +157,6 @@
       "founded": 2021,
       "headquarters": "New York, NY",
       "fiscal_year_end": "December",
-      "stock_price": 4.56,
-      "market_cap_usd_m": 210,
-      "price_updated": "2026-02-25",
       "active": true
     },
     {
@@ -204,9 +171,160 @@
       "founded": 2015,
       "headquarters": "New York, NY",
       "fiscal_year_end": "December",
-      "stock_price": 2.87,
-      "market_cap_usd_m": 340,
-      "price_updated": "2026-02-25",
+      "active": true
+    },
+    {
+      "ticker": "BTDR",
+      "name": "Bitdeer",
+      "full_name": "Bitdeer Technologies Group",
+      "exchange": "NASDAQ",
+      "sector": "Bitcoin Mining / HPC",
+      "description": "Technology company for blockchain and high-performance computing. Offers hash rate sharing solutions and mining rig hosting services.",
+      "website": "https://www.bitdeer.com",
+      "ir_url": "https://ir.bitdeer.com",
+      "founded": 2018,
+      "headquarters": "Singapore",
+      "fiscal_year_end": "December",
+      "active": true
+    },
+    {
+      "ticker": "HIVE",
+      "name": "HIVE Digital",
+      "full_name": "HIVE Digital Technologies Ltd.",
+      "exchange": "NASDAQ",
+      "sector": "Bitcoin Mining / HPC",
+      "description": "Bitcoin mining company expanding into AI/HPC hosting. Operations in Canada, Sweden, and Iceland with focus on renewable energy.",
+      "website": "https://www.hivedigitaltechnologies.com",
+      "ir_url": "https://www.hivedigitaltechnologies.com/investors",
+      "founded": 2017,
+      "headquarters": "Toronto, Canada",
+      "fiscal_year_end": "March",
+      "active": true
+    },
+    {
+      "ticker": "FUFU",
+      "name": "BitFuFu",
+      "full_name": "BitFuFu Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Bitcoin Mining",
+      "description": "World-leading Bitcoin miner and mining services innovator. Offers cloud hash rate and mining rig hosting solutions.",
+      "website": "https://www.bitfufu.com",
+      "ir_url": "https://ir.bitfufu.com",
+      "founded": 2020,
+      "headquarters": "Singapore",
+      "fiscal_year_end": "December",
+      "active": true
+    },
+    {
+      "ticker": "GREE",
+      "name": "Greenidge Generation",
+      "full_name": "Greenidge Generation Holdings Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Bitcoin Mining",
+      "description": "Bitcoin miner using waste coal to generate power for mining operations. Environmentally beneficial mining model.",
+      "website": "https://greenidge.com",
+      "ir_url": "https://ir.greenidge.com",
+      "founded": 2013,
+      "headquarters": "New York, NY",
+      "fiscal_year_end": "December",
+      "active": true
+    },
+    {
+      "ticker": "ABTC",
+      "name": "American Bitcoin",
+      "full_name": "American Bitcoin Corp.",
+      "exchange": "NASDAQ",
+      "sector": "Bitcoin Mining",
+      "description": "Bitcoin mining company focused on institutional-grade mining operations.",
+      "website": null,
+      "ir_url": null,
+      "founded": 2021,
+      "headquarters": "United States",
+      "fiscal_year_end": "December",
+      "active": true
+    },
+    {
+      "ticker": "ANY",
+      "name": "Sphere 3D",
+      "full_name": "Sphere 3D Corp.",
+      "exchange": "NASDAQ",
+      "sector": "Bitcoin Mining",
+      "description": "Vertically integrated Bitcoin mining company. Operates mining facilities in the US.",
+      "website": "https://sphere3d.com",
+      "ir_url": null,
+      "founded": 2015,
+      "headquarters": "Stamford, CT",
+      "fiscal_year_end": "December",
+      "active": true
+    },
+    {
+      "ticker": "SLNH",
+      "name": "Soluna Holdings",
+      "full_name": "Soluna Holdings, Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Bitcoin Mining / HPC",
+      "description": "Developer of green data centers for intensive computing applications including Bitcoin mining and AI. Co-locates with wind, solar, and hydro plants.",
+      "website": "https://www.solunacomputing.com",
+      "ir_url": "https://www.solunacomputing.com/investors",
+      "founded": 2018,
+      "headquarters": "New York, NY",
+      "fiscal_year_end": "December",
+      "active": true
+    },
+    {
+      "ticker": "AULT",
+      "name": "BitNile",
+      "full_name": "BitNile Holdings, Inc. (Ault Alliance)",
+      "exchange": "NYSE American",
+      "sector": "Bitcoin Mining",
+      "description": "Diversified holding company with Bitcoin mining operations through its BitNile subsidiary.",
+      "website": "https://www.bitnile.com",
+      "ir_url": "https://ir.bitnile.com",
+      "founded": 1968,
+      "headquarters": "Las Vegas, NV",
+      "fiscal_year_end": "December",
+      "active": true
+    },
+    {
+      "ticker": "DGHI",
+      "name": "Digihost",
+      "full_name": "Digihost Technology Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Bitcoin Mining",
+      "description": "Blockchain company focused on Bitcoin mining. Operates facility in Buffalo, New York.",
+      "website": null,
+      "ir_url": null,
+      "founded": 2017,
+      "headquarters": "Buffalo, NY",
+      "fiscal_year_end": "December",
+      "active": true
+    },
+    {
+      "ticker": "MIGI",
+      "name": "Mawson Infrastructure",
+      "full_name": "Mawson Infrastructure Group Inc.",
+      "exchange": "NASDAQ",
+      "sector": "Bitcoin Mining",
+      "description": "Digital infrastructure provider operating Bitcoin mining facilities and data centers in USA and Australia.",
+      "website": "https://www.mawsoninc.com",
+      "ir_url": null,
+      "founded": 2018,
+      "headquarters": "Sydney, Australia",
+      "fiscal_year_end": "December",
+      "active": true
+    },
+    {
+      "ticker": "SAI",
+      "name": "SAI.TECH",
+      "full_name": "SAI.TECH Global Corporation",
+      "exchange": "NASDAQ",
+      "sector": "Bitcoin Mining",
+      "description": "Sustainable distributed Bitcoin mining operator integrating mining, power, and heating industries.",
+      "website": "https://www.sai.tech",
+      "ir_url": "https://ir.sai.tech",
+      "founded": 2016,
+      "headquarters": "Singapore",
+      "fiscal_year_end": "December",
       "active": true
     }
   ]
