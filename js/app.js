@@ -6,6 +6,16 @@
 
 // ── HELPERS ────────────────────────────────────────────────────────────────
 
+function chartColors() {
+  const isLight = currentTheme === 'light';
+  return {
+    tooltip: { bg: isLight ? '#ffffff' : '#1a1a1a', border: isLight ? '#d4d4d8' : '#333', title: isLight ? '#18181b' : '#f0f0f0', body: isLight ? '#52525b' : '#a0a0a0' },
+    legend: isLight ? '#52525b' : '#a0a0a0',
+    tick: isLight ? '#93939e' : '#606060',
+    grid: isLight ? '#e2e2e5' : '#1e1e1e',
+  };
+}
+
 const fmt = {
   usd: (v, decimals = 1) => v == null ? '—' : `$${v.toFixed(decimals)}M`,
   pct: (v) => {
@@ -59,9 +69,9 @@ function sentimentClass(score) {
 
 function sentimentLabel(score) {
   if (score == null) return '—';
-  if (score >= 0.5) return '看多';
-  if (score <= 0) return '看空';
-  return '中性';
+  if (score >= 0.5) return t('js.bullish');
+  if (score <= 0) return t('js.bearish');
+  return t('js.neutral');
 }
 
 function categoryClass(cat) {
@@ -70,8 +80,8 @@ function categoryClass(cat) {
 }
 
 function categoryLabel(cat) {
-  const map = { earnings:'财报', expansion:'扩张', regulatory:'监管', market:'市场', business:'商业', operations:'运营', sustainability:'可持续', treasury:'BTC储备' };
-  return map[cat] || cat;
+  const keyMap = { earnings:'cat.earnings', expansion:'cat.expansion', regulatory:'cat.regulatory', market:'cat.market', business:'cat.business', operations:'cat.operations', sustainability:'cat.sustainability', treasury:'cat.treasury' };
+  return keyMap[cat] ? t(keyMap[cat]) : cat;
 }
 
 function ratingClass(r) {
@@ -80,9 +90,9 @@ function ratingClass(r) {
 }
 
 function actionLabel(a) {
-  const map = { initiate:'首次覆盖', maintain:'维持', upgrade:'上调评级', downgrade:'下调评级', upgrade_target:'上调目标价', downgrade_target:'下调目标价', reiterate:'重申' };
+  const keyMap = { initiate:'js.initiate', maintain:'js.maintain', upgrade:'js.upgrade', downgrade:'js.downgrade', upgrade_target:'js.upgrade_target', downgrade_target:'js.downgrade_target', reiterate:'js.reiterate' };
   const cls = ['upgrade','upgrade_target'].includes(a) ? 'action-upgrade' : ['downgrade','downgrade_target'].includes(a) ? 'action-downgrade' : '';
-  return `<span class="action-badge ${cls}">${map[a] || a}</span>`;
+  return `<span class="action-badge ${cls}">${keyMap[a] ? t(keyMap[a]) : a}</span>`;
 }
 
 // ── NAV TABS ────────────────────────────────────────────────────────────────
@@ -122,7 +132,7 @@ function renderEarningsCalendar() {
     const company = COMPANIES.find(c => c.ticker === f.ticker);
     const dateStr = f.estimated_report_date || f.report_date;
     const days = fmt.daysFrom(dateStr);
-    const daysLabel = days !== null ? (days > 0 ? `${days}天后` : days === 0 ? '今日' : `${Math.abs(days)}天前`) : '';
+    const daysLabel = days !== null ? (days > 0 ? `${days}${t('js.days_later')}` : days === 0 ? t('js.today') : `${Math.abs(days)}${t('js.days_ago')}`) : '';
     return `
       <div class="earnings-item upcoming">
         <div class="earnings-ticker-col">
@@ -132,7 +142,7 @@ function renderEarningsCalendar() {
         <div class="earnings-date-col">
           <div class="earnings-date-display">${fmt.date(dateStr)}</div>
           <div class="earnings-days-away">${daysLabel}</div>
-          <div style="margin-top:4px;"><span class="status-badge status-estimated"><span class="dot dot-pulse"></span>预期</span></div>
+          <div style="margin-top:4px;"><span class="status-badge status-estimated"><span class="dot dot-pulse"></span>${t('js.estimated')}</span></div>
         </div>
       </div>`;
   }).join('');
@@ -179,42 +189,42 @@ function renderCompanyGrid(sortBy = 'mktcap') {
             </div>
             <div>
               <div class="company-name-small">${co.name}</div>
-              <div class="company-exchange">${co.exchange} · 财年${co.fiscal_year_end}</div>
+              <div class="company-exchange">${co.exchange} · ${t('js.fiscal_year')} ${co.fiscal_year_end}</div>
             </div>
           </div>
           <div class="stock-info">
             <div class="stock-price-display">$${co.stock_price}</div>
-            <div class="stock-mktcap">市值 $${(co.market_cap_usd_m/1000).toFixed(1)}B</div>
+            <div class="stock-mktcap">${t('js.mktcap')} $${(co.market_cap_usd_m/1000).toFixed(1)}B</div>
           </div>
         </div>
 
         <div class="company-metrics">
           <div class="metric-block">
-            <div class="metric-label">最新营收</div>
-            <div class="metric-value">${fin ? fmt.usd(fin.revenue_usd_m) : '待发布'}</div>
+            <div class="metric-label">${t('js.latest_revenue')}</div>
+            <div class="metric-value">${fin ? fmt.usd(fin.revenue_usd_m) : t('js.pending')}</div>
             <div class="metric-yoy">${fin ? fmt.pct(fin.revenue_yoy_pct) : ''}</div>
           </div>
           <div class="metric-block">
             <div class="metric-label">Adj. EBITDA</div>
-            <div class="metric-value">${fin ? fmt.usd(fin.adjusted_ebitda_usd_m) : '待发布'}</div>
+            <div class="metric-value">${fin ? fmt.usd(fin.adjusted_ebitda_usd_m) : t('js.pending')}</div>
             <div class="metric-yoy">${fin ? fmt.pct(fin.adjusted_ebitda_yoy_pct) : ''}</div>
           </div>
           <div class="metric-block">
-            <div class="metric-label">BTC持仓</div>
+            <div class="metric-label">${t('js.btc_holding')}</div>
             <div class="metric-value">${fin && fin.btc_held ? fin.btc_held.toLocaleString() : ops && ops.btc_held ? ops.btc_held.toLocaleString() : '—'}</div>
-            <div class="metric-yoy" style="color:var(--text-muted);font-size:10px;">枚 BTC</div>
+            <div class="metric-yoy" style="color:var(--text-muted);font-size:10px;">${t('js.btc_unit')}</div>
           </div>
           <div class="metric-block">
-            <div class="metric-label">算力</div>
+            <div class="metric-label">${t('js.hashrate')}</div>
             <div class="metric-value">${ops ? ops.hash_rate_eh + ' EH/s' : '—'}</div>
-            <div class="metric-yoy" style="color:var(--text-muted);font-size:10px;">${ops ? '月产 ' + ops.btc_mined + ' BTC' : ''}</div>
+            <div class="metric-yoy" style="color:var(--text-muted);font-size:10px;">${ops ? t('js.monthly_mined') + ' ' + ops.btc_mined + ' BTC' : ''}</div>
           </div>
         </div>
 
         <div class="company-card-footer">
           <div class="earnings-info">
-            ${fin ? `<span class="earnings-label">最近财报</span><span class="earnings-date">${fin.period_label} · ${fmt.date(fin.report_date)}</span>` : ''}
-            ${upcoming ? `<span class="earnings-label" style="margin-top:4px;">下次预期</span><span class="earnings-date" style="color:var(--orange);">${upcoming.period_label} · ${fmt.date(upcoming.estimated_report_date)}</span>` : ''}
+            ${fin ? `<span class="earnings-label">${t('js.latest_report')}</span><span class="earnings-date">${fin.period_label} · ${fmt.date(fin.report_date)}</span>` : ''}
+            ${upcoming ? `<span class="earnings-label" style="margin-top:4px;">${t('js.next_expected')}</span><span class="earnings-date" style="color:var(--orange);">${upcoming.period_label} · ${fmt.date(upcoming.estimated_report_date)}</span>` : ''}
           </div>
           <div class="${sentimentClass(score)}">
             <span>●</span>${sentimentLabel(score)}
@@ -275,7 +285,7 @@ function renderFinancialsTable() {
   const data = getFilteredFinancials();
 
   if (!data.length) {
-    body.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:32px;color:var(--text-muted);">暂无数据</td></tr>';
+    body.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:32px;color:var(--text-muted);">${t('js.no_data')}</td></tr>`;
     return;
   }
 
@@ -299,7 +309,7 @@ function renderFinancialsTable() {
       <td class="td-right td-mono td-primary">${fmt.usd(f.adjusted_ebitda_usd_m)}</td>
       <td class="td-right">${fmt.pct(f.adjusted_ebitda_yoy_pct)}</td>
       <td class="td-right td-mono">${f.eps_diluted == null ? '<span class="no-data">—</span>' : (f.eps_diluted >= 0 ? '+' : '') + f.eps_diluted.toFixed(2)}</td>
-      <td><span class="status-badge status-reported"><span class="dot"></span>已发布</span></td>
+      <td><span class="status-badge status-reported"><span class="dot"></span>${t('js.reported')}</span></td>
       <td class="td-mono">${fmt.date(f.report_date)}</td>
     </tr>`;
   }).join('');
@@ -319,8 +329,8 @@ function renderEarningsTable() {
     const co = COMPANIES.find(c => c.ticker === f.ticker);
     const dateStr = f.report_date || f.estimated_report_date;
     const statusBadge = f.is_reported
-      ? '<span class="status-badge status-reported"><span class="dot"></span>已发布</span>'
-      : '<span class="status-badge status-estimated"><span class="dot dot-pulse"></span>预期发布</span>';
+      ? `<span class="status-badge status-reported"><span class="dot"></span>${t('js.reported')}</span>`
+      : `<span class="status-badge status-estimated"><span class="dot dot-pulse"></span>${t('js.expected_release')}</span>`;
 
     return `<tr>
       <td>
@@ -332,7 +342,7 @@ function renderEarningsTable() {
       <td class="td-mono">${f.period_label}</td>
       <td class="td-mono td-primary">${fmt.date(dateStr)}</td>
       <td>${statusBadge}</td>
-      <td class="td-mono" style="color:var(--text-muted);">${f.is_reported ? fmt.usd(f.revenue_usd_m) : '<span class="no-data">待发布</span>'}</td>
+      <td class="td-mono" style="color:var(--text-muted);">${f.is_reported ? fmt.usd(f.revenue_usd_m) : `<span class="no-data">${t('js.pending')}</span>`}</td>
       <td class="td-mono" style="color:var(--text-muted);">${f.is_reported && f.eps_diluted != null ? (f.eps_diluted >= 0 ? '+' : '') + f.eps_diluted.toFixed(2) : '<span class="no-data">—</span>'}</td>
       <td style="font-size:11px;color:var(--text-muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;">${f.notes || '—'}</td>
     </tr>`;
@@ -355,32 +365,33 @@ function renderRevenueChart() {
   const revData = data.map(f => f.revenue_usd_m);
   const ebitdaData = data.map(f => f.adjusted_ebitda_usd_m || 0);
 
+  const cc = chartColors();
   if (canvas._chart) canvas._chart.destroy();
   canvas._chart = new Chart(canvas, {
     type: 'bar',
     data: {
       labels,
       datasets: [
-        { label: '营收 (M)', data: revData, backgroundColor: 'rgba(59,130,246,0.7)', borderColor: '#3b82f6', borderWidth: 1, borderRadius: 4 },
-        { label: 'Adj.EBITDA (M)', data: ebitdaData, backgroundColor: 'rgba(16,185,129,0.7)', borderColor: '#10b981', borderWidth: 1, borderRadius: 4 }
+        { label: t('js.revenue_label'), data: revData, backgroundColor: 'rgba(59,130,246,0.7)', borderColor: '#3b82f6', borderWidth: 1, borderRadius: 4 },
+        { label: t('js.ebitda_label'), data: ebitdaData, backgroundColor: 'rgba(16,185,129,0.7)', borderColor: '#10b981', borderWidth: 1, borderRadius: 4 }
       ]
     },
     options: {
       responsive: true,
       plugins: {
-        legend: { labels: { color: '#a0a0a0', font: { size: 11, family: 'Inter' } } },
+        legend: { labels: { color: cc.legend, font: { size: 11, family: 'Inter' } } },
         tooltip: {
-          backgroundColor: '#1a1a1a',
-          borderColor: '#333',
+          backgroundColor: cc.tooltip.bg,
+          borderColor: cc.tooltip.border,
           borderWidth: 1,
-          titleColor: '#f0f0f0',
-          bodyColor: '#a0a0a0',
+          titleColor: cc.tooltip.title,
+          bodyColor: cc.tooltip.body,
           callbacks: { label: ctx => `${ctx.dataset.label}: $${ctx.raw.toFixed(1)}M` }
         }
       },
       scales: {
-        x: { ticks: { color: '#606060', font: { size: 11, family: 'JetBrains Mono' } }, grid: { color: '#1e1e1e' } },
-        y: { ticks: { color: '#606060', font: { size: 10 }, callback: v => `$${v}M` }, grid: { color: '#1e1e1e' } }
+        x: { ticks: { color: cc.tick, font: { size: 11, family: 'JetBrains Mono' } }, grid: { color: cc.grid } },
+        y: { ticks: { color: cc.tick, font: { size: 10 }, callback: v => `$${v}M` }, grid: { color: cc.grid } }
       }
     }
   });
@@ -424,14 +435,14 @@ function renderOpsTable(period) {
     .sort((a, b) => (b.btc_mined||0) - (a.btc_mined||0));
 
   if (!data.length) {
-    body.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:32px;color:var(--text-muted);">暂无该月数据</td></tr>';
+    body.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:32px;color:var(--text-muted);">${t('js.no_month_data')}</td></tr>`;
     return;
   }
 
   body.innerHTML = data.map(o => {
     const co = COMPANIES.find(c => c.ticker === o.ticker);
     const utilization = o.installed_capacity_eh && o.hash_rate_eh ? ((o.hash_rate_eh / o.installed_capacity_eh) * 100).toFixed(0) + '%' : '—';
-    const srcLink = o.source_url ? `<a href="${o.source_url}" target="_blank" style="color:var(--accent-blue);font-size:10px;">链接</a>` : '<span class="no-data">—</span>';
+    const srcLink = o.source_url ? `<a href="${o.source_url}" target="_blank" style="color:var(--accent-blue);font-size:10px;">${t('js.link')}</a>` : '<span class="no-data">—</span>';
 
     return `<tr>
       <td>
@@ -471,6 +482,7 @@ function renderBtcProductionChart() {
     return { label: ticker, data, borderColor: colors[i], backgroundColor: colors[i] + '20', fill: false, tension: 0.3, borderWidth: 2, pointRadius: 4, pointBackgroundColor: colors[i] };
   });
 
+  const cc2 = chartColors();
   if (canvas._chart) canvas._chart.destroy();
   canvas._chart = new Chart(canvas, {
     type: 'line',
@@ -479,16 +491,16 @@ function renderBtcProductionChart() {
       responsive: true,
       interaction: { mode: 'index', intersect: false },
       plugins: {
-        legend: { labels: { color: '#a0a0a0', font: { size: 11, family: 'Inter' }, usePointStyle: true } },
+        legend: { labels: { color: cc2.legend, font: { size: 11, family: 'Inter' }, usePointStyle: true } },
         tooltip: {
-          backgroundColor: '#1a1a1a', borderColor: '#333', borderWidth: 1,
-          titleColor: '#f0f0f0', bodyColor: '#a0a0a0',
+          backgroundColor: cc2.tooltip.bg, borderColor: cc2.tooltip.border, borderWidth: 1,
+          titleColor: cc2.tooltip.title, bodyColor: cc2.tooltip.body,
           callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw} BTC` }
         }
       },
       scales: {
-        x: { ticks: { color: '#606060', font: { size: 11, family: 'JetBrains Mono' } }, grid: { color: '#1e1e1e' } },
-        y: { ticks: { color: '#606060', font: { size: 10 } }, grid: { color: '#1e1e1e' } }
+        x: { ticks: { color: cc2.tick, font: { size: 11, family: 'JetBrains Mono' } }, grid: { color: cc2.grid } },
+        y: { ticks: { color: cc2.tick, font: { size: 10 } }, grid: { color: cc2.grid } }
       }
     }
   });
@@ -556,18 +568,19 @@ function renderNewsCharts() {
     const pos = NEWS.filter(n => n.sentiment === 'positive').length;
     const neg = NEWS.filter(n => n.sentiment === 'negative').length;
     const neu = NEWS.filter(n => n.sentiment === 'neutral').length;
+    const cc3 = chartColors();
     if (canvas1._chart) canvas1._chart.destroy();
     canvas1._chart = new Chart(canvas1, {
       type: 'doughnut',
       data: {
-        labels: ['正面', '负面', '中性'],
+        labels: [t('js.positive'), t('js.negative'), t('js.neutral')],
         datasets: [{ data: [pos, neg, neu], backgroundColor: ['rgba(16,185,129,0.8)','rgba(239,68,68,0.8)','rgba(96,96,96,0.8)'], borderWidth: 0, hoverOffset: 4 }]
       },
       options: {
         cutout: '65%',
         plugins: {
-          legend: { position:'bottom', labels: { color: '#a0a0a0', font: { size: 11 }, padding: 12, usePointStyle: true } },
-          tooltip: { backgroundColor: '#1a1a1a', borderColor: '#333', borderWidth: 1, titleColor: '#f0f0f0', bodyColor: '#a0a0a0' }
+          legend: { position:'bottom', labels: { color: cc3.legend, font: { size: 11 }, padding: 12, usePointStyle: true } },
+          tooltip: { backgroundColor: cc3.tooltip.bg, borderColor: cc3.tooltip.border, borderWidth: 1, titleColor: cc3.tooltip.title, bodyColor: cc3.tooltip.body }
         }
       }
     });
@@ -579,6 +592,7 @@ function renderNewsCharts() {
     const cats = {};
     NEWS.forEach(n => { cats[n.category] = (cats[n.category]||0) + 1; });
     const sorted = Object.entries(cats).sort((a,b) => b[1]-a[1]);
+    const cc4 = chartColors();
     if (canvas2._chart) canvas2._chart.destroy();
     canvas2._chart = new Chart(canvas2, {
       type: 'bar',
@@ -588,10 +602,10 @@ function renderNewsCharts() {
       },
       options: {
         indexAxis: 'y',
-        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1a1a1a', borderColor: '#333', borderWidth: 1, titleColor: '#f0f0f0', bodyColor: '#a0a0a0' } },
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: cc4.tooltip.bg, borderColor: cc4.tooltip.border, borderWidth: 1, titleColor: cc4.tooltip.title, bodyColor: cc4.tooltip.body } },
         scales: {
-          x: { ticks: { color: '#606060' }, grid: { color: '#1e1e1e' } },
-          y: { ticks: { color: '#a0a0a0', font: { size: 11 } }, grid: { display: false } }
+          x: { ticks: { color: cc4.tick }, grid: { color: cc4.grid } },
+          y: { ticks: { color: cc4.legend, font: { size: 11 } }, grid: { display: false } }
         }
       }
     });
@@ -662,18 +676,19 @@ function renderRatingsPieChart() {
   const hold = SENTIMENT.analyst_ratings.filter(r => r.rating_normalized === 'hold').length;
   const sell = SENTIMENT.analyst_ratings.filter(r => r.rating_normalized === 'sell').length;
 
+  const cc5 = chartColors();
   if (canvas._chart) canvas._chart.destroy();
   canvas._chart = new Chart(canvas, {
     type: 'doughnut',
     data: {
-      labels: [`买入 (${buy})`, `持有 (${hold})`, `卖出 (${sell})`],
+      labels: [`${t('js.buy')} (${buy})`, `${t('js.hold')} (${hold})`, `${t('js.sell')} (${sell})`],
       datasets: [{ data: [buy, hold, sell], backgroundColor: ['rgba(16,185,129,0.8)','rgba(245,158,11,0.8)','rgba(239,68,68,0.8)'], borderWidth: 0 }]
     },
     options: {
       cutout: '60%',
       plugins: {
-        legend: { position:'bottom', labels: { color: '#a0a0a0', font: { size: 11 }, padding: 12, usePointStyle: true } },
-        tooltip: { backgroundColor: '#1a1a1a', borderColor: '#333', borderWidth: 1, titleColor: '#f0f0f0', bodyColor: '#a0a0a0' }
+        legend: { position:'bottom', labels: { color: cc5.legend, font: { size: 11 }, padding: 12, usePointStyle: true } },
+        tooltip: { backgroundColor: cc5.tooltip.bg, borderColor: cc5.tooltip.border, borderWidth: 1, titleColor: cc5.tooltip.title, bodyColor: cc5.tooltip.body }
       }
     }
   });
@@ -690,7 +705,7 @@ function renderTargetPriceTable() {
     const holds = ratings.filter(r => r.rating_normalized === 'hold').length;
     const sells = ratings.filter(r => r.rating_normalized === 'sell').length;
     const consensus = buys > holds && buys > sells ? 'buy' : holds >= buys ? 'hold' : 'sell';
-    const consensusLabel = buys > holds && buys > sells ? '买入' : holds >= buys ? '持有' : '卖出';
+    const consensusLabel = buys > holds && buys > sells ? t('js.buy') : holds >= buys ? t('js.hold') : t('js.sell');
 
     return { ticker: co.ticker, name: co.name, price: co.stock_price, avg, upside, consensus, consensusLabel };
   }).filter(r => r.avg);
@@ -729,7 +744,7 @@ function renderSocialSentiment() {
           <div style="display:flex;align-items:center;gap:10px;">
             <span class="sentiment-ticker">${s.ticker}</span>
             <span style="font-size:10px;color:var(--text-muted);">${co ? co.name : ''}</span>
-            ${s.trending ? '<span style="font-size:9px;padding:1px 6px;background:var(--orange-dim);color:var(--orange);border-radius:3px;font-weight:600;">热门</span>' : ''}
+            ${s.trending ? `<span style="font-size:9px;padding:1px 6px;background:var(--orange-dim);color:var(--orange);border-radius:3px;font-weight:600;">${t('js.trending')}</span>` : ''}
           </div>
           <div style="display:flex;align-items:center;gap:8px;">
             <span style="font-size:10px;color:${trendColor};">${trendIcon}</span>
@@ -739,14 +754,14 @@ function renderSocialSentiment() {
         </div>
         <div class="sentiment-bars">
           <div class="sentiment-bar-row">
-            <span class="sentiment-bar-label">看多率</span>
+            <span class="sentiment-bar-label">${t('js.bull_rate')}</span>
             <div class="sentiment-bar-track">
               <div class="sentiment-bar-fill bar-bull" style="width:${s.stocktwits_bullish_pct}%"></div>
             </div>
             <span class="sentiment-bar-val">${s.stocktwits_bullish_pct}%</span>
           </div>
           <div class="sentiment-bar-row">
-            <span class="sentiment-bar-label">社交热度</span>
+            <span class="sentiment-bar-label">${t('js.social_heat')}</span>
             <div class="sentiment-bar-track">
               <div class="sentiment-bar-fill bar-social" style="width:${Math.min(100,(s.twitter_x_mentions_24h/40))}%"></div>
             </div>
@@ -756,7 +771,7 @@ function renderSocialSentiment() {
         <div style="margin-top:8px;display:flex;gap:12px;font-size:10px;color:var(--text-muted);">
           <span>Reddit: <span style="color:var(--text-secondary);">${s.reddit_mentions_24h}</span></span>
           <span>X/Twitter: <span style="color:var(--text-secondary);">${s.twitter_x_mentions_24h.toLocaleString()}</span></span>
-          <span>StockTwits: <span style="color:${s.stocktwits_bullish_pct>=60?'var(--green)':'var(--text-secondary)'};">${s.stocktwits_bullish_pct}% 多</span></span>
+          <span>StockTwits: <span style="color:${s.stocktwits_bullish_pct>=60?'var(--green)':'var(--text-secondary)'};">${s.stocktwits_bullish_pct}% ${t('js.bullish')}</span></span>
         </div>
       </div>`;
   }).join('');
@@ -779,12 +794,12 @@ function openCompanyModal(ticker) {
   const metrics = document.getElementById('modalMetrics');
   if (latest) {
     metrics.innerHTML = [
-      { label:'最新营收', value:fmt.usd(latest.revenue_usd_m), yoy:latest.revenue_yoy_pct, period:latest.period_label },
-      { label:'净利润', value: latest.net_income_usd_m != null ? (latest.net_income_usd_m >= 0 ? '' : '') + fmt.usd(latest.net_income_usd_m) : '—', yoy:null, period:latest.period_label },
+      { label:t('js.latest_revenue'), value:fmt.usd(latest.revenue_usd_m), yoy:latest.revenue_yoy_pct, period:latest.period_label },
+      { label:t('th.net_income'), value: latest.net_income_usd_m != null ? fmt.usd(latest.net_income_usd_m) : '—', yoy:null, period:latest.period_label },
       { label:'Adj. EBITDA', value:fmt.usd(latest.adjusted_ebitda_usd_m), yoy:latest.adjusted_ebitda_yoy_pct, period:latest.period_label },
-      { label:'EPS（摊薄）', value:latest.eps_diluted != null ? (latest.eps_diluted>=0?'+':'')+latest.eps_diluted.toFixed(2) : '—', yoy:null },
-      { label:'BTC持仓', value:latest.btc_held ? latest.btc_held.toLocaleString()+' BTC' : '—', yoy:null },
-      { label:'总债务', value:fmt.usd(latest.total_debt_usd_m), yoy:null },
+      { label:t('th.eps'), value:latest.eps_diluted != null ? (latest.eps_diluted>=0?'+':'')+latest.eps_diluted.toFixed(2) : '—', yoy:null },
+      { label:t('js.btc_held_label'), value:latest.btc_held ? latest.btc_held.toLocaleString()+' BTC' : '—', yoy:null },
+      { label:t('js.total_debt'), value:fmt.usd(latest.total_debt_usd_m), yoy:null },
     ].map(m => `
       <div class="modal-metric">
         <div class="modal-metric-label">${m.label} ${m.period ? `<span style="font-weight:400;">(${m.period})</span>` : ''}</div>
@@ -792,19 +807,19 @@ function openCompanyModal(ticker) {
         ${m.yoy != null ? `<div class="modal-metric-yoy">${fmt.pct(m.yoy)}</div>` : ''}
       </div>`).join('');
   } else {
-    metrics.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-text">暂无财报数据</div></div>';
+    metrics.innerHTML = `<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-text">${t('js.no_earnings_data')}</div></div>`;
   }
 
   // Quarter history
   const histEl = document.getElementById('modalQuarterHistory');
   if (allFin.length > 1) {
     histEl.innerHTML = `
-      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:10px;">历史季报</div>
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:10px;">${t('js.quarter_history')}</div>
       <div class="table-wrapper">
         <table>
           <thead><tr>
-            <th>报告期</th><th class="td-right">营收</th><th class="td-right">YoY</th>
-            <th class="td-right">净利润</th><th class="td-right">Adj.EBITDA</th><th class="td-right">YoY</th><th>财报日</th>
+            <th>${t('th.period')}</th><th class="td-right">${t('th.revenue')}</th><th class="td-right">YoY</th>
+            <th class="td-right">${t('th.net_income')}</th><th class="td-right">Adj.EBITDA</th><th class="td-right">YoY</th><th>${t('th.report_date')}</th>
           </tr></thead>
           <tbody>${allFin.map(f => `<tr>
             <td class="td-mono">${f.period_label}</td>
