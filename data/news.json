@@ -459,6 +459,81 @@
         "CIFR",
         "2026"
       ]
+    },
+    {
+      "id": "news_024",
+      "ticker": "IREN",
+      "title": "IREN Reports Record Full Year 2025 Results with Revenue up 171%",
+      "source": "IREN IR",
+      "url": "https://ir.iren.com/",
+      "published_at": "2025-12-31T10:00:00Z",
+      "category": "earnings",
+      "sentiment": "positive",
+      "sentiment_score": 0.8,
+      "summary": "IREN Limited reported record fiscal year 2025 results with revenue of $757.1 million, up 171% year-over-year. Net income of $389.74 million with adjusted EBITDA of $194.25 million.",
+      "tags": [
+        "earnings",
+        "IREN",
+        "record",
+        "revenue",
+        "FY2025"
+      ]
+    },
+    {
+      "id": "news_025",
+      "ticker": "HIVE",
+      "title": "HIVE Digital Technologies Reports Fiscal Year 2025 Results",
+      "source": "HIVE IR",
+      "url": "https://hive.holdings/",
+      "published_at": "2026-02-17T10:00:00Z",
+      "category": "earnings",
+      "sentiment": "neutral",
+      "sentiment_score": 0.1,
+      "summary": "HIVE reported FY2025 revenue of $257.14 million, up 113% YoY. Company recorded net loss of $125.06 million due to Bitcoin price volatility.",
+      "tags": [
+        "earnings",
+        "HIVE",
+        "FY2025",
+        "revenue"
+      ]
+    },
+    {
+      "id": "news_026",
+      "ticker": "CIFR",
+      "title": "Cipher Mining Reports Record 2025 Revenue Growth of 48%",
+      "source": "Cipher Mining IR",
+      "url": "https://ir.ciphermining.com/",
+      "published_at": "2026-02-24T10:00:00Z",
+      "category": "earnings",
+      "sentiment": "positive",
+      "sentiment_score": 0.7,
+      "summary": "Cipher Mining reported FY2025 revenue of $223.94 million, up 48% YoY. Adjusted EBITDA reached $236.5 million with gross margin improving to 28.4%.",
+      "tags": [
+        "earnings",
+        "CIFR",
+        "Cipher Mining",
+        "record",
+        "revenue"
+      ]
+    },
+    {
+      "id": "news_027",
+      "ticker": "BTBT",
+      "title": "Bit Digital Reports Strong 2025 Performance with Revenue Growth",
+      "source": "Bit Digital IR",
+      "url": "https://ir.bitdigital.com/",
+      "published_at": "2025-11-14T10:00:00Z",
+      "category": "earnings",
+      "sentiment": "positive",
+      "sentiment_score": 0.6,
+      "summary": "Bit Digital reported FY2025 revenue of $105.7 million with net income of $137.02 million. Adjusted EBITDA reached $162.2 million.",
+      "tags": [
+        "earnings",
+        "BTBT",
+        "Bit Digital",
+        "revenue",
+        "profit"
+      ]
     }
   ]
 }
