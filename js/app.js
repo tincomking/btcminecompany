@@ -461,6 +461,8 @@ function setupOverviewFilters() {
 
 let finCurrentPeriod = 'latest';
 let finCurrentCompany = 'ALL';
+let finPage = 1;
+const FIN_PER_PAGE = 10;
 
 function renderFinancials() {
   buildPeriodSelectors();
@@ -532,23 +534,39 @@ function getFilteredFinancials() {
     data = data.filter(f => f.fiscal_quarter === quarterVal);
   }
 
-  // Sort: fiscal_year desc, then within same year: FY first, Q4, Q3, Q2, Q1
-  const qOrd = { FY: 5, Q4: 4, Q3: 3, Q2: 2, Q1: 1 };
-  data.sort((a, b) => {
-    if (a.fiscal_year !== b.fiscal_year) return b.fiscal_year - a.fiscal_year;
-    return (qOrd[b.fiscal_quarter] || 0) - (qOrd[a.fiscal_quarter] || 0);
-  });
+  // Sort: single company by fiscal period, all companies by report_date desc
+  if (finCurrentCompany !== 'ALL') {
+    const qOrd = { FY: 5, Q4: 4, Q3: 3, Q2: 2, Q1: 1 };
+    data.sort((a, b) => {
+      if (a.fiscal_year !== b.fiscal_year) return b.fiscal_year - a.fiscal_year;
+      return (qOrd[b.fiscal_quarter] || 0) - (qOrd[a.fiscal_quarter] || 0);
+    });
+  } else {
+    data.sort((a, b) => {
+      const da = a.report_date || a.period_end_date || '';
+      const db = b.report_date || b.period_end_date || '';
+      return db.localeCompare(da);
+    });
+  }
   return data;
 }
 
 function renderFinancialsTable() {
   const body = document.getElementById('financialsBody');
-  const data = getFilteredFinancials();
+  const allData = getFilteredFinancials();
 
-  if (!data.length) {
+  if (!allData.length) {
     body.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:32px;color:var(--text-muted);">${t('js.no_data')}</td></tr>`;
+    renderFinPagination(0, 0);
     return;
   }
+
+  // Pagination
+  const totalPages = Math.ceil(allData.length / FIN_PER_PAGE);
+  if (finPage > totalPages) finPage = totalPages;
+  if (finPage < 1) finPage = 1;
+  const start = (finPage - 1) * FIN_PER_PAGE;
+  const data = allData.slice(start, start + FIN_PER_PAGE);
 
   body.innerHTML = data.map(f => {
     const co = COMPANIES.find(c => c.ticker === f.ticker);
@@ -577,6 +595,35 @@ function renderFinancialsTable() {
       <td class="td-mono">${fmt.date(f.report_date)}</td>
     </tr>`;
   }).join('');
+  renderFinPagination(allData.length, totalPages);
+}
+
+function renderFinPagination(total, totalPages) {
+  let container = document.getElementById('finPagination');
+  if (!container) {
+    // Create pagination container after the table
+    const table = document.getElementById('financialsBody');
+    if (!table) return;
+    container = document.createElement('div');
+    container.id = 'finPagination';
+    container.className = 'pagination-bar';
+    table.closest('table').parentNode.appendChild(container);
+  }
+  if (total <= FIN_PER_PAGE) { container.innerHTML = ''; return; }
+
+  let html = `<span class="pagination-info">${total} ${currentLang === 'zh' ? '条记录' : 'records'}</span>`;
+  html += `<button class="pagination-btn" ${finPage <= 1 ? 'disabled' : ''} onclick="finPage--;renderFinancialsTable();">&#8249;</button>`;
+  const maxShow = 5;
+  let startP = Math.max(1, finPage - Math.floor(maxShow / 2));
+  let endP = Math.min(totalPages, startP + maxShow - 1);
+  if (endP - startP < maxShow - 1) startP = Math.max(1, endP - maxShow + 1);
+  if (startP > 1) html += `<button class="pagination-btn" onclick="finPage=1;renderFinancialsTable();">1</button><span class="pagination-dots">…</span>`;
+  for (let p = startP; p <= endP; p++) {
+    html += `<button class="pagination-btn ${p === finPage ? 'active' : ''}" onclick="finPage=${p};renderFinancialsTable();">${p}</button>`;
+  }
+  if (endP < totalPages) html += `<span class="pagination-dots">…</span><button class="pagination-btn" onclick="finPage=${totalPages};renderFinancialsTable();">${totalPages}</button>`;
+  html += `<button class="pagination-btn" ${finPage >= totalPages ? 'disabled' : ''} onclick="finPage++;renderFinancialsTable();">&#8250;</button>`;
+  container.innerHTML = html;
 }
 
 // ── EARNINGS CALENDAR (monthly grid view) ─────────────────────────────────
@@ -595,13 +642,24 @@ function renderEarningsCalendar_grid() {
   if (label) label.textContent = currentLang === 'zh' ? `${calYear} 年 ${mNames[calMonth]}` : `${mNames[calMonth]} ${calYear}`;
 
   // Build date → events map for this month
+  // Deduplicate: for each (ticker, report_date), keep only the latest fiscal period
   const events = {};
+  const seen = {}; // key: "ticker|dateStr" → best record
   FINANCIALS.forEach(f => {
-    const dateStr = f.report_date || f.estimated_report_date;
+    const dateStr = f.is_reported ? f.report_date : f.estimated_report_date;
     if (!dateStr) return;
     const d = new Date(dateStr);
     if (d.getFullYear() !== calYear || d.getMonth() !== calMonth) return;
-    const day = d.getDate();
+    const key = `${f.ticker}|${dateStr}`;
+    const prev = seen[key];
+    if (!prev || f.fiscal_year > prev.fiscal_year ||
+        (f.fiscal_year === prev.fiscal_year && (f.fiscal_quarter === 'FY' || f.fiscal_quarter > prev.fiscal_quarter))) {
+      seen[key] = f;
+    }
+  });
+  Object.values(seen).forEach(f => {
+    const dateStr = f.is_reported ? f.report_date : f.estimated_report_date;
+    const day = new Date(dateStr).getDate();
     if (!events[day]) events[day] = [];
     events[day].push(f);
   });
@@ -648,9 +706,12 @@ function renderEarningsCalendar_grid() {
       show.forEach(f => {
         const dotCls = f.is_reported ? 'cal-dot-reported' : 'cal-dot-upcoming';
         const tipStatus = f.is_reported ? (currentLang === 'zh' ? '已披露' : 'Reported') : (currentLang === 'zh' ? '预计' : 'Expected');
+        // Show compact period: e.g. "FY25", "Q1'26"
+        const yr = (f.fiscal_year % 100).toString().padStart(2, '0');
+        const shortPeriod = f.fiscal_quarter === 'FY' ? `FY${yr}` : `${f.fiscal_quarter}'${yr}`;
         html += `<div class="cal-event ${dotCls}" title="${f.ticker} ${f.period_label} — ${tipStatus}">`;
         html += `<span class="cal-evt-ticker">${f.ticker}</span>`;
-        html += `<span class="cal-evt-period">${f.fiscal_quarter}</span>`;
+        html += `<span class="cal-evt-period">${shortPeriod}</span>`;
         html += '</div>';
       });
       if (more > 0) {
@@ -781,7 +842,7 @@ function setupFinancialFilters() {
       input.placeholder = val === 'ALL' ? t('filter.all_companies') : '';
       dropdown.classList.remove('open');
       if (clearBtn) clearBtn.style.display = val === 'ALL' ? 'none' : 'flex';
-      renderFinancialsTable();
+      finPage = 1; renderFinancialsTable();
     });
 
     if (clearBtn) {
@@ -790,7 +851,7 @@ function setupFinancialFilters() {
         input.value = '';
         input.placeholder = t('filter.all_companies');
         clearBtn.style.display = 'none';
-        renderFinancialsTable();
+        finPage = 1; renderFinancialsTable();
       });
     }
 
@@ -806,11 +867,11 @@ function setupFinancialFilters() {
   const quarterSelect = document.getElementById('fin-quarter-select');
   if (yearSelect && !yearSelect._init) {
     yearSelect._init = true;
-    yearSelect.addEventListener('change', () => renderFinancialsTable());
+    yearSelect.addEventListener('change', () => { finPage = 1; renderFinancialsTable(); });
   }
   if (quarterSelect && !quarterSelect._init) {
     quarterSelect._init = true;
-    quarterSelect.addEventListener('change', () => renderFinancialsTable());
+    quarterSelect.addEventListener('change', () => { finPage = 1; renderFinancialsTable(); });
   }
 }
 
@@ -1195,7 +1256,6 @@ function renderRatingsPieChart() {
   const canvas = document.getElementById('ratingsPieChart');
   if (!canvas) return;
 
-  // Get latest rating per company per firm
   const buy = SENTIMENT.analyst_ratings.filter(r => r.rating_normalized === 'buy').length;
   const hold = SENTIMENT.analyst_ratings.filter(r => r.rating_normalized === 'hold').length;
   const sell = SENTIMENT.analyst_ratings.filter(r => r.rating_normalized === 'sell').length;
@@ -1209,7 +1269,10 @@ function renderRatingsPieChart() {
       datasets: [{ data: [buy, hold, sell], backgroundColor: ['rgba(16,185,129,0.8)','rgba(245,158,11,0.8)','rgba(239,68,68,0.8)'], borderWidth: 0 }]
     },
     options: {
+      responsive: true,
+      maintainAspectRatio: true,
       cutout: '60%',
+      animation: false,
       plugins: {
         legend: { position:'bottom', labels: { color: cc5.legend, font: { size: 11 }, padding: 12, usePointStyle: true } },
         tooltip: { backgroundColor: cc5.tooltip.bg, borderColor: cc5.tooltip.border, borderWidth: 1, titleColor: cc5.tooltip.title, bodyColor: cc5.tooltip.body }
