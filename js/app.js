@@ -310,10 +310,36 @@ let finCurrentPeriod = 'latest';
 let finCurrentCompany = 'ALL';
 
 function renderFinancials() {
+  buildPeriodButtons();
   renderFinancialsTable();
   renderEarningsTable();
   renderRevenueChart();
   setupFinancialFilters();
+}
+
+function buildPeriodButtons() {
+  const container = document.getElementById('fin-period-buttons');
+  if (!container) return;
+  // Collect all unique quarter-year combos from data, sorted newest first
+  const qPeriods = [];
+  const seen = {};
+  FINANCIALS.filter(f => f.is_reported && f.fiscal_quarter && f.fiscal_quarter !== 'FY').forEach(f => {
+    const key = f.fiscal_quarter + '-' + f.fiscal_year;
+    if (!seen[key]) {
+      seen[key] = true;
+      qPeriods.push({ key, label: f.fiscal_quarter + ' ' + f.fiscal_year, year: f.fiscal_year, q: f.fiscal_quarter });
+    }
+  });
+  // Sort: newest first (by year desc, then Q4 > Q3 > Q2 > Q1)
+  const qOrder = { Q4: 4, Q3: 3, Q2: 2, Q1: 1 };
+  qPeriods.sort((a, b) => b.year - a.year || (qOrder[b.q]||0) - (qOrder[a.q]||0));
+  // Build HTML: latest + dynamic quarters + FY
+  let html = `<button class="filter-btn${finCurrentPeriod === 'latest' ? ' active' : ''}" data-period="latest" data-i18n="filter.latest">${t('filter.latest')}</button>`;
+  qPeriods.forEach(p => {
+    html += `<button class="filter-btn${finCurrentPeriod === p.key ? ' active' : ''}" data-period="${p.key}">${p.label}</button>`;
+  });
+  html += `<button class="filter-btn${finCurrentPeriod === 'FY' ? ' active' : ''}" data-period="FY" data-i18n="filter.fy">${t('filter.fy')}</button>`;
+  container.innerHTML = html;
 }
 
 function getFilteredFinancials() {
@@ -328,7 +354,9 @@ function getFilteredFinancials() {
       }
     });
     data = Object.values(map);
-  } else if (finCurrentPeriod !== 'FY') {
+  } else if (finCurrentPeriod === 'FY') {
+    data = data.filter(f => f.fiscal_quarter === 'FY');
+  } else {
     const [q, y] = finCurrentPeriod.split('-');
     data = data.filter(f => f.fiscal_quarter === q && String(f.fiscal_year) === y);
   }
@@ -500,10 +528,14 @@ function setupFinancialFilters() {
     });
   }
 
-  // Period filter
-  document.querySelectorAll('[data-period]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('[data-period]').forEach(b => b.classList.remove('active'));
+  // Period filter (event delegation on container, handles dynamic buttons)
+  const periodContainer = document.getElementById('fin-period-buttons');
+  if (periodContainer && !periodContainer._init) {
+    periodContainer._init = true;
+    periodContainer.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-period]');
+      if (!btn) return;
+      periodContainer.querySelectorAll('[data-period]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       finCurrentPeriod = btn.dataset.period;
       renderFinancialsTable();

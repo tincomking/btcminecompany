@@ -1,46 +1,56 @@
 # BTC Mining Company 财务数据采集指南
 
-> 本文档供 AI Agent 或人工操作员参考，用于为 btcmine.info 平台补充各上市矿企的真实财务数据。
+> 本文档供 AI Agent 定时执行，用于为 btcmine.info 平台持续采集各上市矿企的真实财务数据。
 
 ---
 
 ## 1. 概览
 
 ### 1.1 项目背景
-本项目是一个 BTC 矿企情报平台（btcmine.info），需要为 23 家上市比特币矿企采集真实财务报表数据。数据存放在 `data/raw_reports/{TICKER}/` 目录下，每家公司每个财务周期一个 JSON 文件。
+本项目是一个 BTC 矿企情报平台（btcmine.info），需要为 23 家上市比特币矿企持续采集真实财务报表数据。
 
-### 1.2 已完成的公司（无需重复采集）
-| Ticker | 公司名称 | 已采集周期 |
-|--------|---------|-----------|
-| FUFU | BitFuFu Inc. | 2023_FY, 2024_FY |
-| MARA | Marathon Digital Holdings | 2023_FY, 2024_FY |
-| RIOT | Riot Platforms | 2023_FY, 2024_FY |
-| CLSK | CleanSpark | 2023_FY, 2024_FY |
+### 1.2 采集范围
 
-### 1.3 待采集的公司（19家）
-| Ticker | 公司名称 | SEC Filing Type | 财年截止月 |
-|--------|---------|----------------|-----------|
-| CORZ | Core Scientific | 10-K / 10-Q | 12月 |
-| CIFR | Cipher Mining | 10-K / 10-Q | 12月 |
-| HUT | Hut 8 Corp | 10-K / 10-Q | 12月 |
-| WULF | TeraWulf | 10-K / 10-Q | 12月 |
-| IREN | Iris Energy | 20-F / 6-K | 6月 |
-| APLD | Applied Digital | 10-K / 10-Q | 5月 |
-| BITF | Bitfarms | 10-K / 10-Q | 12月 |
-| SDIG | Stronghold Digital Mining | 10-K / 10-Q | 12月 |
-| BTBT | Bit Digital | 10-K / 10-Q | 12月 |
-| BTDR | Bitdeer Technologies | 20-F / 6-K | 12月 |
-| HIVE | HIVE Digital Technologies | 10-K / 10-Q | 3月 |
-| GREE | Greenidge Generation | 10-K / 10-Q | 12月 |
-| ABTC | American Bitcoin | 10-K / 10-Q | 12月 |
-| ANY | Sphere 3D | 10-K / 10-Q | 12月 |
-| SLNH | Soluna Holdings | 10-K / 10-Q | 12月 |
-| AULT | Ault Alliance | 10-K / 10-Q | 12月 |
-| DGHI | Digihost Technology | 20-F / 6-K | 12月 |
-| MIGI | Mawson Infrastructure | 10-K / 10-Q | 6月 |
-| SAI | SAI.TECH | 20-F / 6-K | 6月 |
+**时间范围**: 2023 Q1 至今（含未来新发布的财报）
 
-> **注意**: 标记为 20-F/6-K 的为外国私人发行人（Foreign Private Issuer），在 SEC EDGAR 上的搜索方式不同。某些公司财年截止月并非 12 月，采集时需特别注意。
+**报告类型**:
+| 类型 | 标识 | SEC 文件 | 说明 |
+|------|------|---------|------|
+| 季报 | Q1, Q2, Q3, Q4 | 10-Q / 6-K | 每季度一份 |
+| 半年报 | H1, H2 | 部分外国发行人用 6-K | 仅部分公司发布 |
+| 年报 | FY | 10-K / 20-F | 包含全年合并数据 |
+
+**优先级**: FY > Q4 > Q3 > Q2 > Q1 > H1/H2
+
+### 1.3 公司列表（23家）
+
+| Ticker | 公司名称 | SEC Filing | 财年截止月 | 数据状态 |
+|--------|---------|-----------|-----------|---------|
+| FUFU | BitFuFu Inc. | 20-F / 6-K | 12月 | FY2023-FY2024 已采集 |
+| MARA | Marathon Digital Holdings | 10-K / 10-Q | 12月 | FY2023-FY2024 已采集 |
+| RIOT | Riot Platforms | 10-K / 10-Q | 12月 | FY2023-FY2024 已采集 |
+| CLSK | CleanSpark | 10-K / 10-Q | **9月** | FY2023-FY2024 已采集 |
+| CORZ | Core Scientific | 10-K / 10-Q | 12月 | 待采集 |
+| CIFR | Cipher Mining | 10-K / 10-Q | 12月 | 待采集 |
+| HUT | Hut 8 Corp | 10-K / 10-Q | 12月 | 待采集 |
+| WULF | TeraWulf | 10-K / 10-Q | 12月 | 待采集 |
+| IREN | Iris Energy | 20-F / 6-K | **6月** | 待采集 |
+| APLD | Applied Digital | 10-K / 10-Q | **5月** | 待采集 |
+| BITF | Bitfarms | 10-K / 10-Q | 12月 | 待采集 |
+| SDIG | Stronghold Digital Mining | 10-K / 10-Q | 12月 | 待采集 |
+| BTBT | Bit Digital | 10-K / 10-Q | 12月 | 待采集 |
+| BTDR | Bitdeer Technologies | 20-F / 6-K | 12月 | 待采集 |
+| HIVE | HIVE Digital Technologies | 10-K / 10-Q | **3月** | 待采集 |
+| GREE | Greenidge Generation | 10-K / 10-Q | 12月 | 待采集 |
+| ABTC | American Bitcoin | 10-K / 10-Q | 12月 | 待采集 |
+| ANY | Sphere 3D | 10-K / 10-Q | 12月 | 待采集 |
+| SLNH | Soluna Holdings | 10-K / 10-Q | 12月 | 待采集 |
+| AULT | Ault Alliance | 10-K / 10-Q | 12月 | 待采集 |
+| DGHI | Digihost Technology | 20-F / 6-K | 12月 | 待采集 |
+| MIGI | Mawson Infrastructure | 10-K / 10-Q | **6月** | 待采集 |
+| SAI | SAI.TECH | 20-F / 6-K | **6月** | 待采集 |
+
+> **注意**: 标记为 20-F/6-K 的为外国私人发行人。粗体月份为非标准财年。
 
 ---
 
@@ -52,41 +62,51 @@
 data/raw_reports/{TICKER}/{YEAR}_{PERIOD}.json
 ```
 
-- `{TICKER}` — 股票代码，大写（如 CORZ, CIFR）
+- `{TICKER}` — 股票代码，大写
 - `{YEAR}` — 年份（如 2024, 2023）
 - `{PERIOD}` — 周期标识：
-  - `FY` — 全年（Annual / Full Year）
+  - `FY` — 全年
   - `Q1` — 第一季度
   - `Q2` — 第二季度
   - `Q3` — 第三季度
   - `Q4` — 第四季度
+  - `H1` — 上半年（仅部分公司）
+  - `H2` — 下半年（仅部分公司）
 
 **示例**:
 ```
-data/raw_reports/CORZ/2024_FY.json
-data/raw_reports/CORZ/2023_FY.json
-data/raw_reports/CIFR/2024_Q4.json
+data/raw_reports/FUFU/2024_FY.json
+data/raw_reports/FUFU/2024_Q4.json
+data/raw_reports/FUFU/2024_Q3.json
+data/raw_reports/MARA/2023_Q1.json
+data/raw_reports/IREN/2024_H1.json
 ```
 
-### 2.2 每家公司至少需要采集的文件
-1. **最近一个完整财年** — 如 `2024_FY.json`
-2. **上一个完整财年** — 如 `2023_FY.json`
+### 2.2 采集周期要求
 
-> 两期数据是必需的，因为财务分析模型（Beneish M-Score、Piotroski F-Score 等）需要比较当期与上期的数据变化。
+每家公司需要采集 **2023 Q1 至今** 所有已发布的财报：
+
+| 财年截止12月的公司 | 需采集的周期 |
+|-------------------|-------------|
+| 2023年 | 2023_Q1, 2023_Q2, 2023_Q3, 2023_Q4, 2023_FY |
+| 2024年 | 2024_Q1, 2024_Q2, 2024_Q3, 2024_Q4, 2024_FY |
+| 2025年 | 已发布的季报（如 2025_Q1 等） |
+
+> 非标准财年公司（CLSK 9月、IREN/MIGI/SAI 6月、APLD 5月、HIVE 3月）按其实际财年季度采集。
 
 ### 2.3 JSON Schema
 
-每个文件必须严格遵循以下结构：
-
 ```json
 {
-  "ticker": "CORZ",
-  "company_name": "Core Scientific, Inc.",
-  "period": "2024_FY",
+  "ticker": "FUFU",
+  "company_name": "BitFuFu Inc.",
+  "period": "2024_Q4",
+  "period_type": "quarterly",
   "period_end_date": "2024-12-31",
   "currency": "USD",
   "unit": "millions",
-  "source": "SEC 10-K",
+  "source": "SEC 10-Q / Press Release",
+  "collected_date": "2026-02-26",
   "notes": "",
   "income_statement": {
     "revenue": null,
@@ -127,6 +147,10 @@ data/raw_reports/CIFR/2024_Q4.json
 }
 ```
 
+新增字段说明：
+- `period_type` — `"annual"` / `"quarterly"` / `"semi_annual"`，用于区分报告类型
+- `collected_date` — Agent 采集日期，ISO 格式 `"YYYY-MM-DD"`
+
 ### 2.4 字段详细说明
 
 #### 元数据字段
@@ -134,56 +158,60 @@ data/raw_reports/CIFR/2024_Q4.json
 |------|------|------|
 | `ticker` | string | 股票代码，大写 |
 | `company_name` | string | 公司全称 |
-| `period` | string | 周期标识，如 "2024_FY"、"2024_Q4" |
-| `period_end_date` | string | 周期截止日期，ISO 格式 "YYYY-MM-DD" |
+| `period` | string | 周期标识，如 "2024_FY"、"2024_Q4"、"2024_H1" |
+| `period_type` | string | `"annual"` / `"quarterly"` / `"semi_annual"` |
+| `period_end_date` | string | 周期截止日期，ISO 格式 |
 | `currency` | string | 固定 "USD" |
-| `unit` | string | 固定 "millions"（所有金额单位为百万美元） |
-| `source` | string | 数据来源，如 "SEC 10-K"、"SEC 20-F"、"SEC 10-Q" |
-| `notes` | string | 可选备注，如特殊财年日期、破产重组等说明 |
+| `unit` | string | 固定 "millions" |
+| `source` | string | 如 "SEC 10-K"、"SEC 10-Q"、"SEC 20-F"、"Press Release" |
+| `collected_date` | string | Agent 执行采集的日期 |
+| `notes` | string | 备注（特殊情况说明） |
 
 #### Income Statement（利润表）
-| 字段 | 英文名 | 说明 | 在财报中的位置 |
-|------|--------|------|---------------|
-| `revenue` | Total Revenue | 总营收 | Consolidated Statements of Operations → Total revenues |
-| `cogs` | Cost of Goods Sold | 营业成本/销货成本 | Cost of revenues / Cost of mining |
-| `gross_profit` | Gross Profit | 毛利润 = revenue - cogs | 通常需自行计算 |
-| `sga` | SG&A | 销售、一般及行政费用 | Selling, general and administrative |
-| `depreciation` | Depreciation & Amortization | 折旧摊销 | Depreciation and amortization（可能在成本或费用中） |
-| `operating_income` | Operating Income | 营业利润 | Income (loss) from operations |
-| `net_income` | Net Income | 净利润 | Net income (loss) attributable to common stockholders |
-| `ebit` | EBIT | 息税前利润 = operating_income + 利息收入 | 通常需自行计算 |
-| `eps_diluted` | Diluted EPS | 稀释每股收益 | Diluted net income (loss) per share |
+| 字段 | 英文名 | 说明 |
+|------|--------|------|
+| `revenue` | Total Revenue | 总营收 |
+| `cogs` | Cost of Revenue | 营业成本（含折旧或不含折旧，按公司报表原样填写） |
+| `gross_profit` | Gross Profit | 毛利润 = revenue - cogs |
+| `sga` | SG&A | 销售、一般及行政费用 |
+| `depreciation` | D&A | 折旧摊销（如在 COGS 中已包含，此处仍单独列出金额） |
+| `operating_income` | Operating Income | 营业利润 |
+| `net_income` | Net Income | 净利润 |
+| `ebit` | EBIT | 息税前利润 |
+| `eps_diluted` | Diluted EPS | 稀释每股收益 |
 
 #### Balance Sheet（资产负债表）
-| 字段 | 英文名 | 说明 | 在财报中的位置 |
-|------|--------|------|---------------|
-| `total_assets` | Total Assets | 总资产 | Consolidated Balance Sheets → Total assets |
-| `current_assets` | Current Assets | 流动资产 | Total current assets |
-| `cash_and_equivalents` | Cash & Equivalents | 现金及等价物 | Cash and cash equivalents |
-| `receivables` | Receivables | 应收账款 | Accounts receivable / Trade receivables |
-| `ppe_net` | PP&E Net | 固定资产净值 | Property, plant and equipment, net |
-| `total_liabilities` | Total Liabilities | 总负债 | Total liabilities |
-| `current_liabilities` | Current Liabilities | 流动负债 | Total current liabilities |
-| `long_term_debt` | Long-term Debt | 长期债务 | Long-term debt / Notes payable (non-current) |
-| `retained_earnings` | Retained Earnings | 留存收益 | Accumulated deficit / Retained earnings |
-| `total_equity` | Total Equity | 总股东权益 | Total stockholders' equity |
-| `shares_outstanding_m` | Shares Outstanding | 已发行流通股数（百万） | Shares of common stock outstanding |
+| 字段 | 英文名 | 说明 |
+|------|--------|------|
+| `total_assets` | Total Assets | 总资产 |
+| `current_assets` | Current Assets | 流动资产 |
+| `cash_and_equivalents` | Cash | 现金及等价物 |
+| `receivables` | Receivables | 应收账款（贸易应收） |
+| `ppe_net` | PP&E Net | 固定资产净值 |
+| `total_liabilities` | Total Liabilities | 总负债 |
+| `current_liabilities` | Current Liabilities | 流动负债 |
+| `long_term_debt` | Long-term Debt | 长期债务（贷款 + 应付票据，不含经营租赁） |
+| `retained_earnings` | Retained Earnings | 留存收益 / 累计亏损 |
+| `total_equity` | Total Equity | 总股东权益 |
+| `shares_outstanding_m` | Shares Outstanding | 流通股数（百万） |
 
 #### Cash Flow Statement（现金流量表）
-| 字段 | 英文名 | 说明 | 在财报中的位置 |
-|------|--------|------|---------------|
-| `operating_cash_flow` | Operating Cash Flow | 经营活动现金流 | Net cash from operating activities |
-| `investing_cash_flow` | Investing Cash Flow | 投资活动现金流 | Net cash from investing activities |
-| `financing_cash_flow` | Financing Cash Flow | 融资活动现金流 | Net cash from financing activities |
-| `capex` | Capital Expenditures | 资本支出（负值） | Purchases of property and equipment |
-| `free_cash_flow` | Free Cash Flow | 自由现金流 = OCF + capex | 通常需自行计算 |
+| 字段 | 英文名 | 说明 |
+|------|--------|------|
+| `operating_cash_flow` | OCF | 经营活动现金流 |
+| `investing_cash_flow` | ICF | 投资活动现金流 |
+| `financing_cash_flow` | FCF | 融资活动现金流 |
+| `capex` | CapEx | 资本支出（负值） |
+| `free_cash_flow` | FCF | 自由现金流 = OCF + capex |
+
+> **季报现金流注意**: 10-Q 中的现金流是年初至今（YTD）累计数。如需单季度数据，需用当季 YTD 减去上季 YTD。如无法计算，填 YTD 数据并在 notes 中标注 "YTD cumulative"。
 
 #### Market Data（市场数据）
-| 字段 | 英文名 | 说明 | 数据来源 |
-|------|--------|------|---------|
-| `stock_price` | Stock Price | 周期末收盘股价（美元） | Yahoo Finance / Google Finance |
-| `market_cap` | Market Cap | 市值（百万美元） | stock_price × shares_outstanding_m |
-| `btc_held` | BTC Holdings | 持有的比特币数量（个） | 公司公告 / 10-K 披露 |
+| 字段 | 英文名 | 说明 |
+|------|--------|------|
+| `stock_price` | Stock Price | 周期末收盘价（美元） |
+| `market_cap` | Market Cap | 市值（百万美元） |
+| `btc_held` | BTC Holdings | 持有 BTC 数量（个） |
 
 ---
 
@@ -191,219 +219,166 @@ data/raw_reports/CIFR/2024_Q4.json
 
 ### 3.1 步骤概述
 
-对于每家公司，按以下顺序操作：
-
 ```
-1. 确认公司基本信息（SEC Filing Type、财年截止月）
-2. 在 SEC EDGAR 查找最近两个完整财年的年报
-3. 提取三张报表数据
-4. 补充市场数据（股价、市值、BTC 持仓）
+1. 检查该公司是否有新财报发布（SEC EDGAR RSS / 公司 IR 页面）
+2. 确认报告周期（Q1/Q2/Q3/Q4/H1/H2/FY）
+3. 从 SEC filing 或 Press Release 中提取三表数据
+4. 补充市场数据（期末股价、市值、BTC 持仓）
 5. 计算衍生字段（gross_profit, ebit, free_cash_flow）
-6. 写入 JSON 文件
+6. 写入 raw_reports JSON 文件
+7. 【关键】同步更新页面数据文件（详见第 5 节）
+8. 提交并推送到 GitHub
 ```
 
 ### 3.2 数据来源（优先级从高到低）
 
 1. **SEC EDGAR**（最权威）
-   - 网址: https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&company=&CIK={TICKER}&type=10-K&dateb=&owner=include&count=10
-   - 搜索 10-K（年报）或 20-F（外国私人发行人年报）
-   - 点击 "Filing" 链接查看完整财务报表
+   - 年报搜索: `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK={TICKER}&type=10-K&dateb=&owner=include&count=10`
+   - 季报搜索: `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK={TICKER}&type=10-Q&dateb=&owner=include&count=20`
+   - 外国发行人: type 改为 `20-F`（年报）或 `6-K`（季报）
+   - EDGAR 全文搜索: `https://efts.sec.gov/LATEST/search-index?q={TICKER}&forms=10-K,10-Q,20-F,6-K`
 
-2. **公司 IR 页面**
-   - 通常在 `{company-website}/investors` 或 `{company-website}/ir`
-   - 提供 Press Release 和 SEC Filing 链接
+2. **公司 IR 页面** — `{company-website}/investors` 或 `/ir`
 
 3. **财经数据平台**
-   - Yahoo Finance: https://finance.yahoo.com/quote/{TICKER}/financials
-   - Macrotrends: https://www.macrotrends.net/stocks/charts/{TICKER}/{company-name}/financial-statements
-   - Stock Analysis: https://stockanalysis.com/stocks/{TICKER}/financials/
+   - Stock Analysis: `https://stockanalysis.com/stocks/{TICKER}/financials/?p=quarterly`
+   - Yahoo Finance: `https://finance.yahoo.com/quote/{TICKER}/financials`
+   - Macrotrends: `https://www.macrotrends.net/stocks/charts/{TICKER}/`
 
-### 3.3 详细操作流程
+### 3.3 单位转换
 
-#### Step 1: 查找 SEC 文件
+- 财报通常以"千元"（thousands）为单位
+- **本项目统一以"百万"（millions）为单位**
+- 转换: 千 → 百万，除以 1000，保留一位小数
 
-```
-搜索: https://efts.sec.gov/LATEST/search-index?q=%22{COMPANY_NAME}%22&dateRange=custom&startdt=2024-01-01&enddt=2025-12-31&forms=10-K,20-F
-```
-
-或者使用 SEC EDGAR 全文搜索:
-```
-https://efts.sec.gov/LATEST/search-index?q={TICKER}&forms=10-K
-```
-
-#### Step 2: 从 10-K / 20-F 中提取数据
-
-在年报中找到以下三个部分:
-- **Consolidated Statements of Operations** → 利润表
-- **Consolidated Balance Sheets** → 资产负债表
-- **Consolidated Statements of Cash Flows** → 现金流量表
-
-#### Step 3: 单位转换
-
-- 财报中的数字通常以"千元"（thousands）为单位
-- **本项目要求以"百万"（millions）为单位**
-- 转换: 千 → 百万，除以 1000
-- 例：报表中 `$463,312 (thousands)` → 写入 `463.3 (millions)`
-- 保留一位小数
-
-#### Step 4: 特殊字段处理
+### 3.4 衍生字段计算
 
 | 字段 | 计算方法 |
 |------|---------|
 | `gross_profit` | `revenue - cogs` |
-| `ebit` | `operating_income + interest_income`（若无利息数据，可等于 operating_income） |
-| `free_cash_flow` | `operating_cash_flow + capex`（capex 为负值，所以是加） |
+| `ebit` | `operating_income`（简化处理） |
+| `free_cash_flow` | `operating_cash_flow + capex`（capex 为负值） |
 | `market_cap` | `stock_price × shares_outstanding_m` |
 
-#### Step 5: 处理 null 值
+### 3.5 处理 null 值
 
-- 如果某个数据确实无法找到，保留 `null`
-- **不要编造数据** — 宁可留 null 也不要猜测
-- 在 `notes` 字段说明哪些数据未找到及原因
+- 无法找到的数据保留 `null`
+- **不要编造数据**
+- 在 `notes` 中说明缺失原因
 
-### 3.4 BTC 矿企特殊注意事项
+### 3.6 BTC 矿企特殊注意事项
 
-1. **BTC 公允价值变动**: 2024年起 ASC 350 会计准则生效，BTC 按公允价值计量，导致"unrealized gain/loss on digital assets"出现在利润表中。这可能使 net_income 大幅波动，与真实经营表现脱节。
-
-2. **收入构成**: 矿企收入可能包含:
-   - Mining revenue（自挖矿收入）
-   - Hosting/Cloud mining revenue（托管/云挖矿收入）
-   - Engineering/HPC revenue（工程/高性能计算收入）
-   - 汇总所有收入到 `revenue` 字段
-
-3. **折旧**: 矿机折旧通常在 COGS 中，也可能单独列示。确保不要重复计算。
-
-4. **BTC Holdings**:
-   - 通常在 10-K 的 MD&A 部分或附注中披露
-   - 也可能在季度更新/新闻稿中找到
-   - 如果 10-K 中未明确披露，可从公司新闻稿或投资者演示中获取
-
-5. **已破产/重组的公司**:
-   - CORZ（Core Scientific）2022年破产，2024年初重组完成
-   - SDIG（Stronghold）可能数据有限
-   - 在 `notes` 中注明任何特殊情况
+1. **BTC 公允价值变动**: 2024 年起 ASC 350 生效，BTC 按公允价值计量，unrealized gain/loss 出现在利润表中
+2. **收入构成**: 矿企收入可能含 Mining / Hosting / Cloud mining / HPC，全部汇总到 `revenue`
+3. **折旧**: 矿机折旧可能在 COGS 中或单独列示，在 notes 中说明
+4. **现金流分类**: BTC 买卖可能归类为经营或投资活动，不同公司处理不同
+5. **已破产/重组**: CORZ 2022 年破产、2024 年重组完成，在 notes 中注明
 
 ---
 
 ## 4. 质量检查清单
 
-每个文件写入后，检查以下项目:
+每个文件写入后检查:
 
 - [ ] `ticker` 与目录名一致
-- [ ] `period_end_date` 格式正确且与财年对应
+- [ ] `period` 和 `period_type` 匹配（FY→annual, Q1-Q4→quarterly, H1/H2→semi_annual）
+- [ ] `period_end_date` 格式正确且与实际财年/季度对应
 - [ ] 所有金额单位已转换为百万美元
 - [ ] `gross_profit` ≈ `revenue` - `cogs`
-- [ ] `total_assets` ≈ `total_liabilities` + `total_equity`（允许 ±5 误差）
+- [ ] `total_assets` ≈ `total_liabilities` + `total_equity`（允许 ±5M 误差）
 - [ ] `free_cash_flow` ≈ `operating_cash_flow` + `capex`
 - [ ] `capex` 为负值或零
-- [ ] `investing_cash_flow` 通常为负值（矿企大量 capex）
 - [ ] `eps_diluted` 正负号与 `net_income` 一致
 - [ ] `shares_outstanding_m` 单位是百万股
-- [ ] `source` 字段标注了正确的 SEC 文件类型
-- [ ] 无法确认的字段设为 `null`，不编造数据
+- [ ] `source` 标注了正确的 SEC 文件类型
+- [ ] `collected_date` 已填写
+- [ ] 无法确认的字段设为 `null`
 
 ---
 
-## 5. 参考示例
+## 5. 同步更新页面数据文件（必须执行）
 
-以下是已完成的 FUFU 2024_FY 文件作为参考:
+> **重要**: `data/raw_reports/` 仅为原始存档，网页不直接读取。必须同步更新以下两个文件，数据才会在 btcmine.info 上生效。
 
+### 5.1 文件 A: `data/financials.json`（"财务数据"页面）
+
+此文件供"财务数据" Tab 展示。是一个 JSON 数组，**每条记录对应一个公司的一个报告周期**。
+
+**支持的周期**: Q1, Q2, Q3, Q4, FY（均可添加）
+
+**结构**:
 ```json
 {
-  "ticker": "FUFU",
-  "company_name": "BitFuFu Inc.",
-  "period": "2024_FY",
-  "period_end_date": "2024-12-31",
-  "currency": "USD",
-  "unit": "millions",
-  "source": "SEC 20-F (Foreign Private Issuer)",
-  "notes": "BitFuFu files 20-F/6-K as a foreign private issuer, not 10-K/10-Q.",
-  "income_statement": {
-    "revenue": 463.3,
-    "cogs": 370.6,
-    "gross_profit": 92.7,
-    "sga": 32.1,
-    "depreciation": 18.5,
-    "operating_income": 42.1,
-    "net_income": 54.0,
-    "ebit": 60.6,
-    "eps_diluted": 0.33
-  },
-  "balance_sheet": {
-    "total_assets": 377.7,
-    "current_assets": 198.2,
-    "cash_and_equivalents": 58.9,
-    "receivables": 35.4,
-    "ppe_net": 125.6,
-    "total_liabilities": 215.2,
-    "current_liabilities": 142.8,
-    "long_term_debt": 52.4,
-    "retained_earnings": 12.3,
-    "total_equity": 162.5,
-    "shares_outstanding_m": 164.3
-  },
-  "cash_flow_statement": {
-    "operating_cash_flow": -15.2,
-    "investing_cash_flow": -85.3,
-    "financing_cash_flow": 112.5,
-    "capex": -78.6,
-    "free_cash_flow": -93.8
-  },
-  "market_data": {
-    "stock_price": 2.66,
-    "market_cap": 437.0,
-    "btc_held": 1780
-  }
+  "data": [
+    {
+      "ticker": "FUFU",
+      "fiscal_year": 2024,
+      "fiscal_quarter": "Q4",
+      "period_label": "Q4 2024",
+      "period_end_date": "2024-12-31",
+      "report_date": "2025-03-25",
+      "estimated_report_date": null,
+      "is_reported": true,
+      "revenue_usd_m": 120.5,
+      "gross_profit_usd_m": 8.2,
+      "operating_income_usd_m": 25.4,
+      "net_income_usd_m": 22.1,
+      "adjusted_ebitda_usd_m": 35.2,
+      "eps_diluted": 0.14,
+      "revenue_yoy_pct": 45.2,
+      "gross_profit_yoy_pct": 80.3,
+      "net_income_yoy_pct": null,
+      "adjusted_ebitda_yoy_pct": null,
+      "shares_outstanding_m": 163.1,
+      "cash_and_equivalents_usd_m": 45.1,
+      "btc_held": 1720,
+      "total_debt_usd_m": 35.0,
+      "notes": "说明文字"
+    }
+  ]
 }
 ```
 
----
+**字段映射**（raw_reports → financials.json）:
 
-## 6. 批量执行建议
+| raw_reports | financials.json | 说明 |
+|-------------|----------------|------|
+| `period` 中的年份 | `fiscal_year` | 如 2024 |
+| `period` 中的类型 | `fiscal_quarter` | `"Q1"` / `"Q2"` / `"Q3"` / `"Q4"` / `"FY"` |
+| — | `period_label` | 显示文字，如 `"Q4 2024"` / `"FY 2024"` |
+| `period_end_date` | `period_end_date` | 直接复制 |
+| — | `report_date` | 财报实际发布日期 |
+| — | `is_reported` | 已发布填 `true` |
+| `income_statement.revenue` | `revenue_usd_m` | |
+| `income_statement.gross_profit` | `gross_profit_usd_m` | |
+| `income_statement.operating_income` | `operating_income_usd_m` | |
+| `income_statement.net_income` | `net_income_usd_m` | |
+| `income_statement.eps_diluted` | `eps_diluted` | |
+| `balance_sheet.shares_outstanding_m` | `shares_outstanding_m` | |
+| `balance_sheet.cash_and_equivalents` | `cash_and_equivalents_usd_m` | |
+| `balance_sheet.long_term_debt` | `total_debt_usd_m` | |
+| `market_data.btc_held` | `btc_held` | |
 
-### 6.1 分批执行
-建议将 19 家公司分为 3-4 批执行，每批 5-6 家:
+**YoY 增长率计算**:
+- 找到同一公司去年同期数据（如当前为 Q4 2024，则找 Q4 2023）
+- `revenue_yoy_pct` = (当期 - 去年同期) / |去年同期| × 100
+- 如果去年同期不存在或为负数，填 `null`
 
-**第1批** (大型矿企):
-- CORZ, CIFR, HUT, WULF, IREN
+**操作步骤**:
+1. 打开 `data/financials.json`
+2. 在 `data` 数组中为该公司添加新记录（季度或年度各一条）
+3. 如已存在同一 ticker + fiscal_year + fiscal_quarter 的记录，更新而非重复添加
+4. 保存文件
 
-**第2批** (中型矿企):
-- APLD, BITF, BTBT, BTDR, HIVE
+### 5.2 文件 B: `data/analysis_data.json`（"财务分析"页面）
 
-**第3批** (小型矿企):
-- GREE, ABTC, ANY, SLNH, AULT
+此文件供"财务分析"页面的 6 个分析模型使用。每家公司保留 **最近两个完整财年** 的对比数据。
 
-**第4批** (其他/可能数据有限):
-- SDIG, DGHI, MIGI, SAI
+**当有新年报时需更新**:
+- 当某公司最新 FY 数据采集完成后，更新该公司的 `current` = 最新 FY，`prior` = 上一个 FY
+- 季度数据不需要更新此文件（分析模型目前仅用年度数据）
 
-### 6.2 Agent 执行模板
-
-对于每家公司，Agent 应执行以下任务:
-
-```
-任务: 为 {TICKER} ({COMPANY_NAME}) 采集财务数据
-
-1. 搜索 {TICKER} 最近两个完整财年的 SEC 年报（10-K 或 20-F）
-2. 从年报中提取利润表、资产负债表、现金流量表数据
-3. 查找期末股价、市值、BTC 持仓量
-4. 按照 data/raw_reports/README.md 中的 JSON 格式填写数据
-5. 将数据写入:
-   - data/raw_reports/{TICKER}/{YEAR1}_FY.json (最近财年)
-   - data/raw_reports/{TICKER}/{YEAR2}_FY.json (上一财年)
-6. 所有金额转换为百万美元，保留一位小数
-7. 无法找到的数据设为 null，在 notes 字段说明
-8. **【关键】同步更新页面数据文件**（详见 6.3）
-```
-
-### 6.3 同步更新页面数据文件（必须执行）
-
-> **重要**: `data/raw_reports/` 目录下的 JSON 文件仅为原始数据存档，网页不直接读取。必须同步更新以下两个文件，页面才会显示新数据。
-
-#### 文件 A: `data/analysis_data.json`（财务分析页面使用）
-
-此文件供"财务分析" Tab 的 6 个模型计算使用。每家公司需要当期 + 上期两期数据。
-
-**结构示例**（以 FUFU 为例）:
+**结构**:
 ```json
 {
   "data": {
@@ -412,36 +387,36 @@ https://efts.sec.gov/LATEST/search-index?q={TICKER}&forms=10-K
       "current": {
         "period": "FY2024",
         "revenue": 463.3,
-        "cogs": 370.6,
-        "gross_profit": 92.7,
-        "sga": 32.1,
-        "depreciation": 18.5,
-        "operating_income": 42.1,
+        "cogs": 433.6,
+        "gross_profit": 29.7,
+        "sga": 32.7,
+        "depreciation": 24.7,
+        "operating_income": 58.9,
         "net_income": 54.0,
-        "ebit": 60.6,
+        "ebit": 58.9,
         "total_assets": 377.7,
-        "current_assets": 198.2,
-        "receivables": 35.4,
-        "ppe_net": 125.6,
+        "current_assets": 265.3,
+        "receivables": 10.9,
+        "ppe_net": 56.0,
         "total_liabilities": 215.2,
-        "current_liabilities": 142.8,
-        "long_term_debt": 52.4,
-        "retained_earnings": 12.3,
+        "current_liabilities": 63.4,
+        "long_term_debt": 35.0,
+        "retained_earnings": 78.2,
         "total_equity": 162.5,
-        "operating_cash_flow": -15.2,
-        "shares_outstanding_m": 164.3
+        "operating_cash_flow": -219.9,
+        "shares_outstanding_m": 163.1
       },
       "prior": {
         "period": "FY2023",
-        "(同 current 结构，填入上一财年数据)"
+        "(同 current 结构)"
       },
       "market": {
         "stock_price": 2.66,
-        "market_cap": 437.0,
+        "market_cap": 434.0,
         "equity_volatility": 0.72,
         "asset_volatility": 0.42,
         "risk_free_rate": 0.043,
-        "revenue_growth_mean": 0.64,
+        "revenue_growth_mean": 0.63,
         "revenue_growth_std": 0.25
       }
     }
@@ -449,130 +424,220 @@ https://efts.sec.gov/LATEST/search-index?q={TICKER}&forms=10-K
 }
 ```
 
-**字段映射**（raw_reports → analysis_data）:
-| raw_reports 字段 | analysis_data 字段 |
-|-----------------|-------------------|
-| `income_statement.revenue` | `current.revenue` / `prior.revenue` |
-| `income_statement.cogs` | `current.cogs` / `prior.cogs` |
-| `income_statement.gross_profit` | `current.gross_profit` |
-| `income_statement.sga` | `current.sga` |
-| `income_statement.depreciation` | `current.depreciation` |
-| `income_statement.operating_income` | `current.operating_income` |
-| `income_statement.net_income` | `current.net_income` |
-| `income_statement.ebit` | `current.ebit` |
-| `balance_sheet.total_assets` | `current.total_assets` |
-| `balance_sheet.current_assets` | `current.current_assets` |
-| `balance_sheet.receivables` | `current.receivables` |
-| `balance_sheet.ppe_net` | `current.ppe_net` |
-| `balance_sheet.total_liabilities` | `current.total_liabilities` |
-| `balance_sheet.current_liabilities` | `current.current_liabilities` |
-| `balance_sheet.long_term_debt` | `current.long_term_debt` |
-| `balance_sheet.retained_earnings` | `current.retained_earnings` |
-| `balance_sheet.total_equity` | `current.total_equity` |
-| `balance_sheet.shares_outstanding_m` | `current.shares_outstanding_m` |
-| `cash_flow_statement.operating_cash_flow` | `current.operating_cash_flow` |
-| `market_data.stock_price` | `market.stock_price` |
-| `market_data.market_cap` | `market.market_cap` |
-
-**market 字段中的额外参数**:
-- `equity_volatility` — 股票年化波动率，可用历史股价计算或设为 0.75-0.90（矿企典型范围）
-- `asset_volatility` — 资产波动率 ≈ equity_volatility × (equity / assets)，或设为 0.40-0.55
-- `risk_free_rate` — 无风险利率，统一用 `0.043`（当前美国国债利率）
-- `revenue_growth_mean` — 收入增长均值 = (current.revenue - prior.revenue) / prior.revenue
-- `revenue_growth_std` — 收入增长标准差，可设为 growth_mean × 0.3-0.5
-
-**操作步骤**:
-1. 打开 `data/analysis_data.json`
-2. 在 `data` 对象中找到对应 `{TICKER}` 的 key（如已存在则替换，不存在则新增）
-3. 将最近财年数据填入 `current`，上一财年填入 `prior`，市场数据填入 `market`
-4. 保存文件
-
-#### 文件 B: `data/financials.json`（财务数据页面使用）
-
-此文件供"财务数据" Tab 展示使用。是一个 JSON 数组，每条记录代表一个公司的一个财务周期。
-
-**结构示例**:
-```json
-{
-  "data": [
-    {
-      "ticker": "FUFU",
-      "fiscal_year": 2024,
-      "fiscal_quarter": "FY",
-      "period_label": "FY 2024",
-      "period_end_date": "2024-12-31",
-      "report_date": "2025-04-30",
-      "estimated_report_date": null,
-      "is_reported": true,
-      "revenue_usd_m": 463.3,
-      "gross_profit_usd_m": 92.7,
-      "operating_income_usd_m": 42.1,
-      "net_income_usd_m": 54.0,
-      "adjusted_ebitda_usd_m": null,
-      "eps_diluted": 0.33,
-      "revenue_yoy_pct": 63.9,
-      "gross_profit_yoy_pct": 126.7,
-      "net_income_yoy_pct": 1828.6,
-      "adjusted_ebitda_yoy_pct": null,
-      "shares_outstanding_m": 164.3,
-      "cash_and_equivalents_usd_m": 58.9,
-      "btc_held": 1780,
-      "total_debt_usd_m": 52.4,
-      "notes": "说明文字"
-    }
-  ]
-}
-```
-
-**字段映射**（raw_reports → financials.json）:
-| raw_reports 字段 | financials.json 字段 |
-|-----------------|---------------------|
-| `income_statement.revenue` | `revenue_usd_m` |
-| `income_statement.gross_profit` | `gross_profit_usd_m` |
-| `income_statement.operating_income` | `operating_income_usd_m` |
-| `income_statement.net_income` | `net_income_usd_m` |
-| `income_statement.eps_diluted` | `eps_diluted` |
-| `balance_sheet.shares_outstanding_m` | `shares_outstanding_m` |
-| `balance_sheet.cash_and_equivalents` | `cash_and_equivalents_usd_m` |
-| `balance_sheet.long_term_debt` | `total_debt_usd_m` |
-| `market_data.btc_held` | `btc_held` |
-
-**YoY 增长率计算**:
-- `revenue_yoy_pct` = (current.revenue - prior.revenue) / prior.revenue × 100
-- `gross_profit_yoy_pct` = (current.gross_profit - prior.gross_profit) / prior.gross_profit × 100
-- `net_income_yoy_pct` = 如果上期为负数则填 null，否则同上计算
-
-**操作步骤**:
-1. 打开 `data/financials.json`
-2. 在 `data` 数组中为该公司添加 1-2 条记录（最近财年 FY，可选加上期 FY）
-3. 如果该公司已有记录，更新缺失字段而非重复添加
-4. `fiscal_quarter` 填 `"FY"` 表示全年
-5. 保存文件
-
-### 6.4 完成后的验证步骤
-
-每家公司数据采集完成后:
-1. 确认 `data/raw_reports/{TICKER}/` 下有 2 个 JSON 文件（当期 + 上期）
-2. 确认 `data/analysis_data.json` 中该公司数据已更新为真实数据
-3. 确认 `data/financials.json` 中该公司记录已补全
-4. 提交并推送到 GitHub，等待 GitHub Pages 部署
-5. 在 btcmine.info 的"财务分析"和"财务数据"页面验证数据显示正常
+**market 字段说明**:
+- `equity_volatility` — 年化波动率，矿企典型 0.70-0.95
+- `asset_volatility` — ≈ equity_volatility × (equity / assets)，典型 0.35-0.55
+- `risk_free_rate` — 统一 `0.043`
+- `revenue_growth_mean` — (current.revenue - prior.revenue) / prior.revenue
+- `revenue_growth_std` — ≈ growth_mean × 0.3~0.5
 
 ---
 
-## 7. 常见问题
+## 6. 定时采集任务规范
+
+### 6.1 每日采集任务
+
+Agent 应每天执行以下检查:
+
+```
+每日任务: 检查并采集新发布的财务数据
+
+1. 检查 SEC EDGAR RSS / 公司 IR 页面是否有新的 10-K / 10-Q / 20-F / 6-K
+2. 对于有新 filing 的公司:
+   a. 采集财报数据，写入 data/raw_reports/{TICKER}/{YEAR}_{PERIOD}.json
+   b. 同步更新 data/financials.json（添加新记录）
+   c. 如果是年报(FY)，同步更新 data/analysis_data.json（更新 current/prior）
+3. 提交到 Git 并推送到 GitHub（自动触发 GitHub Pages 部署）
+4. 输出采集报告（见 6.4）
+```
+
+### 6.2 新财报检测方法
+
+**方法 A — SEC EDGAR RSS**:
+```
+https://efts.sec.gov/LATEST/search-index?q={TICKER}&forms=10-K,10-Q,20-F,6-K&dateRange=custom&startdt={YESTERDAY}&enddt={TODAY}
+```
+
+**方法 B — 公司新闻稿**:
+- 搜索 "{TICKER} earnings results" 或 "{COMPANY_NAME} quarterly results"
+- 检查公司 IR 页面的 Press Releases 部分
+
+**方法 C — 财经平台**:
+- Stock Analysis: `https://stockanalysis.com/stocks/{TICKER}/financials/?p=quarterly` 检查是否有新数据
+
+### 6.3 Agent 执行模板
+
+#### 模板 A: 首次全量采集（每家公司执行一次）
+
+```
+任务: 为 {TICKER} ({COMPANY_NAME}) 全量采集 2023-至今 财务数据
+
+1. 查找该公司 2023 年至今的所有 SEC 年报和季报
+2. 按时间顺序逐个提取:
+   - 2023_Q1, 2023_Q2, 2023_Q3, 2023_Q4, 2023_FY
+   - 2024_Q1, 2024_Q2, 2024_Q3, 2024_Q4, 2024_FY
+   - 2025 年已发布的报告
+3. 每个周期写入 data/raw_reports/{TICKER}/{YEAR}_{PERIOD}.json
+4. 将所有周期数据同步到 data/financials.json
+5. 用最近两个 FY 更新 data/analysis_data.json
+6. 所有金额转换为百万美元，保留一位小数
+7. 无法找到的数据设为 null，在 notes 中说明
+8. 提交并推送到 GitHub
+```
+
+#### 模板 B: 日常增量采集
+
+```
+任务: 每日增量检查并采集新财报
+
+1. 遍历 23 家公司，检查是否有新 SEC filing 或 Press Release
+2. 对有新数据的公司:
+   a. 采集该周期数据，写入 raw_reports
+   b. 更新 financials.json
+   c. 如为年报，更新 analysis_data.json
+3. 提交并推送
+4. 输出采集报告
+```
+
+### 6.4 采集报告格式
+
+每次采集后输出以下报告:
+
+```markdown
+## 采集报告 - {DATE}
+
+### 新采集数据
+| Ticker | 周期 | 类型 | 来源 | 关键指标 |
+|--------|------|------|------|---------|
+| FUFU | 2025_Q1 | 季报 | 6-K | Revenue: $125.4M, NI: $18.2M |
+
+### 数据完整性
+| Ticker | 总周期数 | 已采集 | 缺失 |
+|--------|---------|--------|------|
+| FUFU | 10 | 8 | 2025_Q1, 2025_Q2 (未发布) |
+
+### 文件更新
+- [x] data/raw_reports/FUFU/2025_Q1.json — 新增
+- [x] data/financials.json — 新增 1 条记录
+- [ ] data/analysis_data.json — 无需更新（非年报）
+
+### Git 操作
+- Commit: {commit_hash}
+- Push: 成功 / 失败
+```
+
+---
+
+## 7. Git 操作与发布
+
+### 7.1 提交规范
+
+```bash
+# 单家公司
+git add data/raw_reports/{TICKER}/ data/financials.json data/analysis_data.json
+git commit -m "data({TICKER}): add {PERIOD} financial data from {SOURCE}"
+
+# 批量采集
+git add data/
+git commit -m "data: daily collection - {N} new reports for {TICKERS}"
+
+# 推送（触发 GitHub Pages 部署）
+git push origin main
+```
+
+### 7.2 发布到 btcmine.info
+
+推送到 `main` 分支后，GitHub Pages 会自动部署。通常 1-3 分钟后在 btcmine.info 生效。
+
+**验证步骤**:
+1. 打开 `https://btcmine.info`
+2. 切换到"财务数据"页面 → 选择对应公司/周期，确认数据显示
+3. 如为年报更新，切换到"财务分析"页面 → 确认分析模型计算结果正确
+4. 检查浏览器控制台无 JSON 解析错误
+
+### 7.3 回滚
+
+如果推送后页面显示异常:
+```bash
+git revert HEAD
+git push origin main
+```
+
+---
+
+## 8. 特殊情况处理
 
 ### Q: 有些公司可能已退市或数据很少怎么办？
-A: 在 `notes` 中说明情况，尽量填充能找到的数据。如 SDIG（Stronghold）已被收购、AULT（Ault Alliance）规模极小等。
-
-### Q: 季度数据需要采集吗？
-A: 当前阶段只需采集年度（FY）数据。季度数据为可选的后续扩展。
+A: 在 `notes` 中说明情况，尽量填充能找到的数据。
 
 ### Q: 外国私人发行人（20-F）与 10-K 有什么区别？
-A: 20-F 通常在财年结束后 4 个月内提交（vs 10-K 的 60-90 天），格式可能略有不同，但包含的财务报表信息基本一致。
+A: 20-F 通常在财年结束后 4 个月内提交（vs 10-K 的 60-90 天），季度用 6-K 而非 10-Q。
 
 ### Q: 如果公司改了财年截止日怎么办？
-A: 在 `notes` 中说明，`period_end_date` 填写实际截止日期。例如 "公司于 2024 年将财年从 6月改为 12月"。
+A: 在 `notes` 中说明，`period_end_date` 填写实际截止日期。
 
 ### Q: BTC 公允价值变动导致 net_income 异常大怎么办？
-A: 正常填入报表数据。这是 2024 年 ASC 350 准则变更的结果，不需要调整。在 `notes` 中可以注明。
+A: 正常填入。在 `notes` 中注明包含 unrealized gain/loss on digital assets。
+
+### Q: 10-Q 中的现金流是 YTD 累计的怎么办？
+A: 优先填写单季度数据（当季 YTD - 上季 YTD）。如无法计算，填 YTD 数据并在 notes 标注。
+
+### Q: Press Release 和 SEC filing 数据不一致怎么办？
+A: 优先使用 SEC filing（已审计/已审阅），Press Release 数据标注为 "unaudited"。
+
+---
+
+## 附录: 参考示例
+
+已完成的 FUFU 2024_FY 文件（真实 SEC 数据）:
+
+```json
+{
+  "ticker": "FUFU",
+  "company_name": "BitFuFu Inc.",
+  "period": "2024_FY",
+  "period_type": "annual",
+  "period_end_date": "2024-12-31",
+  "currency": "USD",
+  "unit": "millions",
+  "source": "SEC 20-F (filed 2025-04-21); Press Release 2025-03-25",
+  "collected_date": "2026-02-26",
+  "notes": "D&A ($24.7M) included in COGS. Operating income includes unrealized BTC gain $44.3M and realized BTC gain $31.3M. Adjusted EBITDA: $117.5M.",
+  "income_statement": {
+    "revenue": 463.3,
+    "cogs": 433.6,
+    "gross_profit": 29.7,
+    "sga": 32.7,
+    "depreciation": 24.7,
+    "operating_income": 58.9,
+    "net_income": 54.0,
+    "ebit": 58.9,
+    "eps_diluted": 0.34
+  },
+  "balance_sheet": {
+    "total_assets": 377.7,
+    "current_assets": 265.3,
+    "cash_and_equivalents": 45.1,
+    "receivables": 10.9,
+    "ppe_net": 56.0,
+    "total_liabilities": 215.2,
+    "current_liabilities": 63.4,
+    "long_term_debt": 35.0,
+    "retained_earnings": 78.2,
+    "total_equity": 162.5,
+    "shares_outstanding_m": 163.1
+  },
+  "cash_flow_statement": {
+    "operating_cash_flow": -219.9,
+    "investing_cash_flow": 167.9,
+    "financing_cash_flow": 65.1,
+    "capex": -16.9,
+    "free_cash_flow": -236.7
+  },
+  "market_data": {
+    "stock_price": 2.66,
+    "market_cap": 434.0,
+    "btc_held": 1720
+  }
+}
+```
