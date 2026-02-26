@@ -4,6 +4,122 @@
 
 ---
 
+## ⚠️ 安全红线（Agent 必读）
+
+> **以下规则绝对不可违反。上一次 Agent 因违反这些规则，删除了网站核心文件，导致 btcmine.info 完全崩溃。**
+
+### 禁止操作清单
+
+| # | 禁止操作 | 原因 |
+|---|---------|------|
+| 1 | **禁止删除任何非 `data/` 目录的文件** | Agent 删除了 `Analysis/*.js`、`CNAME`、`css/style.css`、`js/i18n.js`，导致网站崩溃 |
+| 2 | **禁止修改以下文件**: `index.html`、`js/app.js`、`js/data.js`、`js/i18n.js`、`css/style.css`、`Analysis/*.js`、`CNAME`、`.github/` | 这些是网站核心代码，数据采集 Agent 无权修改 |
+| 3 | **禁止修改 JSON 文件结构/Schema** | Agent 将 `financials.json` 从纯数组 `{data:[...]}` 改为 `{_meta:{...}, data:[...]}` 结构，导致网站解析失败 |
+| 4 | **禁止推送到非 `main` 分支** | Agent 推送到了其他分支，但 GitHub Pages 部署该分支，导致未经审核的代码上线 |
+| 5 | **禁止创建新分支** | 所有数据采集变更直接提交到 `main` 分支 |
+| 6 | **禁止 `git push --force`** | 可能覆盖他人提交 |
+
+### 允许操作范围
+
+Agent **只能**操作以下文件：
+
+```
+✅ 可新增/修改:
+  data/raw_reports/{TICKER}/{YEAR}_{PERIOD}.json  — 原始财报数据
+
+✅ 可修改（不可改变结构）:
+  data/financials.json      — 仅在 data 数组中 添加/更新 记录
+  data/analysis_data.json   — 仅在 data 对象中 添加/更新 公司条目
+
+❌ 不可触碰:
+  index.html, js/*, css/*, Analysis/*, CNAME, .github/*, docs/*
+  data/companies.json (公司列表，仅人工维护)
+```
+
+### JSON Schema 保护
+
+**`data/financials.json` 的结构必须是**:
+```json
+{
+  "data": [
+    { "ticker": "...", "fiscal_year": 2024, "fiscal_quarter": "FY", ... }
+  ]
+}
+```
+- 顶层只有 `data` 键，值是数组
+- **禁止添加 `_meta` 或任何其他顶层键**
+- 数组中每条记录的字段见第 5.1 节
+
+**`data/analysis_data.json` 的结构必须是**:
+```json
+{
+  "data": {
+    "FUFU": { "name": "...", "current": {...}, "prior": {...}, "market": {...} },
+    "MARA": { ... }
+  }
+}
+```
+- 顶层只有 `data` 键，值是对象
+- **禁止添加 `_meta` 或任何其他顶层键**
+- 每家公司的子结构见第 5.2 节
+
+### 提交前检查清单
+
+每次 `git push` 前，Agent **必须**执行：
+
+```bash
+# 1. 确认只修改了 data/ 下的文件
+git diff --name-only HEAD | grep -v '^data/' && echo "❌ ERROR: 修改了 data/ 以外的文件！" && exit 1
+
+# 2. 确认 financials.json 结构完整
+python3 -c "
+import json
+d = json.load(open('data/financials.json'))
+assert isinstance(d, dict), 'Root must be dict'
+assert list(d.keys()) == ['data'], f'Root keys must be [data], got {list(d.keys())}'
+assert isinstance(d['data'], list), 'data must be list'
+for r in d['data']:
+    assert 'ticker' in r and 'fiscal_year' in r, f'Missing required fields in record'
+print(f'✅ financials.json: {len(d[\"data\"])} records, schema OK')
+"
+
+# 3. 确认 analysis_data.json 结构完整
+python3 -c "
+import json
+d = json.load(open('data/analysis_data.json'))
+assert isinstance(d, dict), 'Root must be dict'
+assert list(d.keys()) == ['data'], f'Root keys must be [data], got {list(d.keys())}'
+assert isinstance(d['data'], dict), 'data must be dict'
+for ticker, info in d['data'].items():
+    assert 'current' in info and 'prior' in info and 'market' in info, f'{ticker} missing required sections'
+print(f'✅ analysis_data.json: {len(d[\"data\"])} companies, schema OK')
+"
+
+# 4. 确认在 main 分支
+git branch --show-current | grep -q '^main$' || echo "❌ ERROR: 不在 main 分支！"
+
+# 5. 只推送到 main
+git push origin main
+```
+
+### 上次事故回顾
+
+**日期**: 2026-02-26
+**影响**: btcmine.info 完全不可用
+
+**Agent 做了什么错误操作**:
+1. 删除了 6 个分析模型文件 (`Analysis/beneish.js` 等)
+2. 删除了 CNAME 文件（自定义域名配置）
+3. 删除了 `css/style.css`（整个样式表）
+4. 删除了 `js/i18n.js`（国际化系统）
+5. 重写了 `index.html`、`js/app.js`、`js/data.js`
+6. 将 JSON 文件结构从 `{data:[...]}` 改为 `{_meta:{...}, data:[...]}`
+7. 推送到了非 main 分支
+
+**根本原因**: Agent 没有理解自己的操作范围仅限于 `data/` 目录，擅自重写了整个网站。
+
+---
+
 ## 1. 概览
 
 ### 1.1 项目背景
@@ -22,35 +138,39 @@
 
 **优先级**: FY > Q4 > Q3 > Q2 > Q1 > H1/H2
 
-### 1.3 采集状态总览（2026-02-26 验证）
+### 1.3 采集状态总览（2026-02-26 第二次验证）
 
-> **总体进度**: 8 / ~250+ 个周期文件已采集（约 3%）。19 家公司零数据。
+> **总体进度**: Agent 创建了 ~230 个 raw_reports 文件，但绝大部分财务数据为 null（空壳文件）。仅 FUFU/MARA/RIOT/CLSK 有真实完整数据。其余公司需要**重新采集并填入真实数据**。
+>
+> **上次 Agent 的问题**: Agent 创建了文件结构但没有从 SEC EDGAR 或财经平台抓取真实数字。大部分 income_statement/balance_sheet/cash_flow_statement 字段全部为 null。
 
-| # | Ticker | 公司名称 | SEC Filing | 财年截止月 | raw_reports 文件 | 已有周期 | 缺失周期 | 优先级 |
+| # | Ticker | 公司名称 | SEC Filing | 财年截止月 | raw_reports 状态 | 数据质量 | 页面同步 | 优先级 |
 |---|--------|---------|-----------|-----------|-----------------|---------|---------|--------|
-| 1 | FUFU | BitFuFu Inc. | 20-F / 6-K | 12月 | 2 | FY2023, FY2024 | **Q1-Q4 2023, Q1-Q4 2024, 2025 Qs** | P0-补季报 |
-| 2 | MARA | Marathon Digital | 10-K / 10-Q | 12月 | 2 | FY2023, FY2024 | **Q1-Q4 2023, Q1-Q4 2024, 2025 Qs** | P0-补季报 |
-| 3 | RIOT | Riot Platforms | 10-K / 10-Q | 12月 | 2 | FY2023, FY2024 | **Q1-Q4 2023, Q1-Q4 2024, 2025 Qs** | P0-补季报 |
-| 4 | CLSK | CleanSpark | 10-K / 10-Q | **9月** | 2 | FY2023, FY2024 | **Q1-Q4 FY2023, Q1-Q4 FY2024, Q1 FY2025** | P0-补季报 |
-| 5 | CORZ | Core Scientific | 10-K / 10-Q | 12月 | **0** | — | **全部** | **P1-全量** |
-| 6 | CIFR | Cipher Mining | 10-K / 10-Q | 12月 | **0** | — | **全部** | **P1-全量** |
-| 7 | HUT | Hut 8 Corp | 10-K / 10-Q | 12月 | **0** | — | **全部** | **P1-全量** |
-| 8 | WULF | TeraWulf | 10-K / 10-Q | 12月 | **0** | — | **全部** | **P1-全量** |
-| 9 | IREN | Iris Energy | 20-F / 6-K | **6月** | **0** | — | **全部** | **P1-全量** |
-| 10 | BITF | Bitfarms | 10-K / 10-Q | 12月 | **0** | — | **全部** | **P2-全量** |
-| 11 | BTBT | Bit Digital | 10-K / 10-Q | 12月 | **0** | — | **全部** | **P2-全量** |
-| 12 | BTDR | Bitdeer Technologies | 20-F / 6-K | 12月 | **0** | — | **全部** | **P2-全量** |
-| 13 | APLD | Applied Digital | 10-K / 10-Q | **5月** | **0** | — | **全部** | **P2-全量** |
-| 14 | HIVE | HIVE Digital | 10-K / 10-Q | **3月** | **0** | — | **全部** | **P2-全量** |
-| 15 | SDIG | Stronghold Digital | 10-K / 10-Q | 12月 | **0** | — | **全部** | **P2-全量** |
-| 16 | GREE | Greenidge Generation | 10-K / 10-Q | 12月 | **0** | — | **全部** | **P3-全量** |
-| 17 | ABTC | American Bitcoin | 10-K / 10-Q | 12月 | **0** | — | **全部** | **P3-全量** |
-| 18 | ANY | Sphere 3D | 10-K / 10-Q | 12月 | **0** | — | **全部** | **P3-全量** |
-| 19 | SLNH | Soluna Holdings | 10-K / 10-Q | 12月 | **0** | — | **全部** | **P3-全量** |
-| 20 | AULT | Ault Alliance | 10-K / 10-Q | 12月 | **0** | — | **全部** | **P3-全量** |
-| 21 | DGHI | Digihost Technology | 20-F / 6-K | 12月 | **0** | — | **全部** | **P3-全量** |
-| 22 | MIGI | Mawson Infrastructure | 10-K / 10-Q | **6月** | **0** | — | **全部** | **P3-全量** |
-| 23 | SAI | SAI.TECH | 20-F / 6-K | **6月** | **0** | — | **全部** | **P3-全量** |
+| 1 | FUFU | BitFuFu Inc. | 20-F / 6-K | 12月 | FY2023✅ FY2024✅ | **完整**(SEC验证) | ✅ 已同步 | P0-补季报 |
+| 2 | MARA | Marathon Digital | 10-K / 10-Q | 12月 | FY2023✅ FY2024✅ + Q空壳 | **FY完整**, Q为空 | ✅ FY已同步 | P0-补季报实际数据 |
+| 3 | RIOT | Riot Platforms | 10-K / 10-Q | 12月 | FY2023✅ FY2024✅ + Q空壳 | **FY完整**, Q为空 | ✅ FY已同步 | P0-补季报实际数据 |
+| 4 | CLSK | CleanSpark | 10-K / 10-Q | **9月** | FY2023✅ FY2024✅ + Q空壳 | **FY完整**, Q为空 | ✅ FY已同步 | P0-补季报实际数据 |
+| 5 | CORZ | Core Scientific | 10-K / 10-Q | 12月 | FY有但稀疏 + Q空壳 | **极不完整**(30%填充) | ❌ | **P1-重新采集** |
+| 6 | CIFR | Cipher Mining | 10-K / 10-Q | 12月 | FY有但部分 + Q空壳 | **不完整**(60%填充) | ❌ | **P1-重新采集** |
+| 7 | HUT | Hut 8 Corp | 10-K / 10-Q | 12月 | FY有但部分 + Q空壳 | **不完整**(65%填充) | ❌ | **P1-重新采集** |
+| 8 | WULF | TeraWulf | 10-K / 10-Q | 12月 | FY有但稀疏 + Q空壳 | **极不完整**(45%填充) | ❌ | **P1-重新采集** |
+| 9 | IREN | Iris Energy | 20-F / 6-K | **6月** | Q空壳 | **全部为null** | ❌ | **P1-全量** |
+| 10 | BITF | Bitfarms | 10-K / 10-Q | 12月 | FY有但稀疏 + Q空壳 | **极不完整**(40%填充) | ❌ | **P2-重新采集** |
+| 11 | BTBT | Bit Digital | 10-K / 10-Q | 12月 | FY有但部分 + Q空壳 | **不完整**(65%填充) | ❌ | **P2-重新采集** |
+| 12 | BTDR | Bitdeer Technologies | 20-F / 6-K | 12月 | Q空壳 | **全部为null** | ❌ | **P2-全量** |
+| 13 | APLD | Applied Digital | 10-K / 10-Q | **5月** | Q空壳 | **全部为null** | ❌ | **P2-全量** |
+| 14 | HIVE | HIVE Digital | 10-K / 10-Q | **3月** | Q空壳 | **全部为null** | ❌ | **P2-全量** |
+| 15 | SDIG | Stronghold Digital | 10-K / 10-Q | 12月 | FY有但稀疏 + Q空壳 | **极不完整**(45%填充) | ❌ | **P2-重新采集** |
+| 16 | GREE | Greenidge Generation | 10-K / 10-Q | 12月 | Q空壳 | **全部为null** | ❌ | **P3-全量** |
+| 17 | ABTC | American Bitcoin | 10-K / 10-Q | 12月 | Q空壳 | **全部为null** | ❌ | **P3-全量** |
+| 18 | ANY | Sphere 3D | 10-K / 10-Q | 12月 | Q空壳 | **全部为null** | ❌ | **P3-全量** |
+| 19 | SLNH | Soluna Holdings | 10-K / 10-Q | 12月 | Q空壳 | **全部为null** | ❌ | **P3-全量** |
+| 20 | AULT | Ault Alliance | 10-K / 10-Q | 12月 | Q空壳 | **全部为null** | ❌ | **P3-全量** |
+| 21 | DGHI | Digihost Technology | 20-F / 6-K | 12月 | Q空壳 | **全部为null** | ❌ | **P3-全量** |
+| 22 | MIGI | Mawson Infrastructure | 10-K / 10-Q | **6月** | Q空壳 | **全部为null** | ❌ | **P3-全量** |
+| 23 | SAI | SAI.TECH | 20-F / 6-K | **6月** | Q空壳 | **全部为null** | ❌ | **P3-全量** |
+
+> **"空壳文件"说明**: Agent 创建了符合格式的 JSON 文件，但 income_statement、balance_sheet、cash_flow_statement 中所有数值字段均为 null。这些文件的结构可以保留，但**必须填入真实数据**。
 
 ### 1.4 优先级说明
 
@@ -61,10 +181,12 @@
 
 ### 1.5 页面数据同步状态
 
-| 数据文件 | 状态 | 问题 |
+| 数据文件 | 状态 | 详情 |
 |---------|------|------|
-| `data/financials.json` | 部分同步 | MARA/RIOT/CLSK 缺 FY2023 记录；多个公司的 Q4 记录大量字段为 null |
+| `data/financials.json` | 4家真实 | FUFU/MARA/RIOT/CLSK 有真实 FY 数据；其余公司仅有基础 Q4 估算数据（来自初始数据） |
 | `data/analysis_data.json` | 4/12 真实 | FUFU/MARA/RIOT/CLSK 为真实 SEC 数据；CORZ/CIFR/HUT/WULF/IREN/BITF/BTDR/BTBT 为模拟数据；11 家公司完全缺失 |
+
+> **Agent 上次的问题**: Agent 试图重写 financials.json 和 analysis_data.json 的整体结构（添加 `_meta` 字段），导致网站解析失败。**请严格遵守现有 JSON Schema，仅在 data 数组/对象中添加或更新记录。**
 
 > **注意**: 标记为 20-F/6-K 的为外国私人发行人。粗体月份为非标准财年。
 
@@ -546,22 +668,39 @@ https://efts.sec.gov/LATEST/search-index?q={TICKER}&forms=10-K,10-Q,20-F,6-K&dat
 
 ## 7. Git 操作与发布
 
-### 7.1 提交规范
+### 7.1 分支规则（强制）
+
+- **只能在 `main` 分支上工作**
+- **只能推送到 `main` 分支**: `git push origin main`
+- **禁止创建新分支**、**禁止 force push**
+- 推送前运行安全检查清单（见「安全红线」一节）
+
+### 7.2 提交规范
 
 ```bash
+# ⚠️ 重要: 只 add data/ 下的文件，绝不 add 其他目录
 # 单家公司
 git add data/raw_reports/{TICKER}/ data/financials.json data/analysis_data.json
 git commit -m "data({TICKER}): add {PERIOD} financial data from {SOURCE}"
 
 # 批量采集
-git add data/
+git add data/raw_reports/ data/financials.json data/analysis_data.json
 git commit -m "data: daily collection - {N} new reports for {TICKERS}"
+
+# ❌ 禁止使用:
+# git add .          ← 会 stage 非 data/ 文件
+# git add -A         ← 同上
+# git add --all      ← 同上
+
+# 推送前检查（必须执行）
+git diff --name-only HEAD | grep -v '^data/' && echo "❌ 包含非 data/ 文件，请撤销！" && exit 1
+git branch --show-current | grep -q '^main$' || echo "❌ 不在 main 分支！" && exit 1
 
 # 推送（触发 GitHub Pages 部署）
 git push origin main
 ```
 
-### 7.2 发布到 btcmine.info
+### 7.3 发布到 btcmine.info
 
 推送到 `main` 分支后，GitHub Pages 会自动部署。通常 1-3 分钟后在 btcmine.info 生效。
 
@@ -570,14 +709,23 @@ git push origin main
 2. 切换到"财务数据"页面 → 选择对应公司/周期，确认数据显示
 3. 如为年报更新，切换到"财务分析"页面 → 确认分析模型计算结果正确
 4. 检查浏览器控制台无 JSON 解析错误
+5. 确认网站各页面正常加载（Overview、财务数据、财务分析、情绪分析）
 
-### 7.3 回滚
+### 7.4 回滚
 
 如果推送后页面显示异常:
 ```bash
 git revert HEAD
 git push origin main
 ```
+
+### 7.5 故障排查
+
+如果网站出错，优先检查:
+1. `data/financials.json` 是否为合法 JSON（`python3 -c "import json; json.load(open('data/financials.json'))"`)
+2. `data/analysis_data.json` 是否为合法 JSON
+3. JSON 结构是否被改变（顶层只有 `data` 键）
+4. 是否意外修改了 `data/` 以外的文件
 
 ---
 
