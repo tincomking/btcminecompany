@@ -623,7 +623,7 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 .ac-item:hover { background: var(--bg-elevated); color: var(--text-primary); }
 .ac-item.ac-empty { color: var(--text-muted); cursor: default; font-family: var(--font-sans); }
 
-/* ── EARNINGS CALENDAR ─────────────────────────────────── */
+/* ── EARNINGS CALENDAR (overview cards) ────────────────── */
 .earnings-calendar {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -649,6 +649,92 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 .earnings-date-col { text-align: right; }
 .earnings-date-display { font-family: var(--font-mono); font-size: 12px; color: var(--text-primary); }
 .earnings-days-away { font-size: 10px; color: var(--orange); }
+
+/* ── EARNINGS CALENDAR GRID (financial tab) ───────────── */
+.cal-nav { display: flex; align-items: center; gap: 10px; }
+.cal-nav-btn {
+  background: var(--bg-card); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm); color: var(--text-primary);
+  width: 28px; height: 28px; font-size: 16px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.cal-nav-btn:hover { background: var(--bg-hover); }
+.cal-nav-label {
+  font-family: var(--font-mono); font-size: 13px; font-weight: 600;
+  color: var(--text-primary); min-width: 110px; text-align: center;
+}
+
+.earnings-cal-grid {
+  background: var(--bg-card); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 24px;
+}
+
+.cal-header-row {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.cal-weekday {
+  text-align: center; padding: 8px 0; font-size: 11px; font-weight: 600;
+  color: var(--text-muted); text-transform: uppercase;
+}
+
+.cal-body {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+}
+
+.cal-cell {
+  min-height: 90px; padding: 6px; border-right: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex; flex-direction: column; gap: 2px;
+  transition: background 0.15s;
+}
+.cal-cell:nth-child(7n) { border-right: none; }
+.cal-cell.cal-empty { background: var(--bg-secondary); opacity: 0.4; }
+.cal-cell.cal-weekend { background: rgba(255,255,255,0.02); }
+.cal-cell.cal-today { background: rgba(247,147,26,0.08); }
+.cal-cell.cal-has-event:hover { background: var(--bg-hover); }
+
+.cal-day-num {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  color: var(--text-muted); margin-bottom: 2px;
+}
+.cal-today .cal-day-num {
+  color: var(--orange); font-weight: 700;
+  background: rgba(247,147,26,0.15); border-radius: 50%;
+  width: 20px; height: 20px; display: flex; align-items: center;
+  justify-content: center;
+}
+
+.cal-event {
+  display: flex; align-items: center; gap: 4px; padding: 2px 5px;
+  border-radius: 3px; font-size: 10px; line-height: 1.3;
+  cursor: default;
+}
+.cal-dot-reported { background: rgba(16,185,129,0.15); }
+.cal-dot-upcoming { background: rgba(247,147,26,0.15); }
+
+.cal-evt-ticker {
+  font-weight: 700; font-family: var(--font-mono); font-size: 10px;
+}
+.cal-dot-reported .cal-evt-ticker { color: var(--green); }
+.cal-dot-upcoming .cal-evt-ticker { color: var(--orange); }
+
+.cal-evt-period {
+  font-size: 9px; color: var(--text-muted); font-family: var(--font-mono);
+}
+
+.cal-event-more {
+  font-size: 9px; color: var(--text-muted); padding: 1px 5px;
+  font-family: var(--font-mono);
+}
+
+@media (max-width: 768px) {
+  .cal-cell { min-height: 60px; padding: 3px; }
+  .cal-event { padding: 1px 3px; }
+  .cal-evt-period { display: none; }
+  .cal-day-num { font-size: 10px; }
+}
 
 /* ── NEWS FEED ─────────────────────────────────────────── */
 .news-grid {

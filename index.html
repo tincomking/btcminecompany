@@ -196,26 +196,16 @@
       </table>
     </div>
 
-    <!-- Upcoming Earnings -->
+    <!-- Earnings Calendar -->
     <div class="section-header">
       <div class="section-title" data-i18n="fin.earnings_calendar">财报日历</div>
+      <div class="cal-nav">
+        <button class="cal-nav-btn" id="calPrev">‹</button>
+        <span class="cal-nav-label" id="calLabel"></span>
+        <button class="cal-nav-btn" id="calNext">›</button>
+      </div>
     </div>
-    <div class="table-wrapper">
-      <table id="earningsTable">
-        <thead>
-          <tr>
-            <th data-i18n="th.company">公司</th>
-            <th data-i18n="th.period">报告期</th>
-            <th data-i18n="th.report_date">财报日期</th>
-            <th data-i18n="th.status">状态</th>
-            <th data-i18n="th.revenue_est">营收预期</th>
-            <th data-i18n="th.eps_est">EPS预期</th>
-            <th data-i18n="th.notes">备注</th>
-          </tr>
-        </thead>
-        <tbody id="earningsBody"></tbody>
-      </table>
-    </div>
+    <div class="earnings-cal-grid" id="earningsCalGrid"></div>
   </div>
 
   <!-- ─────────────────────── PAGE: OPERATIONS ─────────────────────── -->

@@ -407,7 +407,8 @@ let finCurrentCompany = 'ALL';
 function renderFinancials() {
   buildPeriodSelectors();
   renderFinancialsTable();
-  renderEarningsTable();
+  renderEarningsCalendar_grid();
+  setupCalendarNav();
   renderRevenueChart();
   setupFinancialFilters();
 }
@@ -520,38 +521,111 @@ function renderFinancialsTable() {
   }).join('');
 }
 
-function renderEarningsTable() {
-  const body = document.getElementById('earningsBody');
-  // All entries sorted by date
-  const data = FINANCIALS
-    .sort((a, b) => {
-      const da = a.estimated_report_date || a.report_date || '';
-      const db = b.estimated_report_date || b.report_date || '';
-      return db.localeCompare(da);
-    });
+// ── EARNINGS CALENDAR (monthly grid view) ─────────────────────────────────
 
-  body.innerHTML = data.map(f => {
-    const co = COMPANIES.find(c => c.ticker === f.ticker);
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth(); // 0-indexed
+
+function renderEarningsCalendar_grid() {
+  const grid = document.getElementById('earningsCalGrid');
+  if (!grid) return;
+
+  const label = document.getElementById('calLabel');
+  const monthNamesZh = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+  const monthNamesEn = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const mNames = currentLang === 'zh' ? monthNamesZh : monthNamesEn;
+  if (label) label.textContent = currentLang === 'zh' ? `${calYear} 年 ${mNames[calMonth]}` : `${mNames[calMonth]} ${calYear}`;
+
+  // Build date → events map for this month
+  const events = {};
+  FINANCIALS.forEach(f => {
     const dateStr = f.report_date || f.estimated_report_date;
-    const statusBadge = f.is_reported
-      ? `<span class="status-badge status-reported"><span class="dot"></span>${t('js.reported')}</span>`
-      : `<span class="status-badge status-estimated"><span class="dot dot-pulse"></span>${t('js.expected_release')}</span>`;
+    if (!dateStr) return;
+    const d = new Date(dateStr);
+    if (d.getFullYear() !== calYear || d.getMonth() !== calMonth) return;
+    const day = d.getDate();
+    if (!events[day]) events[day] = [];
+    events[day].push(f);
+  });
 
-    return `<tr>
-      <td>
-        <div style="display:flex;flex-direction:column;gap:1px;">
-          <span class="td-ticker">${f.ticker}</span>
-          <span style="font-size:10px;color:var(--text-muted);">${co ? co.name : ''}</span>
-        </div>
-      </td>
-      <td class="td-mono">${f.period_label}</td>
-      <td class="td-mono td-primary">${fmt.date(dateStr)}</td>
-      <td>${statusBadge}</td>
-      <td class="td-mono" style="color:var(--text-muted);">${f.is_reported ? fmt.usd(f.revenue_usd_m) : `<span class="no-data">${t('js.pending')}</span>`}</td>
-      <td class="td-mono" style="color:var(--text-muted);">${f.is_reported && f.eps_diluted != null ? (f.eps_diluted >= 0 ? '+' : '') + f.eps_diluted.toFixed(2) : '<span class="no-data">—</span>'}</td>
-      <td style="font-size:11px;color:var(--text-muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;">${f.notes || '—'}</td>
-    </tr>`;
-  }).join('');
+  // Calendar grid
+  const firstDay = new Date(calYear, calMonth, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const today = new Date();
+  const isCurrentMonth = today.getFullYear() === calYear && today.getMonth() === calMonth;
+  const todayDate = today.getDate();
+
+  const weekdays = currentLang === 'zh' ? ['日','一','二','三','四','五','六'] : ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let html = '<div class="cal-header-row">';
+  weekdays.forEach(w => { html += `<div class="cal-weekday">${w}</div>`; });
+  html += '</div><div class="cal-body">';
+
+  // Empty cells before first day
+  for (let i = 0; i < firstDay; i++) {
+    html += '<div class="cal-cell cal-empty"></div>';
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isToday = isCurrentMonth && d === todayDate;
+    const hasEvents = events[d] && events[d].length > 0;
+    const isWeekend = (firstDay + d - 1) % 7 === 0 || (firstDay + d - 1) % 7 === 6;
+
+    let cls = 'cal-cell';
+    if (isToday) cls += ' cal-today';
+    if (hasEvents) cls += ' cal-has-event';
+    if (isWeekend) cls += ' cal-weekend';
+
+    html += `<div class="${cls}">`;
+    html += `<div class="cal-day-num">${d}</div>`;
+
+    if (hasEvents) {
+      // Sort: reported first, then estimated; group by ticker
+      const sorted = events[d].sort((a, b) => {
+        if (a.is_reported !== b.is_reported) return a.is_reported ? -1 : 1;
+        return a.ticker.localeCompare(b.ticker);
+      });
+      // Show up to 3 events, then "+N more"
+      const show = sorted.slice(0, 3);
+      const more = sorted.length - 3;
+      show.forEach(f => {
+        const dotCls = f.is_reported ? 'cal-dot-reported' : 'cal-dot-upcoming';
+        const tipStatus = f.is_reported ? (currentLang === 'zh' ? '已披露' : 'Reported') : (currentLang === 'zh' ? '预计' : 'Expected');
+        html += `<div class="cal-event ${dotCls}" title="${f.ticker} ${f.period_label} — ${tipStatus}">`;
+        html += `<span class="cal-evt-ticker">${f.ticker}</span>`;
+        html += `<span class="cal-evt-period">${f.fiscal_quarter}</span>`;
+        html += '</div>';
+      });
+      if (more > 0) {
+        html += `<div class="cal-event-more">+${more}</div>`;
+      }
+    }
+    html += '</div>';
+  }
+
+  // Pad remaining cells
+  const totalCells = firstDay + daysInMonth;
+  const remaining = (7 - totalCells % 7) % 7;
+  for (let i = 0; i < remaining; i++) {
+    html += '<div class="cal-cell cal-empty"></div>';
+  }
+
+  html += '</div>';
+  grid.innerHTML = html;
+}
+
+function setupCalendarNav() {
+  const prev = document.getElementById('calPrev');
+  const next = document.getElementById('calNext');
+  if (prev) prev.onclick = () => {
+    calMonth--;
+    if (calMonth < 0) { calMonth = 11; calYear--; }
+    renderEarningsCalendar_grid();
+  };
+  if (next) next.onclick = () => {
+    calMonth++;
+    if (calMonth > 11) { calMonth = 0; calYear++; }
+    renderEarningsCalendar_grid();
+  };
 }
 
 function renderRevenueChart() {
