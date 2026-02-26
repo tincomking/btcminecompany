@@ -1126,53 +1126,59 @@ function renderNewsList() {
 }
 
 function renderNewsCharts() {
-  // Sentiment donut
-  const canvas1 = document.getElementById('sentimentDonut');
-  if (canvas1) {
+  // ── Sentiment ring (pure CSS conic-gradient) ──
+  const ringEl = document.getElementById('newsSentimentRing');
+  if (ringEl) {
     const pos = NEWS.filter(n => n.sentiment === 'positive').length;
     const neg = NEWS.filter(n => n.sentiment === 'negative').length;
     const neu = NEWS.filter(n => n.sentiment === 'neutral').length;
-    const cc3 = chartColors();
-    if (canvas1._chart) canvas1._chart.destroy();
-    canvas1._chart = new Chart(canvas1, {
-      type: 'doughnut',
-      data: {
-        labels: [t('js.positive'), t('js.negative'), t('js.neutral')],
-        datasets: [{ data: [pos, neg, neu], backgroundColor: ['rgba(16,185,129,0.8)','rgba(239,68,68,0.8)','rgba(96,96,96,0.8)'], borderWidth: 0, hoverOffset: 4 }]
-      },
-      options: {
-        cutout: '65%',
-        plugins: {
-          legend: { position:'bottom', labels: { color: cc3.legend, font: { size: 11 }, padding: 12, usePointStyle: true } },
-          tooltip: { backgroundColor: cc3.tooltip.bg, borderColor: cc3.tooltip.border, borderWidth: 1, titleColor: cc3.tooltip.title, bodyColor: cc3.tooltip.body }
-        }
-      }
-    });
+    const total = pos + neg + neu || 1;
+    const pPos = (pos / total * 100).toFixed(1);
+    const pNeg = (neg / total * 100).toFixed(1);
+    const pNeu = (neu / total * 100).toFixed(1);
+    const a1 = pos / total * 360;
+    const a2 = a1 + neg / total * 360;
+
+    ringEl.innerHTML = `
+      <div class="css-ring-wrap">
+        <div class="css-ring" style="background:conic-gradient(
+          rgba(16,185,129,0.85) 0deg ${a1}deg,
+          rgba(239,68,68,0.85) ${a1}deg ${a2}deg,
+          rgba(96,96,96,0.6) ${a2}deg 360deg
+        );">
+          <div class="css-ring-hole">
+            <span class="css-ring-total">${total}</span>
+            <span class="css-ring-label">${currentLang === 'zh' ? '总计' : 'Total'}</span>
+          </div>
+        </div>
+        <div class="css-ring-legend">
+          <div class="css-ring-legend-item"><span class="css-dot" style="background:rgba(16,185,129,0.85);"></span>${t('js.positive')} <b>${pos}</b> (${pPos}%)</div>
+          <div class="css-ring-legend-item"><span class="css-dot" style="background:rgba(239,68,68,0.85);"></span>${t('js.negative')} <b>${neg}</b> (${pNeg}%)</div>
+          <div class="css-ring-legend-item"><span class="css-dot" style="background:rgba(96,96,96,0.6);"></span>${t('js.neutral')} <b>${neu}</b> (${pNeu}%)</div>
+        </div>
+      </div>`;
   }
 
-  // Category bar
-  const canvas2 = document.getElementById('categoryChart');
-  if (canvas2) {
+  // ── Category horizontal bars (pure HTML/CSS) ──
+  const barsEl = document.getElementById('newsCategoryBars');
+  if (barsEl) {
     const cats = {};
-    NEWS.forEach(n => { cats[n.category] = (cats[n.category]||0) + 1; });
-    const sorted = Object.entries(cats).sort((a,b) => b[1]-a[1]);
-    const cc4 = chartColors();
-    if (canvas2._chart) canvas2._chart.destroy();
-    canvas2._chart = new Chart(canvas2, {
-      type: 'bar',
-      data: {
-        labels: sorted.map(([c]) => categoryLabel(c)),
-        datasets: [{ data: sorted.map(([,v]) => v), backgroundColor: 'rgba(59,130,246,0.6)', borderColor: '#3b82f6', borderWidth: 1, borderRadius: 4 }]
-      },
-      options: {
-        indexAxis: 'y',
-        plugins: { legend: { display: false }, tooltip: { backgroundColor: cc4.tooltip.bg, borderColor: cc4.tooltip.border, borderWidth: 1, titleColor: cc4.tooltip.title, bodyColor: cc4.tooltip.body } },
-        scales: {
-          x: { ticks: { color: cc4.tick }, grid: { color: cc4.grid } },
-          y: { ticks: { color: cc4.legend, font: { size: 11 } }, grid: { display: false } }
-        }
-      }
-    });
+    NEWS.forEach(n => { cats[n.category] = (cats[n.category] || 0) + 1; });
+    const sorted = Object.entries(cats).sort((a, b) => b[1] - a[1]);
+    const maxVal = sorted.length ? sorted[0][1] : 1;
+
+    barsEl.innerHTML = `<div class="css-bars">
+      ${sorted.map(([cat, count]) => {
+        const pct = (count / maxVal * 100).toFixed(0);
+        return `<div class="css-bar-row">
+          <div class="css-bar-label">${categoryLabel(cat)}</div>
+          <div class="css-bar-track">
+            <div class="css-bar-fill" style="width:${pct}%;"></div>
+          </div>
+          <div class="css-bar-value">${count}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
   }
 }
 

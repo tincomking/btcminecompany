@@ -1101,6 +1101,33 @@ footer {
 .fin-toggle { display: inline-block; transition: transform 0.2s; }
 .fin-toggle.open { transform: rotate(180deg); }
 
+/* ── NEWS CSS RING (sentiment) ───────────────────────── */
+.css-ring-wrap { display: flex; flex-direction: column; align-items: center; padding: 16px 0 8px; }
+.css-ring {
+  width: 140px; height: 140px; border-radius: 50%; position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.css-ring-hole {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: var(--bg-card); display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.css-ring-total { font-family: var(--font-mono); font-size: 22px; font-weight: 700; color: var(--text-primary); line-height: 1; }
+.css-ring-label { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+.css-ring-legend { display: flex; gap: 16px; margin-top: 14px; flex-wrap: wrap; justify-content: center; }
+.css-ring-legend-item { font-size: 11px; color: var(--text-secondary); display: flex; align-items: center; gap: 5px; }
+.css-ring-legend-item b { color: var(--text-primary); }
+.css-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── NEWS CSS BARS (category) ────────────────────────── */
+.css-bars { padding: 12px 4px; }
+.css-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.css-bar-row:last-child { margin-bottom: 0; }
+.css-bar-label { width: 70px; font-size: 11px; color: var(--text-secondary); text-align: right; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.css-bar-track { flex: 1; height: 18px; background: var(--bg-elevated); border-radius: 4px; overflow: hidden; }
+.css-bar-fill { height: 100%; background: rgba(59,130,246,0.6); border-radius: 4px; transition: width 0.3s ease; min-width: 2px; }
+.css-bar-value { width: 28px; font-family: var(--font-mono); font-size: 11px; color: var(--text-primary); font-weight: 600; text-align: right; flex-shrink: 0; }
+
 /* ── RATING DETAIL MODAL ─────────────────────────────── */
 .rating-detail-grid {
   display: grid;
