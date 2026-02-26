@@ -716,10 +716,10 @@
       "report_date": "2025-11-04",
       "estimated_report_date": null,
       "is_reported": true,
-      "revenue_usd_m": 252.41,
+      "revenue_usd_m": 252.4,
       "gross_profit_usd_m": 133.67,
       "operating_income_usd_m": 79.39,
-      "net_income_usd_m": 123.13,
+      "net_income_usd_m": 123.1,
       "adjusted_ebitda_usd_m": 246.7,
       "eps_diluted": 0.27,
       "revenue_yoy_pct": 91.73,
@@ -730,7 +730,7 @@
       "cash_and_equivalents_usd_m": null,
       "btc_held": 52850,
       "total_debt_usd_m": null,
-      "notes": "Q3 2025: Revenue $252.41M (+92% YoY). Net income $123.1M vs loss $124.8M in Q3 2024. BTC holdings 52,850."
+      "notes": "Q3 2025: Revenue $252.4M, Net Income $123.1M (from Quartr). Source: Company report."
     },
     {
       "ticker": "MARA",
