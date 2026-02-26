@@ -1,0 +1,48 @@
+{
+  "ticker": "CORZ",
+  "company_name": "Core Scientific",
+  "period": "2024_FY",
+  "period_type": "annual",
+  "period_end_date": "2024-12-31",
+  "currency": "USD",
+  "unit": "millions",
+  "source": "SEC 10-K",
+  "collected_date": "2026-02-26",
+  "notes": "FY2024. Emerged from bankruptcy in 2024.",
+  "income_statement": {
+    "revenue": 387.6,
+    "cogs": 367.2,
+    "gross_profit": 20.4,
+    "sga": 139.3,
+    "depreciation": 105.2,
+    "operating_income": -112.4,
+    "net_income": -1156.8,
+    "ebit": -112.4,
+    "eps_diluted": -3.96
+  },
+  "balance_sheet": {
+    "total_assets": 2920.0,
+    "current_assets": 836.2,
+    "cash_and_equivalents": 836.2,
+    "receivables": null,
+    "ppe_net": null,
+    "total_liabilities": null,
+    "current_liabilities": null,
+    "long_term_debt": null,
+    "retained_earnings": null,
+    "total_equity": null,
+    "shares_outstanding_m": 292
+  },
+  "cash_flow_statement": {
+    "operating_cash_flow": null,
+    "investing_cash_flow": null,
+    "financing_cash_flow": null,
+    "capex": null,
+    "free_cash_flow": null
+  },
+  "market_data": {
+    "stock_price": 2.85,
+    "market_cap": 832.2,
+    "btc_held": 974
+  }
+}

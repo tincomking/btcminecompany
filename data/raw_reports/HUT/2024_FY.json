@@ -1,0 +1,48 @@
+{
+  "ticker": "HUT",
+  "company_name": "Hut 8 Corp",
+  "period": "2024_FY",
+  "period_type": "annual",
+  "period_end_date": "2024-12-31",
+  "currency": "USD",
+  "unit": "millions",
+  "source": "SEC 10-K",
+  "collected_date": "2026-02-26",
+  "notes": "FY2024 from 10-K filed 2025-03-03.",
+  "income_statement": {
+    "revenue": 154.9,
+    "cogs": 86.7,
+    "gross_profit": 68.2,
+    "sga": 61.5,
+    "depreciation": 37.8,
+    "operating_income": -31.1,
+    "net_income": 331.4,
+    "ebit": -31.1,
+    "eps_diluted": 3.66
+  },
+  "balance_sheet": {
+    "total_assets": 2825.4,
+    "current_assets": 982.5,
+    "cash_and_equivalents": 682.4,
+    "receivables": null,
+    "ppe_net": 1256.8,
+    "total_liabilities": 845.2,
+    "current_liabilities": 125.8,
+    "long_term_debt": 582.4,
+    "retained_earnings": 125.4,
+    "total_equity": 1980.2,
+    "shares_outstanding_m": 91
+  },
+  "cash_flow_statement": {
+    "operating_cash_flow": null,
+    "investing_cash_flow": null,
+    "financing_cash_flow": null,
+    "capex": null,
+    "free_cash_flow": null
+  },
+  "market_data": {
+    "stock_price": 21.54,
+    "market_cap": 1960.1,
+    "btc_held": 9542
+  }
+}

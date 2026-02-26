@@ -1,0 +1,48 @@
+{
+  "ticker": "CIFR",
+  "company_name": "Cipher Mining",
+  "period": "2024_FY",
+  "period_type": "annual",
+  "period_end_date": "2024-12-31",
+  "currency": "USD",
+  "unit": "millions",
+  "source": "SEC 10-K",
+  "collected_date": "2026-02-26",
+  "notes": "FY2024 from 10-K.",
+  "income_statement": {
+    "revenue": 140.8,
+    "cogs": 122.4,
+    "gross_profit": 18.4,
+    "sga": 33.2,
+    "depreciation": 112.2,
+    "operating_income": -127.0,
+    "net_income": -88.6,
+    "ebit": -127.0,
+    "eps_diluted": -0.26
+  },
+  "balance_sheet": {
+    "total_assets": 1124.5,
+    "current_assets": 345.2,
+    "cash_and_equivalents": 285.1,
+    "receivables": null,
+    "ppe_net": 624.8,
+    "total_liabilities": 312.5,
+    "current_liabilities": 98.4,
+    "long_term_debt": 168.2,
+    "retained_earnings": -245.8,
+    "total_equity": 812.0,
+    "shares_outstanding_m": 348
+  },
+  "cash_flow_statement": {
+    "operating_cash_flow": -45.2,
+    "investing_cash_flow": null,
+    "financing_cash_flow": null,
+    "capex": null,
+    "free_cash_flow": null
+  },
+  "market_data": {
+    "stock_price": 3.85,
+    "market_cap": 1339.8,
+    "btc_held": null
+  }
+}

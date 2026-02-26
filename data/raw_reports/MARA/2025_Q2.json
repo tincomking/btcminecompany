@@ -1,0 +1,48 @@
+{
+  "ticker": "MARA",
+  "company_name": "Marathon Digital Holdings",
+  "period": "2025_Q2",
+  "period_type": "quarterly",
+  "period_end_date": "2025-06-30",
+  "currency": "USD",
+  "unit": "millions",
+  "source": "SEC 10-Q / Press Release",
+  "collected_date": "2026-02-26",
+  "notes": "Q2 2025 revenue.",
+  "income_statement": {
+    "revenue": 238.49,
+    "cogs": 110.76,
+    "gross_profit": 127.73,
+    "sga": 115.31,
+    "depreciation": 162.14,
+    "operating_income": 685.72,
+    "net_income": 808.24,
+    "ebit": 685.72,
+    "eps_diluted": 1.84
+  },
+  "balance_sheet": {
+    "total_assets": null,
+    "current_assets": null,
+    "cash_and_equivalents": null,
+    "receivables": null,
+    "ppe_net": null,
+    "total_liabilities": null,
+    "current_liabilities": null,
+    "long_term_debt": null,
+    "retained_earnings": null,
+    "total_equity": null,
+    "shares_outstanding_m": 441
+  },
+  "cash_flow_statement": {
+    "operating_cash_flow": null,
+    "investing_cash_flow": null,
+    "financing_cash_flow": null,
+    "capex": null,
+    "free_cash_flow": -293.32
+  },
+  "market_data": {
+    "stock_price": null,
+    "market_cap": null,
+    "btc_held": null
+  }
+}

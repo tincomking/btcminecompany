@@ -1,0 +1,48 @@
+{
+  "ticker": "RIOT",
+  "company_name": "Riot Platforms",
+  "period": "2025_Q1",
+  "period_type": "quarterly",
+  "period_end_date": "2025-03-31",
+  "currency": "USD",
+  "unit": "millions",
+  "source": "SEC 10-Q",
+  "collected_date": "2026-02-26",
+  "notes": "Q1 2025 revenue.",
+  "income_statement": {
+    "revenue": 161.39,
+    "cogs": 95.59,
+    "gross_profit": 65.8,
+    "sga": 71.45,
+    "depreciation": 77.93,
+    "operating_income": -291.62,
+    "net_income": -296.37,
+    "ebit": -291.62,
+    "eps_diluted": -0.9
+  },
+  "balance_sheet": {
+    "total_assets": null,
+    "current_assets": null,
+    "cash_and_equivalents": null,
+    "receivables": null,
+    "ppe_net": null,
+    "total_liabilities": null,
+    "current_liabilities": null,
+    "long_term_debt": null,
+    "retained_earnings": null,
+    "total_equity": null,
+    "shares_outstanding_m": 330
+  },
+  "cash_flow_statement": {
+    "operating_cash_flow": null,
+    "investing_cash_flow": null,
+    "financing_cash_flow": null,
+    "capex": null,
+    "free_cash_flow": -181.57
+  },
+  "market_data": {
+    "stock_price": null,
+    "market_cap": null,
+    "btc_held": null
+  }
+}

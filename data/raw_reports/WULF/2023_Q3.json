@@ -1,0 +1,48 @@
+{
+  "ticker": "WULF",
+  "company_name": "TeraWulf",
+  "period": "2023_Q3",
+  "period_type": "quarterly",
+  "period_end_date": "2023-09-30",
+  "currency": "USD",
+  "unit": "millions",
+  "source": "SEC 10-Q",
+  "collected_date": "2026-02-26",
+  "notes": "2023_Q3 revenue.",
+  "income_statement": {
+    "revenue": 18.96,
+    "cogs": 8.27,
+    "gross_profit": 10.69,
+    "sga": 11.51,
+    "depreciation": 8.22,
+    "operating_income": -9.27,
+    "net_income": -19.37,
+    "ebit": -9.27,
+    "eps_diluted": -0.09
+  },
+  "balance_sheet": {
+    "total_assets": null,
+    "current_assets": null,
+    "cash_and_equivalents": null,
+    "receivables": null,
+    "ppe_net": null,
+    "total_liabilities": null,
+    "current_liabilities": null,
+    "long_term_debt": null,
+    "retained_earnings": null,
+    "total_equity": null,
+    "shares_outstanding_m": 222
+  },
+  "cash_flow_statement": {
+    "operating_cash_flow": null,
+    "investing_cash_flow": null,
+    "financing_cash_flow": null,
+    "capex": null,
+    "free_cash_flow": -23.02
+  },
+  "market_data": {
+    "stock_price": null,
+    "market_cap": null,
+    "btc_held": null
+  }
+}

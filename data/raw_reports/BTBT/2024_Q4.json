@@ -1,0 +1,48 @@
+{
+  "ticker": "BTBT",
+  "company_name": "Bit Digital",
+  "period": "2024_Q4",
+  "period_type": "quarterly",
+  "period_end_date": "2024-12-31",
+  "currency": "USD",
+  "unit": "millions",
+  "source": "SEC 10-Q",
+  "collected_date": "2026-02-26",
+  "notes": "2024_Q4 revenue.",
+  "income_statement": {
+    "revenue": 25.55,
+    "cogs": 15.59,
+    "gross_profit": 9.96,
+    "sga": 16.39,
+    "depreciation": 8.74,
+    "operating_income": 28.27,
+    "net_income": 28.97,
+    "ebit": 28.27,
+    "eps_diluted": 0.16
+  },
+  "balance_sheet": {
+    "total_assets": null,
+    "current_assets": null,
+    "cash_and_equivalents": null,
+    "receivables": null,
+    "ppe_net": null,
+    "total_liabilities": null,
+    "current_liabilities": null,
+    "long_term_debt": null,
+    "retained_earnings": null,
+    "total_equity": null,
+    "shares_outstanding_m": 173
+  },
+  "cash_flow_statement": {
+    "operating_cash_flow": null,
+    "investing_cash_flow": null,
+    "financing_cash_flow": null,
+    "capex": null,
+    "free_cash_flow": -79.51
+  },
+  "market_data": {
+    "stock_price": null,
+    "market_cap": null,
+    "btc_held": null
+  }
+}

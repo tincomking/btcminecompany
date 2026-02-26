@@ -1,0 +1,48 @@
+{
+  "ticker": "MARA",
+  "company_name": "Marathon Digital Holdings",
+  "period": "2023_Q4",
+  "period_type": "quarterly",
+  "period_end_date": "2023-12-31",
+  "currency": "USD",
+  "unit": "millions",
+  "source": "SEC 10-Q",
+  "collected_date": "2026-02-26",
+  "notes": "2023_Q4 revenue.",
+  "income_statement": {
+    "revenue": 156.77,
+    "cogs": 75.11,
+    "gross_profit": 81.66,
+    "sga": 38.01,
+    "depreciation": 70.96,
+    "operating_income": 185.06,
+    "net_income": 151.83,
+    "ebit": 185.06,
+    "eps_diluted": 0.67
+  },
+  "balance_sheet": {
+    "total_assets": null,
+    "current_assets": null,
+    "cash_and_equivalents": null,
+    "receivables": null,
+    "ppe_net": null,
+    "total_liabilities": null,
+    "current_liabilities": null,
+    "long_term_debt": null,
+    "retained_earnings": null,
+    "total_equity": null,
+    "shares_outstanding_m": 180
+  },
+  "cash_flow_statement": {
+    "operating_cash_flow": null,
+    "investing_cash_flow": null,
+    "financing_cash_flow": null,
+    "capex": null,
+    "free_cash_flow": -164.59
+  },
+  "market_data": {
+    "stock_price": null,
+    "market_cap": null,
+    "btc_held": null
+  }
+}

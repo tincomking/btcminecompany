@@ -1,0 +1,48 @@
+{
+  "ticker": "SDIG",
+  "company_name": "Stronghold Digital Mining",
+  "period": "2023_Q1",
+  "period_type": "quarterly",
+  "period_end_date": "2023-03-31",
+  "currency": "USD",
+  "unit": "millions",
+  "source": "SEC 10-Q",
+  "collected_date": "2026-02-26",
+  "notes": "2023_Q1 revenue.",
+  "income_statement": {
+    "revenue": 17.27,
+    "cogs": 15.85,
+    "gross_profit": 1.41,
+    "sga": 8.47,
+    "depreciation": 7.72,
+    "operating_income": -14.62,
+    "net_income": -28.54,
+    "ebit": -14.62,
+    "eps_diluted": -6.52
+  },
+  "balance_sheet": {
+    "total_assets": null,
+    "current_assets": null,
+    "cash_and_equivalents": null,
+    "receivables": null,
+    "ppe_net": null,
+    "total_liabilities": null,
+    "current_liabilities": null,
+    "long_term_debt": null,
+    "retained_earnings": null,
+    "total_equity": null,
+    "shares_outstanding_m": 43
+  },
+  "cash_flow_statement": {
+    "operating_cash_flow": null,
+    "investing_cash_flow": null,
+    "financing_cash_flow": null,
+    "capex": null,
+    "free_cash_flow": -3.36
+  },
+  "market_data": {
+    "stock_price": null,
+    "market_cap": null,
+    "btc_held": null
+  }
+}

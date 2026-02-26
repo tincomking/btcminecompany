@@ -1,0 +1,48 @@
+{
+  "ticker": "WULF",
+  "company_name": "TeraWulf",
+  "period": "2024_FY",
+  "period_type": "annual",
+  "period_end_date": "2024-12-31",
+  "currency": "USD",
+  "unit": "millions",
+  "source": "SEC 10-K",
+  "collected_date": "2026-02-26",
+  "notes": "FY2024 from 10-K filed 2025-03-01.",
+  "income_statement": {
+    "revenue": 140.4,
+    "cogs": 62.5,
+    "gross_profit": 77.9,
+    "sga": 77.9,
+    "depreciation": 53.7,
+    "operating_income": -53.7,
+    "net_income": -72.1,
+    "ebit": -53.7,
+    "eps_diluted": -0.19
+  },
+  "balance_sheet": {
+    "total_assets": 896.5,
+    "current_assets": 274.0,
+    "cash_and_equivalents": 274.0,
+    "receivables": null,
+    "ppe_net": 485.2,
+    "total_liabilities": 312.4,
+    "current_liabilities": 52.8,
+    "long_term_debt": 231.5,
+    "retained_earnings": -185.2,
+    "total_equity": 584.1,
+    "shares_outstanding_m": 382
+  },
+  "cash_flow_statement": {
+    "operating_cash_flow": null,
+    "investing_cash_flow": null,
+    "financing_cash_flow": null,
+    "capex": null,
+    "free_cash_flow": null
+  },
+  "market_data": {
+    "stock_price": 4.95,
+    "market_cap": 1891.1,
+    "btc_held": null
+  }
+}

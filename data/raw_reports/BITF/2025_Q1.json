@@ -1,0 +1,48 @@
+{
+  "ticker": "BITF",
+  "company_name": "Bitfarms",
+  "period": "2025_Q1",
+  "period_type": "quarterly",
+  "period_end_date": "2025-03-31",
+  "currency": "USD",
+  "unit": "millions",
+  "source": "SEC 10-Q",
+  "collected_date": "2026-02-26",
+  "notes": "2025_Q1 revenue.",
+  "income_statement": {
+    "revenue": 56.16,
+    "cogs": 54.78,
+    "gross_profit": 1.39,
+    "sga": 18.04,
+    "depreciation": 29.69,
+    "operating_income": -16.66,
+    "net_income": 15.17,
+    "ebit": -16.66,
+    "eps_diluted": 0.03
+  },
+  "balance_sheet": {
+    "total_assets": null,
+    "current_assets": null,
+    "cash_and_equivalents": null,
+    "receivables": null,
+    "ppe_net": null,
+    "total_liabilities": null,
+    "current_liabilities": null,
+    "long_term_debt": null,
+    "retained_earnings": null,
+    "total_equity": null,
+    "shares_outstanding_m": 506
+  },
+  "cash_flow_statement": {
+    "operating_cash_flow": null,
+    "investing_cash_flow": null,
+    "financing_cash_flow": null,
+    "capex": null,
+    "free_cash_flow": -118.07
+  },
+  "market_data": {
+    "stock_price": null,
+    "market_cap": null,
+    "btc_held": null
+  }
+}
