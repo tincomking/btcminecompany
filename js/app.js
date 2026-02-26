@@ -258,7 +258,12 @@ function renderCompanyGrid(sortBy = 'mktcap') {
           <div class="metric-block">
             <div class="metric-label">${t('js.latest_revenue')}</div>
             <div class="metric-value">${fin ? fmt.usd(fin.revenue_usd_m) : t('js.pending')}</div>
-            <div class="metric-yoy">${fin ? fmt.pct(fin.revenue_yoy_pct, fin.revenue_yoy_pct != null ? (fin.fiscal_quarter === 'FY' ? 'yoy' : 'yoy') : null) : ''}</div>
+            <div class="metric-yoy">${fin ? fmt.pct(fin.revenue_yoy_pct, fin.revenue_yoy_pct != null ? 'yoy' : null) : ''}</div>
+          </div>
+          <div class="metric-block">
+            <div class="metric-label">${t('th.net_income')}</div>
+            <div class="metric-value">${fin && fin.net_income_usd_m != null ? `<span class="${fin.net_income_usd_m >= 0 ? 'text-green' : 'text-red'}">${fmt.usd(fin.net_income_usd_m)}</span>` : t('js.pending')}</div>
+            <div class="metric-yoy">${fin ? fmt.pct(fin.net_income_yoy_pct, fin.net_income_yoy_pct != null ? 'yoy' : null) : ''}</div>
           </div>
           <div class="metric-block">
             <div class="metric-label">Adj. EBITDA</div>
@@ -269,11 +274,6 @@ function renderCompanyGrid(sortBy = 'mktcap') {
             <div class="metric-label">${t('js.btc_holding')}</div>
             <div class="metric-value">${fin && fin.btc_held ? fin.btc_held.toLocaleString() : ops && ops.btc_held ? ops.btc_held.toLocaleString() : '—'}</div>
             <div class="metric-yoy" style="color:var(--text-muted);font-size:10px;">${t('js.btc_unit')}</div>
-          </div>
-          <div class="metric-block">
-            <div class="metric-label">${t('js.hashrate')}</div>
-            <div class="metric-value">${ops ? ops.hash_rate_eh + ' EH/s' : '—'}</div>
-            <div class="metric-yoy" style="color:var(--text-muted);font-size:10px;">${ops ? t('js.monthly_mined') + ' ' + ops.btc_mined + ' BTC' : ''}</div>
           </div>
         </div>
 
