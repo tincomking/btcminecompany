@@ -1871,10 +1871,44 @@ async function fetchDifficulty() {
   }
 }
 
+// ── BTC PRICE TICKER ─────────────────────────────────────────────────────────
+
+let _lastBtcPrice = null;
+
+async function fetchBtcPrice() {
+  try {
+    const res = await fetch('https://mempool.space/api/v1/prices');
+    const d = await res.json();
+    const price = d.USD;
+    if (!price) return;
+
+    const priceEl = document.getElementById('btcPrice');
+    const changeEl = document.getElementById('btcChange');
+    if (!priceEl) return;
+
+    priceEl.textContent = '$' + price.toLocaleString();
+
+    if (_lastBtcPrice != null) {
+      const pct = ((price - _lastBtcPrice) / _lastBtcPrice * 100).toFixed(2);
+      const isUp = price >= _lastBtcPrice;
+      changeEl.textContent = (isUp ? '+' : '') + pct + '%';
+      changeEl.className = isUp ? 'btc-change-pos' : 'btc-change-neg';
+    } else {
+      changeEl.textContent = '';
+    }
+    _lastBtcPrice = price;
+  } catch (e) {
+    // Silently fail
+  }
+}
+
 // ── INIT ─────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', async () => {
   await loadAllData();
   renderOverview();
+  fetchBtcPrice();
   fetchDifficulty();
+  // Refresh BTC price every 60 seconds
+  setInterval(fetchBtcPrice, 60000);
 });
