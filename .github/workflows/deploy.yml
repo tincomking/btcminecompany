@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ "claude/btc-mining-finance-site-HmJzR", "main" ]
+    branches: [ "master", "main" ]
   workflow_dispatch:
 
 permissions:
