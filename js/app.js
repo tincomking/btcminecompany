@@ -18,11 +18,12 @@ function chartColors() {
 
 const fmt = {
   usd: (v, decimals = 1) => v == null ? '—' : `$${v.toFixed(decimals)}M`,
-  pct: (v) => {
+  pct: (v, type) => {
     if (v == null) return '<span class="no-data">—</span>';
     const cls = v >= 0 ? 'yoy-pos' : 'yoy-neg';
     const arrow = v >= 0 ? '↑' : '↓';
-    return `<span class="yoy-badge ${cls}">${arrow} ${Math.abs(v).toFixed(1)}%</span>`;
+    const label = type === 'qoq' ? ' QoQ' : type === 'yoy' ? ' YoY' : '';
+    return `<span class="yoy-badge ${cls}">${arrow} ${Math.abs(v).toFixed(1)}%<span style="font-size:8px;opacity:0.7;margin-left:2px;">${label}</span></span>`;
   },
   num: (v, decimals = 1) => v == null ? '—' : v.toLocaleString('en-US', { maximumFractionDigits: decimals }),
   date: (s) => {
@@ -42,8 +43,14 @@ function getLatestFinancial(ticker) {
     .sort((a, b) => b.period_end_date.localeCompare(a.period_end_date))[0] || null;
 }
 
-function getLatestOperational(ticker, period = '2024-10') {
-  return OPERATIONAL.find(o => o.ticker === ticker && o.period === period) || null;
+function getLatestPeriod() {
+  if (!OPERATIONAL.length) return null;
+  return OPERATIONAL.reduce((max, o) => o.period > max ? o.period : max, OPERATIONAL[0].period);
+}
+
+function getLatestOperational(ticker, period) {
+  const p = period || getLatestPeriod();
+  return OPERATIONAL.find(o => o.ticker === ticker && o.period === p) || null;
 }
 
 function getSentiment(ticker) {
@@ -114,9 +121,37 @@ document.querySelectorAll('.nav-tab').forEach(btn => {
 // ── PAGE: OVERVIEW ──────────────────────────────────────────────────────────
 
 function renderOverview() {
+  updateStatsBar();
   renderEarningsCalendar();
-  renderCompanyGrid('mktcap');
+  renderCompanyGrid('revenue');
   setupOverviewFilters();
+}
+
+function updateStatsBar() {
+  document.getElementById('stat-companies').textContent = COMPANIES.length;
+
+  // Total market cap
+  const totalMktCap = COMPANIES.reduce((s, c) => s + (c.market_cap_usd_m || 0), 0);
+  document.getElementById('stat-mktcap').textContent = totalMktCap > 0 ? `$${(totalMktCap / 1000).toFixed(1)}B` : '—';
+
+  // Total BTC held (from latest financial or operational)
+  let totalBtc = 0;
+  COMPANIES.forEach(co => {
+    const fin = getLatestFinancial(co.ticker);
+    const ops = getLatestOperational(co.ticker);
+    const btc = (fin && fin.btc_held) || (ops && ops.btc_held) || 0;
+    totalBtc += btc;
+  });
+  document.getElementById('stat-btc').textContent = totalBtc > 0 ? totalBtc.toLocaleString() : '—';
+
+  // Total hashrate & BTC mined from latest operational period
+  const latestP = getLatestPeriod();
+  const latestOps = OPERATIONAL.filter(o => o.period === latestP);
+  const totalHash = latestOps.reduce((s, o) => s + (o.hash_rate_eh || 0), 0);
+  const totalMined = latestOps.reduce((s, o) => s + (o.btc_mined || 0), 0);
+
+  document.getElementById('stat-hashrate').textContent = totalHash > 0 ? `${totalHash.toFixed(1)} EH/s` : '—';
+  document.getElementById('stat-btcmined').textContent = totalMined > 0 ? totalMined.toLocaleString() : '—';
 }
 
 function renderEarningsCalendar() {
@@ -152,8 +187,9 @@ function renderCompanyGrid(sortBy = 'mktcap') {
   const grid = document.getElementById('companyGrid');
 
   let sorted = [...COMPANIES];
-  if (sortBy === 'mktcap') sorted.sort((a, b) => (b.market_cap_usd_m||0) - (a.market_cap_usd_m||0));
-  else if (sortBy === 'revenue') {
+  if (sortBy === 'mktcap') {
+    sorted.sort((a, b) => (b.market_cap_usd_m||0) - (a.market_cap_usd_m||0));
+  } else if (sortBy === 'revenue') {
     sorted.sort((a, b) => {
       const fa = getLatestFinancial(a.ticker);
       const fb = getLatestFinancial(b.ticker);
@@ -193,8 +229,8 @@ function renderCompanyGrid(sortBy = 'mktcap') {
             </div>
           </div>
           <div class="stock-info">
-            <div class="stock-price-display">$${co.stock_price}</div>
-            <div class="stock-mktcap">${t('js.mktcap')} $${(co.market_cap_usd_m/1000).toFixed(1)}B</div>
+            ${co.stock_price ? `<div class="stock-price-display">$${co.stock_price}</div>` : ''}
+            ${co.market_cap_usd_m ? `<div class="stock-mktcap">${t('js.mktcap')} $${(co.market_cap_usd_m/1000).toFixed(1)}B</div>` : `<div class="stock-mktcap" style="color:var(--text-muted);">${co.exchange}</div>`}
           </div>
         </div>
 
@@ -202,12 +238,12 @@ function renderCompanyGrid(sortBy = 'mktcap') {
           <div class="metric-block">
             <div class="metric-label">${t('js.latest_revenue')}</div>
             <div class="metric-value">${fin ? fmt.usd(fin.revenue_usd_m) : t('js.pending')}</div>
-            <div class="metric-yoy">${fin ? fmt.pct(fin.revenue_yoy_pct) : ''}</div>
+            <div class="metric-yoy">${fin ? fmt.pct(fin.revenue_yoy_pct, fin.revenue_yoy_pct != null ? (fin.fiscal_quarter === 'FY' ? 'yoy' : 'yoy') : null) : ''}</div>
           </div>
           <div class="metric-block">
             <div class="metric-label">Adj. EBITDA</div>
             <div class="metric-value">${fin ? fmt.usd(fin.adjusted_ebitda_usd_m) : t('js.pending')}</div>
-            <div class="metric-yoy">${fin ? fmt.pct(fin.adjusted_ebitda_yoy_pct) : ''}</div>
+            <div class="metric-yoy">${fin ? fmt.pct(fin.adjusted_ebitda_yoy_pct, fin.adjusted_ebitda_yoy_pct != null ? 'yoy' : null) : ''}</div>
           </div>
           <div class="metric-block">
             <div class="metric-label">${t('js.btc_holding')}</div>
@@ -273,11 +309,7 @@ function getFilteredFinancials() {
     const [q, y] = finCurrentPeriod.split('-');
     data = data.filter(f => f.fiscal_quarter === q && String(f.fiscal_year) === y);
   }
-  return data.sort((a, b) => {
-    const ca = COMPANIES.find(c => c.ticker === a.ticker);
-    const cb = COMPANIES.find(c => c.ticker === b.ticker);
-    return ((cb&&cb.market_cap_usd_m)||0) - ((ca&&ca.market_cap_usd_m)||0);
-  });
+  return data.sort((a, b) => ((b.revenue_usd_m)||0) - ((a.revenue_usd_m)||0));
 }
 
 function renderFinancialsTable() {
@@ -303,11 +335,11 @@ function renderFinancialsTable() {
       </td>
       <td class="td-mono td-primary">${f.period_label}</td>
       <td class="td-right td-mono td-primary">${fmt.usd(f.revenue_usd_m)}</td>
-      <td class="td-right">${fmt.pct(f.revenue_yoy_pct)}</td>
+      <td class="td-right">${fmt.pct(f.revenue_yoy_pct, 'yoy')}</td>
       <td class="td-right">${niStr}</td>
-      <td class="td-right"><span class="no-data">—</span></td>
+      <td class="td-right">${fmt.pct(f.net_income_yoy_pct, 'yoy')}</td>
       <td class="td-right td-mono td-primary">${fmt.usd(f.adjusted_ebitda_usd_m)}</td>
-      <td class="td-right">${fmt.pct(f.adjusted_ebitda_yoy_pct)}</td>
+      <td class="td-right">${fmt.pct(f.adjusted_ebitda_yoy_pct, 'yoy')}</td>
       <td class="td-right td-mono">${f.eps_diluted == null ? '<span class="no-data">—</span>' : (f.eps_diluted >= 0 ? '+' : '') + f.eps_diluted.toFixed(2)}</td>
       <td><span class="status-badge status-reported"><span class="dot"></span>${t('js.reported')}</span></td>
       <td class="td-mono">${fmt.date(f.report_date)}</td>
@@ -424,7 +456,17 @@ function setupFinancialFilters() {
 // ── PAGE: OPERATIONS ────────────────────────────────────────────────────────
 
 function renderOperations() {
-  renderOpsTable('2024-10');
+  // Dynamically populate month filter from operational data
+  const periods = [...new Set(OPERATIONAL.map(o => o.period))].sort().reverse();
+  const sel = document.getElementById('ops-month-filter');
+  if (sel && periods.length) {
+    sel.innerHTML = periods.map(p => {
+      const label = OPERATIONAL.find(o => o.period === p);
+      return `<option value="${p}">${label ? label.period_label : p}</option>`;
+    }).join('');
+  }
+  const latestP = periods[0] || '2025-01';
+  renderOpsTable(latestP);
   renderBtcProductionChart();
   setupOpsFilters();
 }
@@ -469,9 +511,17 @@ function renderBtcProductionChart() {
   const canvas = document.getElementById('btcProductionChart');
   if (!canvas) return;
 
-  const tickers = ['MARA', 'RIOT', 'CLSK', 'IREN', 'WULF'];
-  const periods = ['2024-08', '2024-09', '2024-10'];
-  const periodLabels = ['Aug 2024', 'Sep 2024', 'Oct 2024'];
+  // Dynamically find top tickers with btc_mined data and available periods
+  const allPeriods = [...new Set(OPERATIONAL.map(o => o.period))].sort();
+  const periods = allPeriods.slice(-3); // Last 3 months
+  const periodLabels = periods.map(p => {
+    const o = OPERATIONAL.find(op => op.period === p);
+    return o ? o.period_label : p;
+  });
+  // Top 5 tickers by total btc_mined
+  const tickerTotals = {};
+  OPERATIONAL.filter(o => o.btc_mined).forEach(o => { tickerTotals[o.ticker] = (tickerTotals[o.ticker]||0) + o.btc_mined; });
+  const tickers = Object.entries(tickerTotals).sort((a,b) => b[1]-a[1]).slice(0,5).map(([t]) => t);
   const colors = ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#06b6d4'];
 
   const datasets = tickers.map((ticker, i) => {
@@ -625,6 +675,12 @@ function setupNewsFilters() {
   const sel = document.getElementById('news-company-filter');
   if (sel && !sel._init) {
     sel._init = true;
+    // Populate company options from data
+    COMPANIES.forEach(co => {
+      const opt = document.createElement('option');
+      opt.value = co.ticker; opt.textContent = co.ticker;
+      sel.appendChild(opt);
+    });
     sel.addEventListener('change', () => { newsFilterCompany = sel.value; renderNewsList(); });
   }
 }
@@ -794,9 +850,9 @@ function openCompanyModal(ticker) {
   const metrics = document.getElementById('modalMetrics');
   if (latest) {
     metrics.innerHTML = [
-      { label:t('js.latest_revenue'), value:fmt.usd(latest.revenue_usd_m), yoy:latest.revenue_yoy_pct, period:latest.period_label },
+      { label:t('js.latest_revenue'), value:fmt.usd(latest.revenue_usd_m), yoy:latest.revenue_yoy_pct, yoyType:'yoy', period:latest.period_label },
       { label:t('th.net_income'), value: latest.net_income_usd_m != null ? fmt.usd(latest.net_income_usd_m) : '—', yoy:null, period:latest.period_label },
-      { label:'Adj. EBITDA', value:fmt.usd(latest.adjusted_ebitda_usd_m), yoy:latest.adjusted_ebitda_yoy_pct, period:latest.period_label },
+      { label:'Adj. EBITDA', value:fmt.usd(latest.adjusted_ebitda_usd_m), yoy:latest.adjusted_ebitda_yoy_pct, yoyType:'yoy', period:latest.period_label },
       { label:t('th.eps'), value:latest.eps_diluted != null ? (latest.eps_diluted>=0?'+':'')+latest.eps_diluted.toFixed(2) : '—', yoy:null },
       { label:t('js.btc_held_label'), value:latest.btc_held ? latest.btc_held.toLocaleString()+' BTC' : '—', yoy:null },
       { label:t('js.total_debt'), value:fmt.usd(latest.total_debt_usd_m), yoy:null },
@@ -804,7 +860,7 @@ function openCompanyModal(ticker) {
       <div class="modal-metric">
         <div class="modal-metric-label">${m.label} ${m.period ? `<span style="font-weight:400;">(${m.period})</span>` : ''}</div>
         <div class="modal-metric-value">${m.value}</div>
-        ${m.yoy != null ? `<div class="modal-metric-yoy">${fmt.pct(m.yoy)}</div>` : ''}
+        ${m.yoy != null ? `<div class="modal-metric-yoy">${fmt.pct(m.yoy, m.yoyType)}</div>` : ''}
       </div>`).join('');
   } else {
     metrics.innerHTML = `<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-text">${t('js.no_earnings_data')}</div></div>`;
@@ -824,10 +880,10 @@ function openCompanyModal(ticker) {
           <tbody>${allFin.map(f => `<tr>
             <td class="td-mono">${f.period_label}</td>
             <td class="td-right td-mono td-primary">${fmt.usd(f.revenue_usd_m)}</td>
-            <td class="td-right">${fmt.pct(f.revenue_yoy_pct)}</td>
+            <td class="td-right">${fmt.pct(f.revenue_yoy_pct, 'yoy')}</td>
             <td class="td-right td-mono" style="color:${f.net_income_usd_m>=0?'var(--green)':'var(--red)'};">${fmt.usd(f.net_income_usd_m)}</td>
             <td class="td-right td-mono td-primary">${fmt.usd(f.adjusted_ebitda_usd_m)}</td>
-            <td class="td-right">${fmt.pct(f.adjusted_ebitda_yoy_pct)}</td>
+            <td class="td-right">${fmt.pct(f.adjusted_ebitda_yoy_pct, 'yoy')}</td>
             <td class="td-mono" style="color:var(--text-muted);">${fmt.date(f.report_date)}</td>
           </tr>`).join('')}</tbody>
         </table>
@@ -851,6 +907,7 @@ document.getElementById('companyModal').addEventListener('click', (e) => {
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadAllData();
   renderOverview();
 });
