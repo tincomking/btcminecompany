@@ -1213,8 +1213,15 @@ canvas { max-width: 100%; }
   transition: border-color 0.15s;
 }
 
+.intro-card[data-goto] {
+  cursor: pointer;
+}
 .intro-card:hover {
   border-color: var(--border-default);
+}
+.intro-card[data-goto]:hover {
+  border-color: var(--accent-blue);
+  background: var(--bg-elevated);
 }
 
 .intro-card-header {

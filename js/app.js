@@ -83,18 +83,39 @@ function avgTargetPrice(ticker) {
   return ratings.reduce((s, r) => s + r.target_price_usd, 0) / ratings.length;
 }
 
+// Calculate sentiment score from StockTwits bullish percentage
+// bullishPct: 0-100 → score: -1 to +1 (linear: 50% → 0, 100% → 1, 0% → -1)
+function calcSentimentScore(soc) {
+  if (!soc || soc.stocktwits_bullish_pct == null) return null;
+  return (soc.stocktwits_bullish_pct - 50) / 50; // e.g. 70% → 0.4, 42% → -0.16
+}
+
 function sentimentClass(score) {
   if (score == null) return 'sentiment-pill pill-neutral';
-  if (score >= 0.5) return 'sentiment-pill pill-bullish';
-  if (score <= 0) return 'sentiment-pill pill-bearish';
+  if (score >= 0.1) return 'sentiment-pill pill-bullish';
+  if (score <= -0.1) return 'sentiment-pill pill-bearish';
   return 'sentiment-pill pill-neutral';
 }
 
 function sentimentLabel(score) {
   if (score == null) return '—';
-  if (score >= 0.5) return t('js.bullish');
-  if (score <= 0) return t('js.bearish');
+  if (score >= 0.1) return t('js.bullish');
+  if (score <= -0.1) return t('js.bearish');
   return t('js.neutral');
+}
+
+function sentimentTooltip(soc) {
+  if (!soc || soc.stocktwits_bullish_pct == null) return '';
+  const score = calcSentimentScore(soc);
+  const pct = soc.stocktwits_bullish_pct;
+  if (currentLang === 'zh') {
+    return `StockTwits 看涨 ${pct}% / 看跌 ${100 - pct}%\n` +
+      `情绪得分: ${(score * 100).toFixed(0)}\n` +
+      `规则: >55% 看多 | <45% 看空 | 45-55% 中性`;
+  }
+  return `StockTwits Bullish ${pct}% / Bearish ${100 - pct}%\n` +
+    `Score: ${(score * 100).toFixed(0)}\n` +
+    `Rule: >55% Bullish | <45% Bearish | 45-55% Neutral`;
 }
 
 function categoryClass(cat) {
@@ -133,6 +154,26 @@ document.querySelectorAll('.nav-tab').forEach(btn => {
     if (page === 'sentiment') renderSentiment();
     if (page === 'analysis') renderAnalysis();
     if (page === 'predictions') renderPredictions();
+  });
+});
+
+// ── INTRO CARD CLICK → NAVIGATE TO SUB-PAGE ────────────────────────────────
+document.querySelectorAll('.intro-card[data-goto]').forEach(card => {
+  card.addEventListener('click', () => {
+    const page = card.dataset.goto;
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const tab = document.querySelector(`.nav-tab[data-page="${page}"]`);
+    if (tab) tab.classList.add('active');
+    const pg = document.getElementById(`page-${page}`);
+    if (pg) pg.classList.add('active');
+    if (page === 'financials') renderFinancials();
+    if (page === 'operations') renderOperations();
+    if (page === 'news') renderNews();
+    if (page === 'sentiment') renderSentiment();
+    if (page === 'analysis') renderAnalysis();
+    if (page === 'predictions') renderPredictions();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 });
 
@@ -267,7 +308,7 @@ function renderCompanyGrid(sortBy = 'mktcap') {
     const ops = getLatestOperational(co.ticker);
     const soc = getSentiment(co.ticker);
     const upcoming = FINANCIALS.find(f => f.ticker === co.ticker && !f.is_reported);
-    const score = soc ? soc.composite_score : null;
+    const score = calcSentimentScore(soc);
 
     return `
       <div class="company-card" data-ticker="${co.ticker}" onclick="openCompanyModal('${co.ticker}')">
@@ -315,7 +356,7 @@ function renderCompanyGrid(sortBy = 'mktcap') {
             ${fin ? `<span class="earnings-label">${t('js.latest_report')}</span><span class="earnings-date">${fin.period_label} · ${fmt.date(fin.report_date)}</span>` : ''}
             ${upcoming ? `<span class="earnings-label" style="margin-top:4px;">${t('js.next_expected')}</span><span class="earnings-date" style="color:var(--orange);">${upcoming.period_label} · ${fmt.date(upcoming.estimated_report_date)}</span>` : ''}
           </div>
-          <div class="${sentimentClass(score)}">
+          <div class="${sentimentClass(score)}" title="${sentimentTooltip(soc).replace(/"/g, '&quot;')}">
             <span>●</span>${sentimentLabel(score)}
             ${score != null ? `<span style="font-size:9px;opacity:0.7;">${(score*100).toFixed(0)}</span>` : ''}
           </div>
@@ -913,13 +954,17 @@ function renderTargetPriceTable() {
 
 function renderSocialSentiment() {
   const panel = document.getElementById('sentimentPanel');
-  const data = [...SENTIMENT.social_sentiment].sort((a, b) => b.composite_score - a.composite_score);
+  const data = [...SENTIMENT.social_sentiment]
+    .map(s => ({ ...s, _score: calcSentimentScore(s) }))
+    .sort((a, b) => (b._score || 0) - (a._score || 0));
 
   panel.innerHTML = data.map(s => {
     const co = COMPANIES.find(c => c.ticker === s.ticker);
-    const scoreClass = s.composite_score >= 0.5 ? 'score-pos' : s.composite_score <= 0.1 ? 'score-neg' : 'score-neu';
+    const sc = s._score || 0;
+    const scoreClass = sc >= 0.1 ? 'score-pos' : sc <= -0.1 ? 'score-neg' : 'score-neu';
     const trendIcon = s.trend_direction === 'up' ? '↑' : s.trend_direction === 'down' ? '↓' : '→';
     const trendColor = s.trend_direction === 'up' ? 'var(--green)' : s.trend_direction === 'down' ? 'var(--red)' : 'var(--text-muted)';
+    const scoreDisplay = s.stocktwits_bullish_pct != null ? s.stocktwits_bullish_pct : '—';
 
     return `
       <div class="sentiment-row">
@@ -929,10 +974,10 @@ function renderSocialSentiment() {
             <span style="font-size:10px;color:var(--text-muted);">${co ? co.name : ''}</span>
             ${s.trending ? `<span style="font-size:9px;padding:1px 6px;background:var(--orange-dim);color:var(--orange);border-radius:3px;font-weight:600;">${t('js.trending')}</span>` : ''}
           </div>
-          <div style="display:flex;align-items:center;gap:8px;">
+          <div style="display:flex;align-items:center;gap:8px;" title="${sentimentTooltip(s).replace(/"/g, '&quot;')}">
             <span style="font-size:10px;color:${trendColor};">${trendIcon}</span>
-            <span class="sentiment-score-num ${scoreClass}">${(s.composite_score * 100).toFixed(0)}</span>
-            <span style="font-size:9px;color:var(--text-muted);">/100</span>
+            <span class="sentiment-score-num ${scoreClass}">${scoreDisplay}</span>
+            <span style="font-size:9px;color:var(--text-muted);">%</span>
           </div>
         </div>
         <div class="sentiment-bars">
