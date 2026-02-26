@@ -221,47 +221,92 @@ function updateStatsBar() {
       : t('stats.mktcap_sub');
   }
 
-  // Total BTC held (from latest financial or operational)
+  // Helper: for each company find their latest operational record with a given field
+  function getLatestOpsPerCompany(field) {
+    const byTicker = {};
+    OPERATIONAL.forEach(o => {
+      if (o[field] > 0) {
+        if (!byTicker[o.ticker] || o.period > byTicker[o.ticker].period) {
+          byTicker[o.ticker] = o;
+        }
+      }
+    });
+    return Object.values(byTicker);
+  }
+
+  // Helper: format period range for display
+  function formatPeriodRange(records) {
+    if (!records.length) return '';
+    const periods = records.map(r => r.period).filter(Boolean).sort();
+    if (!periods.length) return '';
+    const min = periods[0], max = periods[periods.length - 1];
+    const fmt = p => {
+      if (!p) return '';
+      if (p.includes('Q')) return p; // quarterly like "2025-Q4"
+      const [y, m] = p.split('-');
+      if (!m || isNaN(parseInt(m))) return p;
+      return currentLang === 'zh' ? `${y}年${parseInt(m)}月` : `${y}-${m}`;
+    };
+    return min === max ? fmt(max) : `${fmt(min)}~${fmt(max)}`;
+  }
+
+  // Total BTC held (from latest financial OR latest operational per company)
   let totalBtc = 0;
   let btcCount = 0;
+  const btcPeriods = [];
   COMPANIES.forEach(co => {
-    const fin = getLatestFinancial(co.ticker);
-    const ops = getLatestOperational(co.ticker);
-    const btc = (fin && fin.btc_held) || (ops && ops.btc_held) || 0;
-    if (btc > 0) btcCount++;
-    totalBtc += btc;
+    // Check operational first (more frequent updates), then financial
+    let btc = 0, period = null;
+    const opsRecords = OPERATIONAL.filter(o => o.ticker === co.ticker && o.btc_held > 0)
+      .sort((a, b) => b.period.localeCompare(a.period));
+    if (opsRecords.length) {
+      btc = opsRecords[0].btc_held;
+      period = opsRecords[0].period;
+    }
+    if (!btc) {
+      const fin = getLatestFinancial(co.ticker);
+      if (fin && fin.btc_held > 0) {
+        btc = fin.btc_held;
+        period = fin.period_end_date ? fin.period_end_date.slice(0, 7) : null;
+      }
+    }
+    if (btc > 0) {
+      btcCount++;
+      totalBtc += btc;
+      if (period) btcPeriods.push({ period });
+    }
   });
   document.getElementById('stat-btc').textContent = totalBtc > 0 ? totalBtc.toLocaleString() : '—';
   const btcSub = document.getElementById('stat-btc').closest('.stat-item').querySelector('.stat-sub');
   if (btcSub) {
-    btcSub.textContent = btcCount > 0 && btcCount < COMPANIES.length
-      ? `${btcCount}/${COMPANIES.length} ${t('stats.companies_disclosed')}`
+    const range = formatPeriodRange(btcPeriods);
+    btcSub.textContent = btcCount > 0
+      ? `${btcCount}${t('stats.companies_disclosed')}${range ? ' / ' + range : ''}`
       : t('stats.btc_held_sub');
   }
 
-  // Total hashrate & BTC mined from latest operational period
-  const latestP = getLatestPeriod();
-  const latestOps = OPERATIONAL.filter(o => o.period === latestP);
-  const opsWithHash = latestOps.filter(o => o.hash_rate_eh > 0);
-  const opsWithMined = latestOps.filter(o => o.btc_mined > 0);
-  const totalHash = opsWithHash.reduce((s, o) => s + o.hash_rate_eh, 0);
-  const totalMined = opsWithMined.reduce((s, o) => s + o.btc_mined, 0);
-  const hashPeriodLabel = latestOps.length ? latestOps[0].period_label : '';
-
+  // Total hashrate from each company's latest operational data
+  const hashRecords = getLatestOpsPerCompany('hash_rate_eh');
+  const totalHash = hashRecords.reduce((s, o) => s + o.hash_rate_eh, 0);
   document.getElementById('stat-hashrate').textContent = totalHash > 0 ? `${totalHash.toFixed(1)} EH/s` : '—';
   const hashSub = document.getElementById('stat-hashrate').closest('.stat-item').querySelector('.stat-sub');
   if (hashSub) {
-    hashSub.textContent = opsWithHash.length > 0 && opsWithHash.length < COMPANIES.length
-      ? `${opsWithHash.length}/${COMPANIES.length} ${t('stats.companies_disclosed')}`
+    const range = formatPeriodRange(hashRecords);
+    hashSub.textContent = hashRecords.length > 0
+      ? `${hashRecords.length}${t('stats.companies_disclosed')}${range ? ' / ' + range : ''}`
       : t('stats.hashrate_sub');
   }
 
+  // Total BTC mined from each company's latest operational data
+  const minedRecords = getLatestOpsPerCompany('btc_mined');
+  const totalMined = minedRecords.reduce((s, o) => s + o.btc_mined, 0);
   document.getElementById('stat-btcmined').textContent = totalMined > 0 ? totalMined.toLocaleString() : '—';
   const minedSub = document.getElementById('stat-btcmined').closest('.stat-item').querySelector('.stat-sub');
   if (minedSub) {
-    minedSub.textContent = opsWithMined.length > 0 && opsWithMined.length < COMPANIES.length
-      ? `${opsWithMined.length}/${COMPANIES.length} ${t('stats.companies_disclosed')}`
-      : `BTC / ${hashPeriodLabel}`;
+    const range = formatPeriodRange(minedRecords);
+    minedSub.textContent = minedRecords.length > 0
+      ? `${minedRecords.length}${t('stats.companies_disclosed')}${range ? ' / ' + range : ''}`
+      : t('stats.monthly_sub') || 'BTC';
   }
 }
 
@@ -474,12 +519,12 @@ function getFilteredFinancials() {
     data = data.filter(f => f.fiscal_quarter === quarterVal);
   }
 
-  // Sort: single company by date desc, multiple by revenue desc
-  if (finCurrentCompany !== 'ALL') {
-    data.sort((a, b) => b.period_end_date.localeCompare(a.period_end_date));
-  } else {
-    data.sort((a, b) => ((b.revenue_usd_m) || 0) - ((a.revenue_usd_m) || 0));
-  }
+  // Sort: default by report_date descending (most recent filings first)
+  data.sort((a, b) => {
+    const da = a.report_date || a.period_end_date || '';
+    const db = b.report_date || b.period_end_date || '';
+    return db.localeCompare(da);
+  });
   return data;
 }
 
@@ -644,6 +689,12 @@ function renderRevenueChart() {
   const revData = data.map(f => f.revenue_usd_m);
   const ebitdaData = data.map(f => f.adjusted_ebitda_usd_m || 0);
 
+  // Highlight FUFU with distinct color
+  const revBg = labels.map(l => l === 'FUFU' ? 'rgba(245,158,11,0.85)' : 'rgba(59,130,246,0.7)');
+  const revBorder = labels.map(l => l === 'FUFU' ? '#f59e0b' : '#3b82f6');
+  const ebitdaBg = labels.map(l => l === 'FUFU' ? 'rgba(251,191,36,0.75)' : 'rgba(16,185,129,0.7)');
+  const ebitdaBorder = labels.map(l => l === 'FUFU' ? '#fbbf24' : '#10b981');
+
   const cc = chartColors();
   if (canvas._chart) canvas._chart.destroy();
   canvas._chart = new Chart(canvas, {
@@ -651,8 +702,8 @@ function renderRevenueChart() {
     data: {
       labels,
       datasets: [
-        { label: t('js.revenue_label'), data: revData, backgroundColor: 'rgba(59,130,246,0.7)', borderColor: '#3b82f6', borderWidth: 1, borderRadius: 4 },
-        { label: t('js.ebitda_label'), data: ebitdaData, backgroundColor: 'rgba(16,185,129,0.7)', borderColor: '#10b981', borderWidth: 1, borderRadius: 4 }
+        { label: t('js.revenue_label'), data: revData, backgroundColor: revBg, borderColor: revBorder, borderWidth: 1, borderRadius: 4 },
+        { label: t('js.ebitda_label'), data: ebitdaData, backgroundColor: ebitdaBg, borderColor: ebitdaBorder, borderWidth: 1, borderRadius: 4 }
       ]
     },
     options: {
@@ -1521,10 +1572,10 @@ function setupMonteCarloSelector(results) {
     if (r) renderMonteCarloChart(r);
   });
 
-  // Default to first company
+  // Default to first company (setTimeout lets canvas get dimensions after display:block)
   if (results.length) {
     newSel.value = results[0].ticker;
-    renderMonteCarloChart(results[0]);
+    setTimeout(() => renderMonteCarloChart(results[0]), 50);
   }
 }
 
