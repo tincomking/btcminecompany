@@ -132,6 +132,7 @@ document.querySelectorAll('.nav-tab').forEach(btn => {
     if (page === 'news') renderNews();
     if (page === 'sentiment') renderSentiment();
     if (page === 'analysis') renderAnalysis();
+    if (page === 'predictions') renderPredictions();
   });
 });
 
@@ -1248,6 +1249,509 @@ function renderMonteCarloChart(result) {
       }
     }
   });
+}
+
+// ── PAGE: PREDICTIONS ────────────────────────────────────────────────────────
+
+let currentPredTab = 'platform';
+
+function renderPredictions() {
+  if (!BTC_PREDICTIONS || !BTC_PREDICTIONS.crypto_platform_predictions) {
+    document.getElementById('predDisclaimer').innerHTML =
+      '<div class="empty-state"><div class="empty-text">Loading predictions...</div></div>';
+    return;
+  }
+  document.getElementById('predDisclaimer').innerHTML =
+    `<div class="prediction-disclaimer-inner">⚠ ${t('pred.disclaimer')}</div>`;
+  setupPredictionTabs();
+  showPredSection(currentPredTab);
+}
+
+function setupPredictionTabs() {
+  const container = document.getElementById('predSubTabs');
+  const tabs = [
+    { key: 'platform', label: t('pred.platform_tab') },
+    { key: 'institution', label: t('pred.institution_tab') },
+    { key: 'consensus', label: t('pred.consensus_tab') },
+    { key: 'fitting', label: t('pred.fitting_tab') },
+  ];
+  container.innerHTML = tabs.map(tb =>
+    `<button class="pred-tab${tb.key === currentPredTab ? ' active' : ''}" data-pred="${tb.key}">${tb.label}</button>`
+  ).join('');
+  container.querySelectorAll('.pred-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.pred-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentPredTab = btn.dataset.pred;
+      showPredSection(currentPredTab);
+    });
+  });
+}
+
+function showPredSection(key) {
+  document.getElementById('predPlatformSection').style.display = key === 'platform' ? '' : 'none';
+  document.getElementById('predInstitutionSection').style.display = key === 'institution' ? '' : 'none';
+  document.getElementById('predConsensusSection').style.display = key === 'consensus' ? '' : 'none';
+  document.getElementById('predFittingSection').style.display = key === 'fitting' ? '' : 'none';
+
+  if (key === 'platform') renderPlatformPredictions();
+  if (key === 'institution') renderInstitutionalPredictions();
+  if (key === 'consensus') renderConsensus();
+  if (key === 'fitting') renderFitting();
+}
+
+function fmtPrice(v) {
+  if (v == null) return `<span class="no-data">${t('pred.no_target')}</span>`;
+  return '$' + v.toLocaleString('en-US');
+}
+
+function renderPlatformPredictions() {
+  const data = BTC_PREDICTIONS.crypto_platform_predictions || [];
+  const years = ['2025', '2026', '2027', '2028', '2029', '2030'];
+  const thead = document.getElementById('platformPredHead');
+  const tbody = document.getElementById('platformPredBody');
+
+  thead.innerHTML = `<tr>
+    <th>${t('pred.source')}</th>
+    <th style="font-size:10px;max-width:180px;">${t('pred.methodology')}</th>
+    ${years.map(y => `<th class="td-right" colspan="3" style="text-align:center;">${y}<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-muted);font-weight:400;"><span>${t('pred.low')}</span><span>${t('pred.high')}</span><span>${t('pred.avg')}</span></div></th>`).join('')}
+  </tr>`;
+
+  tbody.innerHTML = data.map(src => {
+    const p = src.predictions;
+    return `<tr>
+      <td>
+        <div style="display:flex;flex-direction:column;gap:2px;">
+          <a href="${src.url}" target="_blank" style="color:var(--accent-blue);font-weight:600;font-size:12px;text-decoration:none;">${src.source}</a>
+          <span style="font-size:9px;color:var(--text-muted);">${src.prediction_date}</span>
+        </div>
+      </td>
+      <td style="font-size:10px;color:var(--text-muted);max-width:180px;">${src.methodology}</td>
+      ${years.map(y => {
+        const yp = p[y] || {};
+        return `<td class="td-right td-mono" style="font-size:11px;">${fmtPrice(yp.low)}</td>
+                <td class="td-right td-mono" style="font-size:11px;">${fmtPrice(yp.high)}</td>
+                <td class="td-right td-mono td-primary" style="font-size:11px;">${fmtPrice(yp.average)}</td>`;
+      }).join('')}
+    </tr>`;
+  }).join('');
+}
+
+function renderInstitutionalPredictions() {
+  const data = BTC_PREDICTIONS.institutional_predictions || [];
+  const years = ['2025', '2026', '2027', '2028', '2029', '2030'];
+  const thead = document.getElementById('institutionPredHead');
+  const tbody = document.getElementById('institutionPredBody');
+
+  thead.innerHTML = `<tr>
+    <th>${t('pred.source')}</th>
+    <th>${t('pred.analyst')}</th>
+    <th>${t('pred.type')}</th>
+    ${years.map(y => `<th class="td-right">${y}</th>`).join('')}
+  </tr>`;
+
+  tbody.innerHTML = data.map(src => {
+    const p = src.predictions;
+    return `<tr>
+      <td>
+        <div style="display:flex;flex-direction:column;gap:2px;">
+          <a href="${src.url}" target="_blank" style="color:var(--accent-blue);font-weight:600;font-size:12px;text-decoration:none;">${src.source}</a>
+          <span style="font-size:9px;color:var(--text-muted);">${src.prediction_date}</span>
+        </div>
+      </td>
+      <td style="font-size:10px;color:var(--text-secondary);max-width:160px;">${src.analyst || '—'}</td>
+      <td style="font-size:10px;"><span class="inst-type-badge">${src.type}</span></td>
+      ${years.map(y => {
+        const yp = p[y];
+        if (!yp) return `<td class="td-right td-mono" style="font-size:11px;">${fmtPrice(null)}</td>`;
+        // Handle bear/base/bull format (ARK 2030)
+        if (yp.bear || yp.base || yp.bull) {
+          let parts = [];
+          if (yp.bear) parts.push(`<span style="color:var(--red);font-size:9px;">${t('pred.bear')}: ${fmtPrice(yp.bear)}</span>`);
+          if (yp.base) parts.push(`<span style="font-size:10px;">${t('pred.base')}: ${fmtPrice(yp.base)}</span>`);
+          if (yp.bull) parts.push(`<span style="color:var(--green);font-size:9px;">${t('pred.bull')}: ${fmtPrice(yp.bull)}</span>`);
+          return `<td class="td-right" style="font-size:10px;"><div style="display:flex;flex-direction:column;gap:1px;align-items:flex-end;">${parts.join('')}</div></td>`;
+        }
+        const val = yp.target;
+        const note = yp.notes;
+        return `<td class="td-right td-mono" style="font-size:11px;">
+          ${fmtPrice(val)}
+          ${note ? `<div style="font-size:8px;color:var(--text-muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${note}">${note}</div>` : ''}
+        </td>`;
+      }).join('')}
+    </tr>`;
+  }).join('');
+}
+
+function renderConsensus() {
+  const consensus = BTC_PREDICTIONS.summary_consensus || {};
+  const catalysts = BTC_PREDICTIONS.key_catalysts || [];
+  const risks = BTC_PREDICTIONS.key_risks || [];
+  const years = ['2025', '2026', '2027', '2028', '2029', '2030'];
+
+  // Chart
+  const canvas = document.getElementById('consensusChart');
+  if (canvas) {
+    const lows = years.map(y => consensus[y] ? consensus[y].range_low : null);
+    const highs = years.map(y => consensus[y] ? consensus[y].range_high : null);
+    // Parse institutional consensus string like "100000-200000"
+    const instLow = years.map(y => {
+      if (!consensus[y] || !consensus[y].institutional_consensus) return null;
+      const parts = consensus[y].institutional_consensus.split('-');
+      return parseInt(parts[0]);
+    });
+    const instHigh = years.map(y => {
+      if (!consensus[y] || !consensus[y].institutional_consensus) return null;
+      const parts = consensus[y].institutional_consensus.split('-');
+      return parseInt(parts[1] || parts[0]);
+    });
+
+    const cc = chartColors();
+    if (canvas._chart) canvas._chart.destroy();
+    canvas._chart = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: years,
+        datasets: [
+          {
+            label: t('pred.consensus_range') + ' (' + t('pred.high') + ')',
+            data: highs,
+            backgroundColor: 'rgba(59,130,246,0.15)',
+            borderColor: 'rgba(59,130,246,0.4)',
+            borderWidth: 1,
+            borderRadius: 4,
+            order: 2
+          },
+          {
+            label: t('pred.consensus_range') + ' (' + t('pred.low') + ')',
+            data: lows,
+            backgroundColor: 'rgba(239,68,68,0.15)',
+            borderColor: 'rgba(239,68,68,0.4)',
+            borderWidth: 1,
+            borderRadius: 4,
+            order: 3
+          },
+          {
+            label: t('pred.institutional_consensus') + ' (' + t('pred.high') + ')',
+            data: instHigh,
+            type: 'line',
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16,185,129,0.1)',
+            fill: '+1',
+            borderWidth: 2,
+            pointRadius: 4,
+            pointBackgroundColor: '#10b981',
+            tension: 0.3,
+            order: 1
+          },
+          {
+            label: t('pred.institutional_consensus') + ' (' + t('pred.low') + ')',
+            data: instLow,
+            type: 'line',
+            borderColor: '#10b981',
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            borderDash: [4, 4],
+            pointRadius: 4,
+            pointBackgroundColor: '#10b981',
+            tension: 0.3,
+            order: 1
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { labels: { color: cc.legend, font: { size: 11, family: 'Inter' }, usePointStyle: true } },
+          tooltip: {
+            backgroundColor: cc.tooltip.bg, borderColor: cc.tooltip.border, borderWidth: 1,
+            titleColor: cc.tooltip.title, bodyColor: cc.tooltip.body,
+            callbacks: { label: ctx => `${ctx.dataset.label}: $${ctx.raw ? ctx.raw.toLocaleString() : '—'}` }
+          }
+        },
+        scales: {
+          x: { ticks: { color: cc.tick, font: { size: 12, family: 'JetBrains Mono' } }, grid: { color: cc.grid } },
+          y: { ticks: { color: cc.tick, font: { size: 10 }, callback: v => '$' + (v/1000).toFixed(0) + 'K' }, grid: { color: cc.grid } }
+        }
+      }
+    });
+  }
+
+  // Catalysts & Risks
+  const grid = document.getElementById('catalystRiskGrid');
+  grid.innerHTML = `
+    <div class="catalyst-col">
+      <div class="catalyst-risk-title" style="color:var(--green);">▲ ${t('pred.catalysts')}</div>
+      <ul class="catalyst-risk-list">${catalysts.map(c => `<li>${c}</li>`).join('')}</ul>
+    </div>
+    <div class="risk-col">
+      <div class="catalyst-risk-title" style="color:var(--red);">▼ ${t('pred.risks')}</div>
+      <ul class="catalyst-risk-list">${risks.map(r => `<li>${r}</li>`).join('')}</ul>
+    </div>`;
+}
+
+// ── FITTING ANALYSIS ──
+
+let currentFitMethod = 'linear';
+
+function renderFitting() {
+  setupFittingControls();
+  runFitting(currentFitMethod);
+}
+
+function setupFittingControls() {
+  const container = document.getElementById('fittingControls');
+  const methods = [
+    { key: 'linear', label: t('pred.linear') },
+    { key: 'exponential', label: t('pred.exponential') },
+    { key: 'polynomial', label: t('pred.polynomial') },
+    { key: 'power_law', label: t('pred.power_law') },
+    { key: 'log', label: t('pred.log') },
+  ];
+  container.innerHTML = methods.map(m =>
+    `<button class="pred-tab${m.key === currentFitMethod ? ' active' : ''}" data-fit="${m.key}">${m.label}</button>`
+  ).join('');
+  container.querySelectorAll('.pred-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.pred-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFitMethod = btn.dataset.fit;
+      runFitting(currentFitMethod);
+    });
+  });
+}
+
+function collectFittingData() {
+  // Gather all numeric predictions from all sources
+  const points = []; // { year, price }
+  const years = ['2025', '2026', '2027', '2028', '2029', '2030'];
+
+  (BTC_PREDICTIONS.crypto_platform_predictions || []).forEach(src => {
+    years.forEach(y => {
+      const yp = src.predictions[y];
+      if (!yp) return;
+      if (yp.low) points.push({ year: parseInt(y), price: yp.low, source: src.source });
+      if (yp.high) points.push({ year: parseInt(y), price: yp.high, source: src.source });
+      if (yp.average) points.push({ year: parseInt(y), price: yp.average, source: src.source });
+    });
+  });
+
+  (BTC_PREDICTIONS.institutional_predictions || []).forEach(src => {
+    years.forEach(y => {
+      const yp = src.predictions[y];
+      if (!yp) return;
+      if (yp.target) points.push({ year: parseInt(y), price: yp.target, source: src.source });
+      if (yp.bear) points.push({ year: parseInt(y), price: yp.bear, source: src.source });
+      if (yp.base) points.push({ year: parseInt(y), price: yp.base, source: src.source });
+      if (yp.bull) points.push({ year: parseInt(y), price: yp.bull, source: src.source });
+    });
+  });
+
+  return points;
+}
+
+function linearRegression(xs, ys) {
+  const n = xs.length;
+  const sx = xs.reduce((a, b) => a + b, 0);
+  const sy = ys.reduce((a, b) => a + b, 0);
+  const sxy = xs.reduce((a, x, i) => a + x * ys[i], 0);
+  const sxx = xs.reduce((a, x) => a + x * x, 0);
+  const b = (n * sxy - sx * sy) / (n * sxx - sx * sx);
+  const a = (sy - b * sx) / n;
+  return { a, b };
+}
+
+function rSquared(ys, predicted) {
+  const mean = ys.reduce((a, b) => a + b, 0) / ys.length;
+  const ssTot = ys.reduce((a, y) => a + (y - mean) * (y - mean), 0);
+  const ssRes = ys.reduce((a, y, i) => a + (y - predicted[i]) * (y - predicted[i]), 0);
+  return ssTot === 0 ? 0 : 1 - ssRes / ssTot;
+}
+
+function polyFit(xs, ys, degree) {
+  // Normal equations for polynomial fit
+  const n = xs.length;
+  const m = degree + 1;
+  // Build Vandermonde matrix
+  const A = [];
+  for (let i = 0; i < m; i++) {
+    A[i] = [];
+    for (let j = 0; j < m; j++) {
+      A[i][j] = xs.reduce((s, x) => s + Math.pow(x, i + j), 0);
+    }
+  }
+  const b = [];
+  for (let i = 0; i < m; i++) {
+    b[i] = xs.reduce((s, x, k) => s + ys[k] * Math.pow(x, i), 0);
+  }
+  // Gaussian elimination
+  for (let col = 0; col < m; col++) {
+    let maxRow = col;
+    for (let row = col + 1; row < m; row++) {
+      if (Math.abs(A[row][col]) > Math.abs(A[maxRow][col])) maxRow = row;
+    }
+    [A[col], A[maxRow]] = [A[maxRow], A[col]];
+    [b[col], b[maxRow]] = [b[maxRow], b[col]];
+    for (let row = col + 1; row < m; row++) {
+      const f = A[row][col] / A[col][col];
+      for (let j = col; j < m; j++) A[row][j] -= f * A[col][j];
+      b[row] -= f * b[col];
+    }
+  }
+  const coeffs = new Array(m);
+  for (let i = m - 1; i >= 0; i--) {
+    coeffs[i] = b[i];
+    for (let j = i + 1; j < m; j++) coeffs[i] -= A[i][j] * coeffs[j];
+    coeffs[i] /= A[i][i];
+  }
+  return coeffs; // [c0, c1, c2, ...] where y = c0 + c1*x + c2*x^2 + ...
+}
+
+function runFitting(method) {
+  const points = collectFittingData();
+  if (!points.length) return;
+
+  // Normalize years: use (year - 2025) as x
+  const xs = points.map(p => p.year - 2025);
+  const ys = points.map(p => p.price);
+
+  let fitted, predict, params, label;
+  const xPlot = []; // 0..5 in 0.1 steps
+  for (let x = 0; x <= 5; x += 0.1) xPlot.push(x);
+
+  if (method === 'linear') {
+    const lr = linearRegression(xs, ys);
+    fitted = xs.map(x => lr.a + lr.b * x);
+    predict = x => lr.a + lr.b * x;
+    params = `y = ${lr.a.toFixed(0)} + ${lr.b.toFixed(0)} × x`;
+    label = t('pred.linear');
+  } else if (method === 'exponential') {
+    // ln(y) = ln(a) + b*x
+    const posIdx = ys.map((y, i) => y > 0 ? i : -1).filter(i => i >= 0);
+    const lnYs = posIdx.map(i => Math.log(ys[i]));
+    const filtXs = posIdx.map(i => xs[i]);
+    const lr = linearRegression(filtXs, lnYs);
+    const a = Math.exp(lr.a);
+    const b = lr.b;
+    fitted = xs.map(x => a * Math.exp(b * x));
+    predict = x => a * Math.exp(b * x);
+    params = `y = ${a.toFixed(0)} × e^(${b.toFixed(3)}x)`;
+    label = t('pred.exponential');
+  } else if (method === 'polynomial') {
+    const coeffs = polyFit(xs, ys, 2);
+    fitted = xs.map(x => coeffs[0] + coeffs[1] * x + coeffs[2] * x * x);
+    predict = x => coeffs[0] + coeffs[1] * x + coeffs[2] * x * x;
+    params = `y = ${coeffs[0].toFixed(0)} + ${coeffs[1].toFixed(0)}x + ${coeffs[2].toFixed(0)}x²`;
+    label = t('pred.polynomial');
+  } else if (method === 'power_law') {
+    // ln(y) = ln(a) + b*ln(x+1)
+    const posIdx = ys.map((y, i) => y > 0 ? i : -1).filter(i => i >= 0);
+    const lnXs = posIdx.map(i => Math.log(xs[i] + 1));
+    const lnYs = posIdx.map(i => Math.log(ys[i]));
+    const lr = linearRegression(lnXs, lnYs);
+    const a = Math.exp(lr.a);
+    const b = lr.b;
+    fitted = xs.map(x => a * Math.pow(x + 1, b));
+    predict = x => a * Math.pow(x + 1, b);
+    params = `y = ${a.toFixed(0)} × (x+1)^${b.toFixed(3)}`;
+    label = t('pred.power_law');
+  } else if (method === 'log') {
+    // y = a * ln(x+1) + b
+    const lnXs = xs.map(x => Math.log(x + 1));
+    const lr = linearRegression(lnXs, ys);
+    fitted = xs.map(x => lr.b * Math.log(x + 1) + lr.a);
+    predict = x => lr.b * Math.log(x + 1) + lr.a;
+    params = `y = ${lr.b.toFixed(0)} × ln(x+1) + ${lr.a.toFixed(0)}`;
+    label = t('pred.log');
+  }
+
+  const r2 = rSquared(ys, fitted);
+
+  // Render chart
+  const canvas = document.getElementById('fittingChart');
+  if (!canvas) return;
+  const cc = chartColors();
+
+  const scatterData = points.map(p => ({ x: p.year - 2025, y: p.price }));
+  const curveData = xPlot.map(x => ({ x, y: predict(x) }));
+
+  if (canvas._chart) canvas._chart.destroy();
+  canvas._chart = new Chart(canvas, {
+    type: 'scatter',
+    data: {
+      datasets: [
+        {
+          label: t('pred.all_data_points'),
+          data: scatterData,
+          backgroundColor: 'rgba(59,130,246,0.5)',
+          borderColor: '#3b82f6',
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          order: 2
+        },
+        {
+          label: label + ' (' + t('pred.fitted_curve') + ')',
+          data: curveData,
+          type: 'line',
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245,158,11,0.1)',
+          fill: false,
+          borderWidth: 2.5,
+          pointRadius: 0,
+          tension: 0.3,
+          order: 1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { labels: { color: cc.legend, font: { size: 11, family: 'Inter' }, usePointStyle: true } },
+        tooltip: {
+          backgroundColor: cc.tooltip.bg, borderColor: cc.tooltip.border, borderWidth: 1,
+          titleColor: cc.tooltip.title, bodyColor: cc.tooltip.body,
+          callbacks: {
+            title: ctx => ctx[0] ? (2025 + ctx[0].parsed.x).toFixed(0) : '',
+            label: ctx => `$${ctx.parsed.y.toLocaleString('en-US', { maximumFractionDigits: 0 })}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'linear',
+          ticks: { color: cc.tick, font: { size: 12, family: 'JetBrains Mono' }, callback: v => (2025 + v).toFixed(0), stepSize: 1 },
+          grid: { color: cc.grid },
+          min: -0.2, max: 5.2
+        },
+        y: {
+          ticks: { color: cc.tick, font: { size: 10 }, callback: v => '$' + (v / 1000).toFixed(0) + 'K' },
+          grid: { color: cc.grid },
+          min: 0
+        }
+      }
+    }
+  });
+
+  // Stats
+  const stats = document.getElementById('fittingStats');
+  const predYears = [2027, 2028, 2030];
+  stats.innerHTML = `
+    <div class="fitting-stats-inner">
+      <div class="fitting-stat-item">
+        <div class="fitting-stat-label">${t('pred.r_squared')}</div>
+        <div class="fitting-stat-value" style="color:${r2 > 0.7 ? 'var(--green)' : r2 > 0.4 ? 'var(--orange)' : 'var(--red)'};">${r2.toFixed(4)}</div>
+      </div>
+      <div class="fitting-stat-item">
+        <div class="fitting-stat-label">Formula</div>
+        <div class="fitting-stat-value td-mono" style="font-size:11px;">${params}</div>
+      </div>
+      ${predYears.map(y => `
+        <div class="fitting-stat-item">
+          <div class="fitting-stat-label">${y} ${t('pred.prediction')}</div>
+          <div class="fitting-stat-value td-mono">$${predict(y - 2025).toLocaleString('en-US', { maximumFractionDigits: 0 })}</div>
+        </div>
+      `).join('')}
+    </div>`;
 }
 
 // ── INIT ─────────────────────────────────────────────────────────────────────

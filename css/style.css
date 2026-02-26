@@ -1165,3 +1165,135 @@ canvas { max-width: 100%; }
   .analysis-model-selector { width: 100%; }
   .analysis-pros-cons { grid-template-columns: 1fr; }
 }
+
+/* ================================================================
+   Predictions Tab
+   ================================================================ */
+
+.prediction-disclaimer-inner {
+  background: var(--orange-dim);
+  color: var(--orange);
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  border: 1px solid rgba(245,158,11,0.2);
+}
+
+.prediction-sub-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.pred-tab {
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pred-tab:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+
+.pred-tab.active {
+  background: var(--accent-blue);
+  color: #fff;
+  border-color: var(--accent-blue);
+}
+
+.pred-section { margin-bottom: 24px; }
+
+.inst-type-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.catalyst-risk-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.catalyst-risk-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.catalyst-risk-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.catalyst-risk-list li {
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  background: var(--bg-card);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  line-height: 1.5;
+}
+
+.fitting-controls {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.fitting-stats-inner {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 16px;
+  background: var(--bg-card);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.fitting-stat-item {
+  flex: 1;
+  min-width: 140px;
+}
+
+.fitting-stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.fitting-stat-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Responsive: Predictions */
+@media (max-width: 900px) {
+  .prediction-sub-tabs { width: 100%; }
+  .catalyst-risk-grid { grid-template-columns: 1fr; }
+  .fitting-stats-inner { flex-direction: column; }
+  .fitting-stat-item { min-width: unset; }
+}

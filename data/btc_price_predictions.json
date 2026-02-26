@@ -1,0 +1,582 @@
+{
+  "_meta": {
+    "title": "Bitcoin (BTC) Price Predictions 2025-2030",
+    "description": "Aggregated BTC price forecasts from crypto prediction platforms and major institutional sources",
+    "data_collected": "2026-02-26",
+    "disclaimer": "All predictions are speculative and should not be treated as financial advice. Prices in USD.",
+    "notes": "Some sources use algorithmic/machine-learning models; others are analyst-driven. Where exact min/max/avg were not available, year-end or range targets are provided instead."
+  },
+
+  "crypto_platform_predictions": [
+    {
+      "source": "DigitalCoinPrice",
+      "url": "https://digitalcoinprice.com/forecast/bitcoin",
+      "prediction_date": "2026-02",
+      "methodology": "Algorithmic model based on historical data and technical analysis",
+      "predictions": {
+        "2025": {
+          "low": null,
+          "high": null,
+          "average": null,
+          "notes": "Page blocked (403). See search-derived data below."
+        },
+        "2026": {
+          "low": 224224,
+          "high": 270576,
+          "average": 247614
+        },
+        "2027": {
+          "low": 307075,
+          "high": null,
+          "average": 376327
+        },
+        "2028": {
+          "low": null,
+          "high": 475951,
+          "average": null
+        },
+        "2029": {
+          "low": 400865,
+          "high": 475951,
+          "average": null
+        },
+        "2030": {
+          "low": 495729,
+          "high": 568623,
+          "average": 536904
+        }
+      }
+    },
+    {
+      "source": "Software Testing Help",
+      "url": "https://www.softwaretestinghelp.com/bitcoin-price-prediction/",
+      "prediction_date": "2025-12",
+      "methodology": "Expert research and multi-source aggregation",
+      "predictions": {
+        "2025": {
+          "low": 181308,
+          "high": 214232,
+          "average": 186289
+        },
+        "2026": {
+          "low": 61813,
+          "high": 137503,
+          "average": null
+        },
+        "2027": {
+          "low": 55401,
+          "high": 207394,
+          "average": null
+        },
+        "2028": {
+          "low": 140491,
+          "high": 216738,
+          "average": 170100
+        },
+        "2029": {
+          "low": 164063,
+          "high": 244142,
+          "average": 185068
+        },
+        "2030": {
+          "low": 195629,
+          "high": 255321,
+          "average": 200312
+        }
+      }
+    },
+    {
+      "source": "Coin Edition",
+      "url": "https://coinedition.com/bitcoin-btc-price-prediction/",
+      "prediction_date": "2025-07-31",
+      "methodology": "Technical analysis and historical price trajectory modeling",
+      "predictions": {
+        "2025": {
+          "low": 97000,
+          "high": 140000,
+          "average": 118000
+        },
+        "2026": {
+          "low": 115000,
+          "high": 200000,
+          "average": 150000
+        },
+        "2027": {
+          "low": 140000,
+          "high": 300000,
+          "average": 220000
+        },
+        "2028": {
+          "low": 210000,
+          "high": 420000,
+          "average": 320000
+        },
+        "2029": {
+          "low": 320000,
+          "high": 550000,
+          "average": 460000
+        },
+        "2030": {
+          "low": 420000,
+          "high": 643250,
+          "average": 540000
+        }
+      }
+    },
+    {
+      "source": "AMBCrypto",
+      "url": "https://ambcrypto.com/predictions/bitcoin-price-prediction",
+      "prediction_date": "2025-11-10",
+      "methodology": "Machine learning algorithmic model (beta stage)",
+      "predictions": {
+        "2025": {
+          "low": 99452,
+          "high": 149178,
+          "average": 124315
+        },
+        "2026": {
+          "low": 106781,
+          "high": 160172,
+          "average": 133477
+        },
+        "2027": {
+          "low": 136495,
+          "high": 204743,
+          "average": 170619
+        },
+        "2028": {
+          "low": 135667,
+          "high": 203500,
+          "average": 169583
+        },
+        "2029": {
+          "low": 178596,
+          "high": 267893,
+          "average": 223245
+        },
+        "2030": {
+          "low": 222209,
+          "high": 333313,
+          "average": 277761
+        }
+      }
+    },
+    {
+      "source": "Changelly",
+      "url": "https://changelly.com/blog/bitcoin-price-prediction/",
+      "prediction_date": "2026-02",
+      "methodology": "Algorithmic price prediction model",
+      "predictions": {
+        "2025": {
+          "low": null,
+          "high": 126198,
+          "average": null,
+          "notes": "BTC reached ATH of $126,198 in Oct 2025, closed year near $87,000"
+        },
+        "2026": {
+          "low": 104267,
+          "high": 144369,
+          "average": 124318
+        },
+        "2027": {
+          "low": 55811,
+          "high": 92224,
+          "average": 69634
+        },
+        "2028": {
+          "low": 56865,
+          "high": 208140,
+          "average": 134411
+        },
+        "2029": {
+          "low": 153828,
+          "high": 305028,
+          "average": 222505
+        },
+        "2030": {
+          "low": 153552,
+          "high": 210238,
+          "average": 173586
+        }
+      }
+    },
+    {
+      "source": "CryptoNewsZ",
+      "url": "https://www.cryptonewsz.com/forecast/bitcoin-price-prediction/",
+      "prediction_date": "2025-12",
+      "methodology": "Technical analysis and expert analyst forecasting",
+      "predictions": {
+        "2025": {
+          "low": null,
+          "high": 200000,
+          "average": null,
+          "notes": "Bullish target of $200K by end of 2025"
+        },
+        "2026": {
+          "low": null,
+          "high": null,
+          "average": null,
+          "notes": "Specific 2026 figures not extracted; page rendered via JS"
+        },
+        "2027": {
+          "low": null,
+          "high": null,
+          "average": null,
+          "notes": "Specific 2027 figures not extracted"
+        },
+        "2028": {
+          "low": 432000,
+          "high": 540000,
+          "average": null,
+          "notes": "Post-2028 halving high of $540K predicted"
+        },
+        "2029": {
+          "low": null,
+          "high": 500000,
+          "average": null,
+          "notes": "$500K breakout forecast for 2029"
+        },
+        "2030": {
+          "low": 220000,
+          "high": 1000000,
+          "average": null,
+          "notes": "Bear scenario: $220K-$440K; Bull scenario: $500K-$1M"
+        }
+      }
+    },
+    {
+      "source": "Coinpedia",
+      "url": "https://coinpedia.org/price-prediction/bitcoin-price-prediction/",
+      "prediction_date": "2026-02",
+      "methodology": "Multi-analyst aggregation and technical analysis",
+      "predictions": {
+        "2025": {
+          "low": 61357,
+          "high": 135449,
+          "average": 95903
+        },
+        "2026": {
+          "low": 82522,
+          "high": 155283,
+          "average": 115569
+        },
+        "2027": {
+          "low": 152837,
+          "high": 169046,
+          "average": 160942
+        },
+        "2028": {
+          "low": 200000,
+          "high": 450000,
+          "average": null
+        },
+        "2029": {
+          "low": 275000,
+          "high": 640000,
+          "average": null
+        },
+        "2030": {
+          "low": 380000,
+          "high": 900000,
+          "average": null
+        }
+      }
+    },
+    {
+      "source": "CoinDCX",
+      "url": "https://coindcx.com/blog/price-predictions/bitcoin-price-weekly/",
+      "prediction_date": "2026-02",
+      "methodology": "Weekly updated forecast combining technical and fundamental analysis",
+      "predictions": {
+        "2025": {
+          "low": 77000,
+          "high": 155000,
+          "average": null
+        },
+        "2026": {
+          "low": 66000,
+          "high": 150000,
+          "average": null,
+          "notes": "Feb 2026 price hovering $66K-$70K after decline from $87K support"
+        },
+        "2027": {
+          "low": 200000,
+          "high": 300000,
+          "average": null
+        },
+        "2028": {
+          "low": 140491,
+          "high": 300000,
+          "average": 170100
+        },
+        "2029": {
+          "low": 350000,
+          "high": 400000,
+          "average": null
+        },
+        "2030": {
+          "low": 250000,
+          "high": 1000000,
+          "average": null
+        }
+      }
+    }
+  ],
+
+  "institutional_predictions": [
+    {
+      "source": "Standard Chartered",
+      "type": "Global Bank",
+      "url": "https://finance.yahoo.com/news/pace-slower-expected-standard-chartered-170107409.html",
+      "analyst": "Geoff Kendrick (Head of Digital Assets Research)",
+      "prediction_date": "2026-02",
+      "methodology": "Macro-driven institutional research, ETF flow modeling",
+      "notes": "Revised down from earlier bullish forecasts in Dec 2025. Originally had $200K for 2025, $300K for 2026, $400K for 2027, $500K for 2028.",
+      "predictions": {
+        "2025": { "target": 100000, "notes": "Revised from $200,000" },
+        "2026": { "target": 100000, "notes": "Revised from $300,000 (Dec 2025), further cut to $100K in Feb 2026" },
+        "2027": { "target": 225000, "notes": "Revised from $400,000" },
+        "2028": { "target": 300000, "notes": "Revised from $500,000" },
+        "2029": { "target": 400000 },
+        "2030": { "target": 500000 }
+      }
+    },
+    {
+      "source": "ARK Invest",
+      "type": "Investment Management / ETF Issuer",
+      "url": "https://www.theblock.co/post/386560/cathie-wood-ark-invest-bitcoin-crypto-2030",
+      "analyst": "Cathie Wood (CEO)",
+      "prediction_date": "2025-11",
+      "methodology": "Bottom-up adoption modeling, digital gold thesis, TAM analysis",
+      "notes": "ARK projects total crypto market cap at $28T by 2030, with BTC at ~70% ($16T market cap). Bull case raised from $1.5M to $2.4M.",
+      "predictions": {
+        "2025": { "target": 250000, "notes": "Bull case" },
+        "2026": { "target": null, "notes": "No specific 2026 target published; expects 'Goldilocks year'" },
+        "2027": { "target": null },
+        "2028": { "target": null },
+        "2029": { "target": null },
+        "2030": {
+          "bear": 500000,
+          "base": 800000,
+          "bull": 2400000,
+          "notes": "Bear $500K, Base $800K, Bull $2.4M (revised Nov 2025)"
+        }
+      }
+    },
+    {
+      "source": "Bernstein (Alliance Bernstein)",
+      "type": "Investment Research / Asset Management",
+      "url": "https://www.ccn.com/news/crypto/bitcoin-price-hit-1m-7-bernstein-analysts-bear-market/",
+      "analyst": "Gautam Chhugani",
+      "prediction_date": "2025-12",
+      "methodology": "Institutional capital flow analysis, cycle modeling",
+      "notes": "Believes Bitcoin is in an 'elongated bull cycle' breaking the traditional 4-year pattern. Revised 2026 target down from $300K to $150K.",
+      "predictions": {
+        "2025": { "target": null, "notes": "Previously targeted $200,000" },
+        "2026": { "target": 150000, "notes": "Revised down from $300,000" },
+        "2027": { "target": 200000, "notes": "Expected cycle peak" },
+        "2028": { "target": null },
+        "2029": { "target": null },
+        "2030": { "target": 500000, "notes": "Delayed from original 2028 target" },
+        "2033": { "target": 1000000 }
+      }
+    },
+    {
+      "source": "JPMorgan",
+      "type": "Global Investment Bank",
+      "url": "https://www.coindesk.com/markets/2025/11/06/bitcoin-s-fair-value-is-usd170k-jpmorgan-argues-in-gold-based-model/",
+      "analyst": "Nikolaos Panigirtzoglou",
+      "prediction_date": "2026-02",
+      "methodology": "Gold-parity model, production-cost analysis, risk-capital comparison",
+      "notes": "Fair value model based on bitcoin-to-gold volatility ratio. $266K is theoretical gold-parity endpoint, described as 'unrealistic' near-term by analysts themselves.",
+      "predictions": {
+        "2025": { "target": 170000, "notes": "Fair value based on gold-parity model" },
+        "2026": { "target": null, "notes": "Expects new ATH in 2026 driven by CLARITY Act and institutional capital" },
+        "2027": { "target": null },
+        "2028": { "target": null },
+        "2029": { "target": null },
+        "2030": { "target": null },
+        "theoretical_gold_parity": { "target": 266000, "notes": "Mathematical gold-parity endpoint, not a time-bound prediction" }
+      }
+    },
+    {
+      "source": "Goldman Sachs",
+      "type": "Global Investment Bank",
+      "url": "https://pintu.co.id/en/news/249031-goldman-sachs-shocking-prediction-for-bitcoin-price-in-2026",
+      "analyst": "Digital Assets Team",
+      "prediction_date": "2026-01",
+      "methodology": "Scenario-based analysis tied to Fed rate cuts and regulatory easing",
+      "notes": "Not a firm target but a scenario-based projection under favorable economic conditions.",
+      "predictions": {
+        "2025": { "target": null },
+        "2026": { "target": 200000, "notes": "Scenario-based, conditional on Fed rate cuts and regulatory easing" },
+        "2027": { "target": null },
+        "2028": { "target": null },
+        "2029": { "target": null },
+        "2030": { "target": null }
+      }
+    },
+    {
+      "source": "VanEck",
+      "type": "Asset Management / ETF Issuer",
+      "url": "https://finance.yahoo.com/news/vaneck-bitcoin-price-ath-prediction-151844624.html",
+      "analyst": "Matthew Sigel (Head of Digital Assets Research) / David Schassler",
+      "prediction_date": "2025-12",
+      "methodology": "Offshore wealth market penetration analysis, halving cycle modeling",
+      "notes": "Targets $180K via 10% penetration of $12T offshore wealth market. Expects consolidation rather than melt-up in 2026.",
+      "predictions": {
+        "2025": { "target": 180000 },
+        "2026": { "target": null, "notes": "Expects new ATH but frames 2026 as consolidation, not dramatic regime shift" },
+        "2027": { "target": null },
+        "2028": { "target": null },
+        "2029": { "target": null },
+        "2030": { "target": 300000, "notes": "Base case; sees long-term possibility of $1M" }
+      }
+    },
+    {
+      "source": "Fundstrat Global Advisors",
+      "type": "Investment Research",
+      "url": "https://finance.yahoo.com/news/tom-lee-dusts-off-failed-130110540.html",
+      "analyst": "Tom Lee (Managing Partner)",
+      "prediction_date": "2026-01",
+      "methodology": "ETF demand analysis, institutional capital flow modeling",
+      "notes": "Lee argues 4-year cycle is breaking down due to ETF-driven demand. Internal Fundstrat bearish scenario warns of possible $60K. Public forecast is bullish.",
+      "predictions": {
+        "2025": { "target": 200000, "notes": "Original target, not met; BTC closed ~$87K" },
+        "2026": { "target": 250000, "notes": "Revived target for end-2026; range $200K-$250K" },
+        "2027": { "target": null },
+        "2028": { "target": null },
+        "2029": { "target": null },
+        "2030": { "target": null }
+      }
+    },
+    {
+      "source": "Pantera Capital",
+      "type": "Crypto Hedge Fund",
+      "url": "https://finance.yahoo.com/news/pantera-capital-predicts-bitcoin-could-083039126.html",
+      "analyst": "Dan Morehead (CEO)",
+      "prediction_date": "2025-12",
+      "methodology": "Halving cycle extrapolation, 88% average annual growth rate model",
+      "notes": "Pantera's Bitcoin Fund achieved 131,165% lifetime return. Accurately predicted $117,482 by Aug 2025. Projects $15T BTC market cap by 2028.",
+      "predictions": {
+        "2025": { "target": 117482, "notes": "Accurately predicted; BTC hit $119K+ on target date" },
+        "2026": { "target": null, "notes": "Frames 2026 as capital-allocation shift year" },
+        "2027": { "target": null },
+        "2028": { "target": 740000, "notes": "Based on halving cycle and 88% avg annual growth" },
+        "2029": { "target": null },
+        "2030": { "target": null }
+      }
+    },
+    {
+      "source": "Galaxy Digital",
+      "type": "Crypto Financial Services / Investment Firm",
+      "url": "https://www.cnbc.com/2026/02/10/bitcoin-crypto-trading-speculation-galaxy-ceo-mike-novogratz.html",
+      "analyst": "Mike Novogratz (CEO)",
+      "prediction_date": "2026-02",
+      "methodology": "Market structure analysis, store-of-value thesis",
+      "notes": "Novogratz has been consistently bullish long-term but cautious near-term. Declared 'age of speculation' may be over in Feb 2026.",
+      "predictions": {
+        "2025": { "target": 125000, "notes": "Most likely range $100K-$125K; bull case $250K" },
+        "2026": { "target": 150000, "notes": "Near-term target $130K-$150K, contingent on sustaining above $100K" },
+        "2027": { "target": null },
+        "2028": { "target": null },
+        "2029": { "target": null },
+        "2030": { "target": 1000000, "notes": "Long-term target; expects BTC to replace gold as top store of value" }
+      }
+    },
+    {
+      "source": "Bitwise Asset Management",
+      "type": "Crypto Asset Management / ETF Issuer",
+      "url": "https://coinpedia.org/price-prediction/bitcoin-price-prediction/",
+      "analyst": "Matt Hougan (CIO)",
+      "prediction_date": "2025-12",
+      "methodology": "ETF inflow modeling, institutional adoption analysis",
+      "notes": "Hougan noted unexpected selling pressure at $100K. Long-term thesis based on ETF and corporate treasury demand locking up ~12% of supply.",
+      "predictions": {
+        "2025": { "target": null },
+        "2026": { "target": 200000 },
+        "2027": { "target": null },
+        "2028": { "target": null },
+        "2029": { "target": null },
+        "2030": { "target": 500000, "notes": "If ETF and corporate buyer demand accelerates; challenges gold market cap" }
+      }
+    },
+    {
+      "source": "Morgan Stanley",
+      "type": "Global Investment Bank",
+      "url": "https://libertex.com/blog/bitcoin-price-forecasts",
+      "analyst": "Denny Galindo (Strategist)",
+      "prediction_date": "2025-11",
+      "methodology": "Four-year cycle analysis",
+      "notes": "BEARISH outlier among institutions. Believes BTC is in 'autumn' phase of 4-year cycle with 'winter' approaching. Filed for spot BTC ETF despite bearish price view.",
+      "predictions": {
+        "2025": { "target": null, "notes": "Advised locking in profits; cycle nearing end" },
+        "2026": { "target": null, "notes": "Bearish; expects cycle downturn. No specific price target published." },
+        "2027": { "target": null },
+        "2028": { "target": null },
+        "2029": { "target": null },
+        "2030": { "target": null }
+      }
+    }
+  ],
+
+  "summary_consensus": {
+    "description": "Aggregated consensus ranges across all sources",
+    "2025": {
+      "range_low": 61357,
+      "range_high": 250000,
+      "institutional_consensus": "100000-200000",
+      "notes": "Actual: BTC hit ATH of ~$126K in Oct 2025, closed year near $87K"
+    },
+    "2026": {
+      "range_low": 66000,
+      "range_high": 270576,
+      "institutional_consensus": "100000-200000",
+      "notes": "Most institutional targets cluster $100K-$200K. Feb 2026 BTC trading ~$66K-$70K after sharp correction."
+    },
+    "2027": {
+      "range_low": 55401,
+      "range_high": 400000,
+      "institutional_consensus": "200000-225000",
+      "notes": "Wide range reflects uncertainty. Bernstein expects cycle peak at $200K. Standard Chartered targets $225K."
+    },
+    "2028": {
+      "range_low": 56865,
+      "range_high": 740000,
+      "institutional_consensus": "300000-740000",
+      "notes": "Next halving expected in 2028. Pantera targets $740K. Standard Chartered targets $300K."
+    },
+    "2029": {
+      "range_low": 153828,
+      "range_high": 640000,
+      "institutional_consensus": "350000-500000",
+      "notes": "Post-halving momentum year. Most sources see $300K-$500K range."
+    },
+    "2030": {
+      "range_low": 153552,
+      "range_high": 2400000,
+      "institutional_consensus": "500000-1000000",
+      "notes": "Extreme variance. ARK bull case $2.4M. Standard Chartered $500K. Most cluster $500K-$1M. Several sources see potential for $1M+."
+    }
+  },
+
+  "key_catalysts": [
+    "Spot Bitcoin ETF inflows and corporate treasury adoption (12%+ of supply locked up)",
+    "2028 Bitcoin halving reducing block reward to 1.5625 BTC",
+    "US regulatory clarity (CLARITY Act, stablecoin legislation)",
+    "Federal Reserve rate cut cycle",
+    "Bitcoin as digital gold narrative vs $6.2T private gold investment",
+    "Institutional brokerage and retirement account access via ETFs",
+    "Potential US Strategic Bitcoin Reserve",
+    "Global sovereign adoption trends"
+  ],
+
+  "key_risks": [
+    "Macroeconomic recession or risk-off environment",
+    "Regulatory crackdowns in major markets",
+    "Traditional 4-year cycle downturn (Morgan Stanley thesis)",
+    "Stablecoin competition reducing BTC safe-haven demand in emerging markets",
+    "Black swan events (exchange failures, protocol vulnerabilities)",
+    "Correlation with tech stocks during risk-off periods"
+  ]
+}

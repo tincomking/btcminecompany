@@ -30,6 +30,7 @@
     <button class="nav-tab" data-page="news" data-i18n="nav.news">新闻动态</button>
     <button class="nav-tab" data-page="sentiment" data-i18n="nav.sentiment">市场情绪</button>
     <button class="nav-tab" data-page="analysis" data-i18n="nav.analysis">财务分析</button>
+    <button class="nav-tab" data-page="predictions" data-i18n="nav.predictions">币价预测</button>
   </nav>
 
   <div class="header-right">
@@ -380,6 +381,59 @@
         <div class="chart-title" data-i18n="analysis.mc_note">基于 GBM 模型的 1000 次随机路径模拟</div>
         <canvas id="mcChart" height="100"></canvas>
       </div>
+    </div>
+  </div>
+
+  <!-- ─────────────────────── PAGE: PREDICTIONS ─────────────────────── -->
+  <div class="page" id="page-predictions">
+    <div class="section-header">
+      <div class="section-title" data-i18n="pred.title">比特币价格预测</div>
+      <span class="data-badge" data-i18n="pred.subtitle">综合多平台与机构的 BTC 价格预测（2025-2030）</span>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="prediction-disclaimer" id="predDisclaimer"></div>
+
+    <!-- Sub Tabs -->
+    <div class="prediction-sub-tabs" id="predSubTabs"></div>
+
+    <!-- Platform Predictions -->
+    <div class="pred-section" id="predPlatformSection">
+      <div class="table-wrapper">
+        <table id="platformPredTable">
+          <thead id="platformPredHead"></thead>
+          <tbody id="platformPredBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Institutional Predictions -->
+    <div class="pred-section" id="predInstitutionSection" style="display:none;">
+      <div class="table-wrapper">
+        <table id="institutionPredTable">
+          <thead id="institutionPredHead"></thead>
+          <tbody id="institutionPredBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Consensus Summary -->
+    <div class="pred-section" id="predConsensusSection" style="display:none;">
+      <div class="chart-container mb-24">
+        <div class="chart-title" data-i18n="pred.consensus_range">共识区间</div>
+        <canvas id="consensusChart" height="100"></canvas>
+      </div>
+      <div class="catalyst-risk-grid" id="catalystRiskGrid"></div>
+    </div>
+
+    <!-- Advanced Fitting -->
+    <div class="pred-section" id="predFittingSection" style="display:none;">
+      <div class="fitting-controls" id="fittingControls"></div>
+      <div class="chart-container mb-24">
+        <div class="chart-title" data-i18n="pred.fitting_title">价格趋势拟合分析</div>
+        <canvas id="fittingChart" height="120"></canvas>
+      </div>
+      <div class="fitting-stats" id="fittingStats"></div>
     </div>
   </div>
 

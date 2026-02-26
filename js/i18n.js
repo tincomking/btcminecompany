@@ -182,6 +182,44 @@ const I18N = {
     'analysis.mc_note': '基于 GBM 模型的 1000 次随机路径模拟',
     'analysis.month': '月',
     'analysis.revenue_m': '营收 (M)',
+
+    // Predictions tab
+    'nav.predictions': '币价预测',
+    'pred.title': '比特币价格预测',
+    'pred.subtitle': '综合多平台与机构的 BTC 价格预测（2025-2030）',
+    'pred.platform_tab': '平台预测',
+    'pred.institution_tab': '机构预测',
+    'pred.consensus_tab': '共识汇总',
+    'pred.fitting_tab': '高级拟合',
+    'pred.source': '来源',
+    'pred.methodology': '方法论',
+    'pred.year': '年份',
+    'pred.low': '最低',
+    'pred.high': '最高',
+    'pred.avg': '平均',
+    'pred.target': '目标价',
+    'pred.notes': '备注',
+    'pred.analyst': '分析师',
+    'pred.type': '类型',
+    'pred.catalysts': '利好因素',
+    'pred.risks': '风险因素',
+    'pred.consensus_range': '共识区间',
+    'pred.institutional_consensus': '机构共识',
+    'pred.fitting_title': '价格趋势拟合分析',
+    'pred.linear': '线性回归',
+    'pred.exponential': '指数拟合',
+    'pred.polynomial': '多项式拟合',
+    'pred.power_law': '幂律拟合',
+    'pred.log': '对数拟合',
+    'pred.disclaimer': '以下预测均来自第三方，仅供参考，不构成任何投资建议。',
+    'pred.r_squared': '拟合度 R²',
+    'pred.prediction': '预测值',
+    'pred.all_data_points': '所有数据点',
+    'pred.fitted_curve': '拟合曲线',
+    'pred.no_target': '未公布',
+    'pred.bear': '熊市',
+    'pred.base': '基本',
+    'pred.bull': '牛市',
   },
 
   en: {
@@ -350,6 +388,44 @@ const I18N = {
     'analysis.mc_note': '1000 random path simulations based on GBM model',
     'analysis.month': 'Mo',
     'analysis.revenue_m': 'Revenue (M)',
+
+    // Predictions tab
+    'nav.predictions': 'BTC Forecast',
+    'pred.title': 'Bitcoin Price Predictions',
+    'pred.subtitle': 'Aggregated BTC forecasts from platforms & institutions (2025-2030)',
+    'pred.platform_tab': 'Platforms',
+    'pred.institution_tab': 'Institutions',
+    'pred.consensus_tab': 'Consensus',
+    'pred.fitting_tab': 'Fitting',
+    'pred.source': 'Source',
+    'pred.methodology': 'Methodology',
+    'pred.year': 'Year',
+    'pred.low': 'Low',
+    'pred.high': 'High',
+    'pred.avg': 'Average',
+    'pred.target': 'Target',
+    'pred.notes': 'Notes',
+    'pred.analyst': 'Analyst',
+    'pred.type': 'Type',
+    'pred.catalysts': 'Key Catalysts',
+    'pred.risks': 'Key Risks',
+    'pred.consensus_range': 'Consensus Range',
+    'pred.institutional_consensus': 'Institutional Consensus',
+    'pred.fitting_title': 'Price Trend Fitting Analysis',
+    'pred.linear': 'Linear Regression',
+    'pred.exponential': 'Exponential Fit',
+    'pred.polynomial': 'Polynomial Fit',
+    'pred.power_law': 'Power Law Fit',
+    'pred.log': 'Logarithmic Fit',
+    'pred.disclaimer': 'All predictions are from third parties. For reference only, not financial advice.',
+    'pred.r_squared': 'R² Goodness',
+    'pred.prediction': 'Prediction',
+    'pred.all_data_points': 'All Data Points',
+    'pred.fitted_curve': 'Fitted Curve',
+    'pred.no_target': 'N/A',
+    'pred.bear': 'Bear',
+    'pred.base': 'Base',
+    'pred.bull': 'Bull',
   }
 };
 
@@ -384,6 +460,7 @@ function toggleLang() {
     if (page === 'news') renderNews();
     if (page === 'sentiment') renderSentiment();
     if (page === 'analysis') renderAnalysis();
+    if (page === 'predictions') renderPredictions();
   }
 }
 
