@@ -242,7 +242,7 @@
       "uptime_pct": null,
       "avg_power_cost_cents_kwh": 3.8,
       "source_url": null,
-      "notes": "Self-mining 28 EH/s. Hosting 20+ EH/s additional. Total 760 MW capacity. Low power cost at 3.8¢/kWh."
+      "notes": "Self-mining 28 EH/s. Hosting 20+ EH/s additional. Total 760 MW capacity. Low power cost at 3.8\u00a2/kWh."
     },
     {
       "ticker": "CORZ",
@@ -328,6 +328,74 @@
       "avg_power_cost_cents_kwh": null,
       "source_url": null,
       "notes": "Hash rate expanded to 9.5 EH/s. Infrastructure development continues."
+    },
+    {
+      "ticker": "MARA",
+      "period": "2025-09",
+      "period_label": "Sep 2025",
+      "report_date": "2025-10-03",
+      "btc_mined": 736,
+      "btc_held": 52850,
+      "btc_sold": null,
+      "hash_rate_eh": 60.4,
+      "installed_capacity_eh": null,
+      "power_capacity_mw": null,
+      "fleet_efficiency_j_th": null,
+      "uptime_pct": 99.0,
+      "avg_power_cost_cents_kwh": null,
+      "source_url": "https://ir.mara.com/news-events/press-releases/detail/1410/mara-announces-bitcoin-production-and-mining-operation-updates-forseptember-2025",
+      "notes": "September 2025: 736 BTC produced, 60.4 EH/s energized hashrate, 218 blocks won"
+    },
+    {
+      "ticker": "RIOT",
+      "period": "2025-11",
+      "period_label": "Nov 2025",
+      "report_date": null,
+      "btc_mined": null,
+      "btc_held": null,
+      "btc_sold": null,
+      "hash_rate_eh": 34.6,
+      "installed_capacity_eh": 36.6,
+      "power_capacity_mw": null,
+      "fleet_efficiency_j_th": null,
+      "uptime_pct": null,
+      "avg_power_cost_cents_kwh": null,
+      "source_url": null,
+      "notes": "Average operating hashrate 34.6 EH/s, deployed hashrate 36.6 EH/s"
+    },
+    {
+      "ticker": "RIOT",
+      "period": "2025-12",
+      "period_label": "Dec 2025",
+      "report_date": "2026-01-07",
+      "btc_mined": null,
+      "btc_held": null,
+      "btc_sold": null,
+      "hash_rate_eh": 34.9,
+      "installed_capacity_eh": 38.5,
+      "power_capacity_mw": null,
+      "fleet_efficiency_j_th": null,
+      "uptime_pct": null,
+      "avg_power_cost_cents_kwh": null,
+      "source_url": "https://www.theblock.co/post/384598/riot-sells-bitcoin-mining-hashprice-slump",
+      "notes": "Average operating hashrate 34.9 EH/s, deployed hashrate 38.5 EH/s"
+    },
+    {
+      "ticker": "CLSK",
+      "period": "2025-12",
+      "period_label": "Dec 2025",
+      "report_date": "2026-01-06",
+      "btc_mined": 622,
+      "btc_held": 13099,
+      "btc_sold": 577,
+      "hash_rate_eh": 47.2,
+      "installed_capacity_eh": 50.0,
+      "power_capacity_mw": 808,
+      "fleet_efficiency_j_th": 16.07,
+      "uptime_pct": null,
+      "avg_power_cost_cents_kwh": null,
+      "source_url": "https://www.prnewswire.com/news-releases/cleanspark-releases-december-2025-bitcoin-mining-update-302653478.html",
+      "notes": "December 2025: 622 BTC produced, 50.0 EH/s operational, 47.2 EH/s average, 13,099 BTC held"
     }
   ]
 }
