@@ -270,6 +270,195 @@
         "stocks",
         "bitcoin"
       ]
+    },
+    {
+      "id": "news_015",
+      "ticker": "CLSK",
+      "title": "Top 6 Bitcoin Mining Stocks \u2013 The Best Bitcoin Mining Companies to Invest in for 2026",
+      "source": "CoinCheckup",
+      "url": "https://coincheckup.com/blog/bitcoin-mining-stocks/",
+      "published_at": "2026-02-20T10:00:00Z",
+      "category": "market",
+      "sentiment": "positive",
+      "sentiment_score": 0.6,
+      "summary": "As of January 2026, CleanSpark had 133,963 ASIC miners in its fleet, achieving efficiency of 16.1 J/TH. Fleet hashrate capacity of 50.0 EH/s. Company holds over 13,500 BTC.",
+      "tags": [
+        "market",
+        "CLSK",
+        "CleanSpark",
+        "bitcoin",
+        "mining",
+        "hashrate"
+      ]
+    },
+    {
+      "id": "news_016",
+      "ticker": null,
+      "title": "Bitcoin mining stocks rally as Riot inks AMD deal and Galaxy targets massive expansion in Texas",
+      "source": "The Block",
+      "url": "https://www.theblock.co/post/386030/bitcoin-mining-stocks-rally-as-riot-inks-amd-deal-and-galaxy-targets-massive-expansion-in-texas",
+      "published_at": "2026-01-16T14:00:00Z",
+      "category": "expansion",
+      "sentiment": "positive",
+      "sentiment_score": 0.7,
+      "summary": "CleanSpark signed a definitive agreement to acquire 447 acres in Texas to develop a large-scale data center. Bitfarms also making expansion moves.",
+      "tags": [
+        "expansion",
+        "CLSK",
+        "RIOT",
+        "BITF",
+        "Texas",
+        "data center"
+      ]
+    },
+    {
+      "id": "news_017",
+      "ticker": null,
+      "title": "Bitcoin Mining 2026: AI Pivot, Profitability Pressure & Consolidation",
+      "source": "CoinTelegraph",
+      "url": "https://cointelegraph.com/news/bitcoin-mining-outlook-2026-ai-profitability-consolidation",
+      "published_at": "2025-12-25T10:00:00Z",
+      "category": "market",
+      "sentiment": "neutral",
+      "sentiment_score": 0.1,
+      "summary": "MARA Holdings, Riot Platforms, Hut 8 and CleanSpark are among the top 10 public Bitcoin holders. Miners are pivoting to AI for new revenue streams amid profitability pressure.",
+      "tags": [
+        "market",
+        "MARA",
+        "RIOT",
+        "HUT",
+        "CLSK",
+        "AI",
+        "2026"
+      ]
+    },
+    {
+      "id": "news_018",
+      "ticker": null,
+      "title": "Bitcoin mining stocks Hit New Highs on AI Pivot with CleanSpark Leading the Pack",
+      "source": "Carbon Credits",
+      "url": "https://carboncredits.com/bitcoin-mining-stocks-hit-new-highs-on-ai-pivot-with-cleanspark-leading-the-pack/",
+      "published_at": "2025-10-24T12:00:00Z",
+      "category": "market",
+      "sentiment": "positive",
+      "sentiment_score": 0.7,
+      "summary": "Many mining companies are pivoting beyond Bitcoin mining after the 2024 halving reduced rewards. MARA, Riot, Canaan, Core Scientific, Bitdeer, Hut 8, Cipher Mining, and TeraWulf have all announced AI diversification plans.",
+      "tags": [
+        "market",
+        "AI",
+        "diversification",
+        "MARA",
+        "RIOT",
+        "CORZ",
+        "BITF",
+        "HUT",
+        "CIFR",
+        "WULF"
+      ]
+    },
+    {
+      "id": "news_019",
+      "ticker": "MARA",
+      "title": "MARA Holdings CEO has shares withheld to cover RSU tax liability",
+      "source": "Stock Titan",
+      "url": "https://www.stocktitan.net/sec-filings/MARA/",
+      "published_at": "2026-02-24T21:00:00Z",
+      "category": "executive",
+      "sentiment": "neutral",
+      "sentiment_score": 0.0,
+      "summary": "CEO Frederick G. Thiel had 67,704 shares of common stock withheld on February 5, 2026 to cover his tax liability from vesting restricted stock units, at a price of $9.12 per share.",
+      "tags": [
+        "MARA",
+        "executive",
+        "RSU",
+        "insider"
+      ]
+    },
+    {
+      "id": "news_020",
+      "ticker": null,
+      "title": "Bitcoin Miners at a Crossroads: Gain Market Share or Go All-In on AI?",
+      "source": "CoinDesk",
+      "url": "https://www.coindesk.com/markets/2024/10/08/bitcoin-miners-at-a-crossroads-gain-market-share-or-go-all-in-on-ai",
+      "published_at": "2024-10-08T14:00:00Z",
+      "category": "market",
+      "sentiment": "neutral",
+      "sentiment_score": 0.2,
+      "summary": "MARA, RIOT and CLSK increased their share of total bitcoin mined last month versus August. Miners face choice between gaining market share or pivoting to AI.",
+      "tags": [
+        "market",
+        "MARA",
+        "RIOT",
+        "CLSK",
+        "AI"
+      ]
+    },
+    {
+      "id": "news_021",
+      "ticker": null,
+      "title": "Bitcoin mining stocks MARA, CleanSpark rise as network difficulty eases",
+      "source": "Yahoo Finance",
+      "url": "https://finance.yahoo.com/news/bitcoin-mining-stocks-mara-cleanspark-162439390.html",
+      "published_at": "2025-12-05T16:00:00Z",
+      "category": "operations",
+      "sentiment": "positive",
+      "sentiment_score": 0.5,
+      "summary": "IREN led YTD performance with 357% gain, followed by TeraWulf 154%, Hut 104%, CleanSpark 53%, Riot 48%, Core Scientific 18%. MARA down 28% YTD.",
+      "tags": [
+        "operations",
+        "MARA",
+        "CLSK",
+        "RIOT",
+        "HUT",
+        "WULF",
+        "IREN",
+        "CORZ",
+        "stock performance"
+      ]
+    },
+    {
+      "id": "news_022",
+      "ticker": null,
+      "title": "Bitcoin Stocks To Follow Today \u2013 February 20th",
+      "source": "The Markets Daily",
+      "url": "https://www.themarketsdaily.com/2026/02/23/bitcoin-stocks-to-follow-today-february-20th.html",
+      "published_at": "2026-02-23T10:00:00Z",
+      "category": "market",
+      "sentiment": "positive",
+      "sentiment_score": 0.3,
+      "summary": "IREN, TeraWulf, Riot Platforms, Cipher Mining, Marathon Digital, CleanSpark, and Abits Group are the seven Bitcoin stocks to watch today.",
+      "tags": [
+        "market",
+        "IREN",
+        "WULF",
+        "RIOT",
+        "CIFR",
+        "MARA",
+        "CLSK",
+        "ABTS"
+      ]
+    },
+    {
+      "id": "news_023",
+      "ticker": null,
+      "title": "What Are the Top 10 Bitcoin Mining Stocks to Watch in 2026?",
+      "source": "BingX",
+      "url": "https://bingx.com/en/learn/article/top-bitcoin-mining-stocks-to-watch",
+      "published_at": "2026-01-06T08:00:00Z",
+      "category": "market",
+      "sentiment": "positive",
+      "sentiment_score": 0.5,
+      "summary": "Public miners with >10 EH/s capacity like MARA and RIOT generating record monthly BTC production. Hut 8 and Bitfarms added AI compute leasing, CleanSpark expanding into data center colocation.",
+      "tags": [
+        "market",
+        "MARA",
+        "RIOT",
+        "HUT",
+        "BITF",
+        "CLSK",
+        "CIFR",
+        "2026"
+      ]
     }
   ]
 }
