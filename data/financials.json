@@ -4548,7 +4548,7 @@
       "adjusted_ebitda_yoy_pct": null,
       "shares_outstanding_m": 168.5,
       "cash_and_equivalents_usd_m": null,
-      "btc_held": null,
+      "btc_held": 1835,
       "total_debt_usd_m": null,
       "notes": "Source: BitFuFu Q1 2025 press release. Post-halving impact."
     },
@@ -4573,7 +4573,7 @@
       "adjusted_ebitda_yoy_pct": null,
       "shares_outstanding_m": 168.6,
       "cash_and_equivalents_usd_m": null,
-      "btc_held": null,
+      "btc_held": 1792,
       "total_debt_usd_m": null,
       "notes": "Source: BitFuFu Q2 2025 press release. Strong BTC fair value gains."
     },
@@ -4598,7 +4598,7 @@
       "adjusted_ebitda_yoy_pct": null,
       "shares_outstanding_m": 169.9,
       "cash_and_equivalents_usd_m": null,
-      "btc_held": null,
+      "btc_held": 1962,
       "total_debt_usd_m": null,
       "notes": "Source: BitFuFu Q3 2025 press release. Record revenue."
     },
