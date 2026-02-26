@@ -142,14 +142,12 @@ body {
 .logo-icon {
   width: 28px;
   height: 28px;
-  background: linear-gradient(135deg, #f59e0b, #ef4444);
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
-  font-weight: 700;
-  color: #000;
+  flex-shrink: 0;
+  overflow: hidden;
 }
 
 .logo-text {
@@ -212,6 +210,21 @@ body {
 .btc-price { color: var(--text-primary); font-weight: 600; }
 .btc-change-pos { color: var(--green); }
 .btc-change-neg { color: var(--red); }
+
+.difficulty-ticker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.diff-value { color: var(--text-primary); font-weight: 600; }
+.diff-remaining { font-size: 10px; color: var(--text-muted); }
 
 .data-badge {
   font-size: 10px;
@@ -1166,53 +1179,78 @@ canvas { max-width: 100%; }
 
 .site-intro {
   background: var(--bg-card);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 12px;
-  padding: 20px 24px;
+  padding: 24px 28px;
   margin-bottom: 20px;
 }
 
 .site-intro-title {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .site-intro-text {
   font-size: 13px;
   color: var(--text-secondary);
   line-height: 1.7;
-  margin: 0 0 14px 0;
+  margin: 0 0 18px 0;
 }
 
-.site-intro-features {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+.intro-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
 }
 
-.intro-feature {
+.intro-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 14px 16px;
+  transition: border-color 0.15s;
+}
+
+.intro-card:hover {
+  border-color: var(--border-default);
+}
+
+.intro-card-header {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.intro-card-icon {
+  font-size: 16px;
+}
+
+.intro-card-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.intro-card-desc {
   font-size: 11px;
-  font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0;
 }
 
-.intro-icon {
-  font-size: 13px;
-}
-
-/* Responsive: Analysis */
+/* Responsive: Analysis & Intro */
 @media (max-width: 900px) {
   .analysis-model-selector { width: 100%; }
   .analysis-pros-cons { grid-template-columns: 1fr; }
+  .intro-cards-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .intro-cards-grid { grid-template-columns: 1fr; }
+  .difficulty-ticker { display: none; }
 }
 
 /* ================================================================

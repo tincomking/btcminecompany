@@ -24,9 +24,18 @@ const I18N = {
     'stats.monthly_sub': 'BTC / 2024年10月',
     'stats.companies_disclosed': '家公司已披露',
 
+    // Header
+    'header.difficulty': 'DIFF',
+
     // Overview
     'overview.intro_title': '关于本站',
-    'overview.intro_text': '本平台追踪美国上市的比特币矿业公司，汇集财务数据、运营披露、新闻动态、市场情绪、财务分析模型和 BTC 价格预测，为投资者和研究人员提供一站式挖矿行业信息。',
+    'overview.intro_text': 'BTC Mining Intelligence 是一个专注于美股上市比特币矿业公司的综合数据平台。我们追踪 23 家上市矿企，汇集财务数据、运营指标、新闻动态、市场情绪、量化分析模型和 BTC 价格预测，为投资者、分析师和行业研究人员提供一站式挖矿行业信息中心。',
+    'overview.desc_financials': '季度财报对比、营收与 EBITDA 柱状图、EPS、同比增长率，支持按公司和报告期筛选。涵盖 23 家上市矿企的完整财务画像。',
+    'overview.desc_operations': '月度产量报告：BTC 挖矿数量、持仓变化、算力增长、装机容量、电力成本、机队效率，含 BTC 产量趋势图。',
+    'overview.desc_news': '实时汇总矿企公告、财报发布、设施扩建、监管政策、BTC 储备策略等新闻，配合情绪分析和分类统计图表。',
+    'overview.desc_sentiment': '集成华尔街分析师评级（买入/持有/卖出）、目标价对比，以及 StockTwits 等社交平台的看涨看跌比例和情绪评分。',
+    'overview.desc_analysis': '六大量化模型：Monte Carlo 营收模拟、KMV 违约概率、Altman Z-score 破产预警、Beneish M-score 盈余操纵检测、Piotroski F-score 财务健康度、Jones 模型应计分析。',
+    'overview.desc_predictions': '汇集 8 个加密平台和 11 家华尔街/研究机构的 BTC 价格预测（2025-2030），附共识区间图表和五种高级数学拟合分析。',
     'overview.upcoming_earnings': '即将发布财报',
     'overview.estimated_date': '预估日期',
     'overview.all_companies': '所有公司',
@@ -244,9 +253,18 @@ const I18N = {
     'stats.monthly_sub': 'BTC / Oct 2024',
     'stats.companies_disclosed': ' companies disclosed',
 
+    // Header
+    'header.difficulty': 'DIFF',
+
     'overview.upcoming_earnings': 'Upcoming Earnings',
     'overview.intro_title': 'About This Site',
-    'overview.intro_text': 'This platform tracks US-listed Bitcoin mining companies, aggregating financial data, operational disclosures, news, market sentiment, financial analysis models, and BTC price predictions — providing a one-stop intelligence hub for mining industry investors and researchers.',
+    'overview.intro_text': 'BTC Mining Intelligence is a comprehensive data platform focused on US-listed Bitcoin mining companies. We track 23 public miners, aggregating financial data, operational metrics, news, market sentiment, quantitative analysis models, and BTC price predictions — a one-stop intelligence hub for investors, analysts, and industry researchers.',
+    'overview.desc_financials': 'Quarterly earnings comparison, revenue & EBITDA charts, EPS, YoY growth rates with company and period filters. Full financial profiles for all 23 listed miners.',
+    'overview.desc_operations': 'Monthly production reports: BTC mined, holdings changes, hashrate growth, installed capacity, power costs, fleet efficiency, plus BTC production trend charts.',
+    'overview.desc_news': 'Real-time aggregation of mining company announcements, earnings releases, facility expansions, regulatory updates, BTC treasury strategies, with sentiment analysis and category charts.',
+    'overview.desc_sentiment': 'Wall Street analyst ratings (Buy/Hold/Sell), target price comparisons, plus social media bullish/bearish ratios and sentiment scores from StockTwits and other platforms.',
+    'overview.desc_analysis': 'Six quantitative models: Monte Carlo revenue simulation, KMV default probability, Altman Z-score bankruptcy warning, Beneish M-score earnings manipulation detection, Piotroski F-score financial health, Jones model accrual analysis.',
+    'overview.desc_predictions': 'BTC price forecasts from 8 crypto platforms and 11 Wall Street/research institutions (2025-2030), with consensus range charts and five advanced mathematical fitting analyses.',
     'overview.estimated_date': 'Estimated',
     'overview.all_companies': 'All Companies',
 

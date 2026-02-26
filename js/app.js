@@ -588,8 +588,12 @@ function renderOperations() {
       return `<option value="${p}">${label ? label.period_label : p}</option>`;
     }).join('');
   }
-  const latestP = periods[0] || '2025-01';
-  renderOpsTable(latestP);
+  // Default to the period with the most companies reporting
+  const periodCounts = {};
+  periods.forEach(p => { periodCounts[p] = OPERATIONAL.filter(o => o.period === p).length; });
+  const bestPeriod = periods.reduce((best, p) => periodCounts[p] > periodCounts[best] ? p : best, periods[0]) || '2025-01';
+  if (sel) sel.value = bestPeriod;
+  renderOpsTable(bestPeriod);
   renderBtcProductionChart();
   setupOpsFilters();
 }
@@ -1030,7 +1034,7 @@ document.getElementById('companyModal').addEventListener('click', (e) => {
 
 // ── PAGE: ANALYSIS ──────────────────────────────────────────────────────────
 
-let currentAnalysisModel = 'beneish';
+let currentAnalysisModel = 'montecarlo';
 
 function renderAnalysis() {
   if (!window.ANALYSIS_MODELS || !Object.keys(window.ANALYSIS_MODELS).length) {
@@ -1044,7 +1048,7 @@ function renderAnalysis() {
 
 function setupAnalysisModelSelector() {
   const container = document.getElementById('analysisModelSelector');
-  const modelKeys = ['beneish', 'piotroski', 'jones', 'altman', 'kmv', 'montecarlo'];
+  const modelKeys = ['montecarlo', 'kmv', 'altman', 'beneish', 'piotroski', 'jones'];
   container.innerHTML = modelKeys.map(key => {
     const model = window.ANALYSIS_MODELS[key];
     if (!model) return '';
@@ -1343,10 +1347,11 @@ function renderPlatformPredictions() {
   const thead = document.getElementById('platformPredHead');
   const tbody = document.getElementById('platformPredBody');
 
+  const yearColors = ['rgba(59,130,246,0.05)', 'rgba(16,185,129,0.05)', 'rgba(245,158,11,0.05)', 'rgba(139,92,246,0.05)', 'rgba(6,182,212,0.05)', 'rgba(239,68,68,0.05)'];
   thead.innerHTML = `<tr>
     <th>${t('pred.source')}</th>
-    <th style="font-size:10px;max-width:180px;">${t('pred.methodology')}</th>
-    ${years.map(y => `<th class="td-right" colspan="3" style="text-align:center;">${y}<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-muted);font-weight:400;"><span>${t('pred.low')}</span><span>${t('pred.high')}</span><span>${t('pred.avg')}</span></div></th>`).join('')}
+    <th style="font-size:10px;">${t('pred.methodology')}</th>
+    ${years.map((y, i) => `<th class="td-right" colspan="3" style="text-align:center;background:${yearColors[i]};">${y}<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-muted);font-weight:400;"><span>${t('pred.low')}</span><span>${t('pred.high')}</span><span>${t('pred.avg')}</span></div></th>`).join('')}
   </tr>`;
 
   tbody.innerHTML = data.map(src => {
@@ -1358,12 +1363,13 @@ function renderPlatformPredictions() {
           <span style="font-size:9px;color:var(--text-muted);">${src.prediction_date}</span>
         </div>
       </td>
-      <td style="font-size:10px;color:var(--text-muted);max-width:180px;">${src.methodology}</td>
-      ${years.map(y => {
+      <td style="font-size:10px;color:var(--text-muted);white-space:normal;word-break:break-word;min-width:150px;max-width:220px;line-height:1.4;">${src.methodology}</td>
+      ${years.map((y, i) => {
         const yp = p[y] || {};
-        return `<td class="td-right td-mono" style="font-size:11px;">${fmtPrice(yp.low)}</td>
-                <td class="td-right td-mono" style="font-size:11px;">${fmtPrice(yp.high)}</td>
-                <td class="td-right td-mono td-primary" style="font-size:11px;">${fmtPrice(yp.average)}</td>`;
+        const bg = yearColors[i];
+        return `<td class="td-right td-mono" style="font-size:11px;background:${bg};">${fmtPrice(yp.low)}</td>
+                <td class="td-right td-mono" style="font-size:11px;background:${bg};">${fmtPrice(yp.high)}</td>
+                <td class="td-right td-mono td-primary" style="font-size:11px;background:${bg};">${fmtPrice(yp.average)}</td>`;
       }).join('')}
     </tr>`;
   }).join('');
@@ -1786,9 +1792,37 @@ function runFitting(method) {
     </div>`;
 }
 
+// ── DIFFICULTY TICKER ────────────────────────────────────────────────────────
+
+async function fetchDifficulty() {
+  try {
+    const res = await fetch('https://mempool.space/api/v1/difficulty-adjustment');
+    const d = await res.json();
+    // d has: progressPercent, difficultyChange, estimatedRetargetDate, remainingBlocks, remainingTime, previousRetarget, nextRetargetHeight, ...
+    const diffEl = document.getElementById('diffValue');
+    const changeEl = document.getElementById('diffChange');
+    const remainEl = document.getElementById('diffRemaining');
+    if (!diffEl) return;
+
+    // Current difficulty (from previousRetarget or approximate from network)
+    const changePct = (d.difficultyChange * 100).toFixed(2);
+    const isUp = d.difficultyChange >= 0;
+    const remainDays = Math.ceil(d.remainingTime / 1000 / 60 / 60 / 24);
+    const progressPct = d.progressPercent.toFixed(1);
+
+    diffEl.textContent = progressPct + '%';
+    changeEl.textContent = (isUp ? '+' : '') + changePct + '%';
+    changeEl.className = isUp ? 'btc-change-pos' : 'btc-change-neg';
+    remainEl.textContent = remainDays + (currentLang === 'zh' ? '天' : 'd');
+  } catch (e) {
+    // Silently fail if API is unavailable
+  }
+}
+
 // ── INIT ─────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', async () => {
   await loadAllData();
   renderOverview();
+  fetchDifficulty();
 });

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BTC Mining Intelligence — US Public Miners</title>
   <meta name="description" content="Financial intelligence dashboard for US-listed Bitcoin mining companies">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>₿</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23F7931A'/><text x='50' y='68' font-size='58' font-weight='bold' fill='white' text-anchor='middle' font-family='Arial'>₿</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -16,7 +16,14 @@
 <!-- ═══════════════════════════ HEADER ═══════════════════════════ -->
 <header id="header">
   <a class="logo" href="#">
-    <div class="logo-icon">₿</div>
+    <div class="logo-icon">
+      <svg viewBox="0 0 40 40" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="20" cy="20" r="19" fill="#F7931A"/>
+        <text x="20" y="27" font-size="20" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">₿</text>
+        <path d="M8 12 Q6 8 10 6 Q14 4 16 8 L14 10 Q13 8 11 9 Q9 10 10 12 Z" fill="#F7931A" stroke="#fff" stroke-width="0.8"/>
+        <path d="M32 12 Q34 8 30 6 Q26 4 24 8 L26 10 Q27 8 29 9 Q31 10 30 12 Z" fill="#F7931A" stroke="#fff" stroke-width="0.8"/>
+      </svg>
+    </div>
     <div>
       <div class="logo-text">Mining Intelligence</div>
       <div class="logo-badge">US Public Miners</div>
@@ -39,6 +46,12 @@
       <span class="btc-price" id="btcPrice">$95,240</span>
       <span class="btc-change-pos" id="btcChange">+2.34%</span>
     </div>
+    <div class="difficulty-ticker" id="difficultyTicker">
+      <span style="color:var(--orange);font-size:10px;font-weight:700;" data-i18n="header.difficulty">DIFF</span>
+      <span class="diff-value" id="diffValue">--</span>
+      <span class="btc-change-pos" id="diffChange">--</span>
+      <span class="diff-remaining" id="diffRemaining">--</span>
+    </div>
     <span class="data-badge">MOCK DATA</span>
     <div class="toggle-group">
       <button class="toggle-btn font-btn" id="fontDown" title="缩小字体">A-</button>
@@ -58,13 +71,31 @@
     <div class="site-intro" id="siteIntro">
       <div class="site-intro-title" data-i18n="overview.intro_title">关于本站</div>
       <p class="site-intro-text" data-i18n="overview.intro_text">本平台追踪美国上市的比特币矿业公司，汇集财务数据、运营披露、新闻动态、市场情绪、财务分析模型和 BTC 价格预测，为投资者和研究人员提供一站式挖矿行业信息。</p>
-      <div class="site-intro-features">
-        <span class="intro-feature"><span class="intro-icon">📊</span><span data-i18n="nav.financials">财务数据</span></span>
-        <span class="intro-feature"><span class="intro-icon">⛏</span><span data-i18n="nav.operations">运营披露</span></span>
-        <span class="intro-feature"><span class="intro-icon">📰</span><span data-i18n="nav.news">新闻动态</span></span>
-        <span class="intro-feature"><span class="intro-icon">📈</span><span data-i18n="nav.sentiment">市场情绪</span></span>
-        <span class="intro-feature"><span class="intro-icon">🔬</span><span data-i18n="nav.analysis">财务分析</span></span>
-        <span class="intro-feature"><span class="intro-icon">🔮</span><span data-i18n="nav.predictions">币价预测</span></span>
+      <div class="intro-cards-grid">
+        <div class="intro-card">
+          <div class="intro-card-header"><span class="intro-card-icon">📊</span><span class="intro-card-title" data-i18n="nav.financials">财务数据</span></div>
+          <p class="intro-card-desc" data-i18n="overview.desc_financials">季度财报对比、营收与 EBITDA 柱状图、EPS、同比增长率，支持按公司和报告期筛选。涵盖 23 家上市矿企的完整财务画像。</p>
+        </div>
+        <div class="intro-card">
+          <div class="intro-card-header"><span class="intro-card-icon">⛏</span><span class="intro-card-title" data-i18n="nav.operations">运营披露</span></div>
+          <p class="intro-card-desc" data-i18n="overview.desc_operations">月度产量报告：BTC 挖矿数量、持仓变化、算力增长、装机容量、电力成本、机队效率，含 BTC 产量趋势图。</p>
+        </div>
+        <div class="intro-card">
+          <div class="intro-card-header"><span class="intro-card-icon">📰</span><span class="intro-card-title" data-i18n="nav.news">新闻动态</span></div>
+          <p class="intro-card-desc" data-i18n="overview.desc_news">实时汇总矿企公告、财报发布、设施扩建、监管政策、BTC 储备策略等新闻，配合情绪分析和分类统计图表。</p>
+        </div>
+        <div class="intro-card">
+          <div class="intro-card-header"><span class="intro-card-icon">📈</span><span class="intro-card-title" data-i18n="nav.sentiment">市场情绪</span></div>
+          <p class="intro-card-desc" data-i18n="overview.desc_sentiment">集成华尔街分析师评级（买入/持有/卖出）、目标价对比，以及 StockTwits 等社交平台的看涨看跌比例和情绪评分。</p>
+        </div>
+        <div class="intro-card">
+          <div class="intro-card-header"><span class="intro-card-icon">🔬</span><span class="intro-card-title" data-i18n="nav.analysis">财务分析</span></div>
+          <p class="intro-card-desc" data-i18n="overview.desc_analysis">六大量化模型：Monte Carlo 营收模拟、KMV 违约概率、Altman Z-score 破产预警、Beneish M-score 盈余操纵检测、Piotroski F-score 财务健康度、Jones 模型应计分析。</p>
+        </div>
+        <div class="intro-card">
+          <div class="intro-card-header"><span class="intro-card-icon">🔮</span><span class="intro-card-title" data-i18n="nav.predictions">币价预测</span></div>
+          <p class="intro-card-desc" data-i18n="overview.desc_predictions">汇集 8 个加密平台和 11 家华尔街/研究机构的 BTC 价格预测（2025-2030），附共识区间图表和五种高级数学拟合分析。</p>
+        </div>
       </div>
     </div>
 
