@@ -392,15 +392,171 @@ https://efts.sec.gov/LATEST/search-index?q={TICKER}&forms=10-K
    - data/raw_reports/{TICKER}/{YEAR2}_FY.json (上一财年)
 6. 所有金额转换为百万美元，保留一位小数
 7. 无法找到的数据设为 null，在 notes 字段说明
+8. **【关键】同步更新页面数据文件**（详见 6.3）
 ```
 
-### 6.3 完成后的后续步骤
+### 6.3 同步更新页面数据文件（必须执行）
 
-所有 19 家公司数据采集完成后:
-1. 运行质量检查脚本（待编写）验证所有 JSON 文件格式
-2. 更新 `data/analysis_data.json` 中的模拟数据为真实数据
-3. 提交并推送到 GitHub，等待 GitHub Pages 部署
-4. 在 btcmine.info 验证财务分析页面数据显示正常
+> **重要**: `data/raw_reports/` 目录下的 JSON 文件仅为原始数据存档，网页不直接读取。必须同步更新以下两个文件，页面才会显示新数据。
+
+#### 文件 A: `data/analysis_data.json`（财务分析页面使用）
+
+此文件供"财务分析" Tab 的 6 个模型计算使用。每家公司需要当期 + 上期两期数据。
+
+**结构示例**（以 FUFU 为例）:
+```json
+{
+  "data": {
+    "{TICKER}": {
+      "name": "公司全称",
+      "current": {
+        "period": "FY2024",
+        "revenue": 463.3,
+        "cogs": 370.6,
+        "gross_profit": 92.7,
+        "sga": 32.1,
+        "depreciation": 18.5,
+        "operating_income": 42.1,
+        "net_income": 54.0,
+        "ebit": 60.6,
+        "total_assets": 377.7,
+        "current_assets": 198.2,
+        "receivables": 35.4,
+        "ppe_net": 125.6,
+        "total_liabilities": 215.2,
+        "current_liabilities": 142.8,
+        "long_term_debt": 52.4,
+        "retained_earnings": 12.3,
+        "total_equity": 162.5,
+        "operating_cash_flow": -15.2,
+        "shares_outstanding_m": 164.3
+      },
+      "prior": {
+        "period": "FY2023",
+        "(同 current 结构，填入上一财年数据)"
+      },
+      "market": {
+        "stock_price": 2.66,
+        "market_cap": 437.0,
+        "equity_volatility": 0.72,
+        "asset_volatility": 0.42,
+        "risk_free_rate": 0.043,
+        "revenue_growth_mean": 0.64,
+        "revenue_growth_std": 0.25
+      }
+    }
+  }
+}
+```
+
+**字段映射**（raw_reports → analysis_data）:
+| raw_reports 字段 | analysis_data 字段 |
+|-----------------|-------------------|
+| `income_statement.revenue` | `current.revenue` / `prior.revenue` |
+| `income_statement.cogs` | `current.cogs` / `prior.cogs` |
+| `income_statement.gross_profit` | `current.gross_profit` |
+| `income_statement.sga` | `current.sga` |
+| `income_statement.depreciation` | `current.depreciation` |
+| `income_statement.operating_income` | `current.operating_income` |
+| `income_statement.net_income` | `current.net_income` |
+| `income_statement.ebit` | `current.ebit` |
+| `balance_sheet.total_assets` | `current.total_assets` |
+| `balance_sheet.current_assets` | `current.current_assets` |
+| `balance_sheet.receivables` | `current.receivables` |
+| `balance_sheet.ppe_net` | `current.ppe_net` |
+| `balance_sheet.total_liabilities` | `current.total_liabilities` |
+| `balance_sheet.current_liabilities` | `current.current_liabilities` |
+| `balance_sheet.long_term_debt` | `current.long_term_debt` |
+| `balance_sheet.retained_earnings` | `current.retained_earnings` |
+| `balance_sheet.total_equity` | `current.total_equity` |
+| `balance_sheet.shares_outstanding_m` | `current.shares_outstanding_m` |
+| `cash_flow_statement.operating_cash_flow` | `current.operating_cash_flow` |
+| `market_data.stock_price` | `market.stock_price` |
+| `market_data.market_cap` | `market.market_cap` |
+
+**market 字段中的额外参数**:
+- `equity_volatility` — 股票年化波动率，可用历史股价计算或设为 0.75-0.90（矿企典型范围）
+- `asset_volatility` — 资产波动率 ≈ equity_volatility × (equity / assets)，或设为 0.40-0.55
+- `risk_free_rate` — 无风险利率，统一用 `0.043`（当前美国国债利率）
+- `revenue_growth_mean` — 收入增长均值 = (current.revenue - prior.revenue) / prior.revenue
+- `revenue_growth_std` — 收入增长标准差，可设为 growth_mean × 0.3-0.5
+
+**操作步骤**:
+1. 打开 `data/analysis_data.json`
+2. 在 `data` 对象中找到对应 `{TICKER}` 的 key（如已存在则替换，不存在则新增）
+3. 将最近财年数据填入 `current`，上一财年填入 `prior`，市场数据填入 `market`
+4. 保存文件
+
+#### 文件 B: `data/financials.json`（财务数据页面使用）
+
+此文件供"财务数据" Tab 展示使用。是一个 JSON 数组，每条记录代表一个公司的一个财务周期。
+
+**结构示例**:
+```json
+{
+  "data": [
+    {
+      "ticker": "FUFU",
+      "fiscal_year": 2024,
+      "fiscal_quarter": "FY",
+      "period_label": "FY 2024",
+      "period_end_date": "2024-12-31",
+      "report_date": "2025-04-30",
+      "estimated_report_date": null,
+      "is_reported": true,
+      "revenue_usd_m": 463.3,
+      "gross_profit_usd_m": 92.7,
+      "operating_income_usd_m": 42.1,
+      "net_income_usd_m": 54.0,
+      "adjusted_ebitda_usd_m": null,
+      "eps_diluted": 0.33,
+      "revenue_yoy_pct": 63.9,
+      "gross_profit_yoy_pct": 126.7,
+      "net_income_yoy_pct": 1828.6,
+      "adjusted_ebitda_yoy_pct": null,
+      "shares_outstanding_m": 164.3,
+      "cash_and_equivalents_usd_m": 58.9,
+      "btc_held": 1780,
+      "total_debt_usd_m": 52.4,
+      "notes": "说明文字"
+    }
+  ]
+}
+```
+
+**字段映射**（raw_reports → financials.json）:
+| raw_reports 字段 | financials.json 字段 |
+|-----------------|---------------------|
+| `income_statement.revenue` | `revenue_usd_m` |
+| `income_statement.gross_profit` | `gross_profit_usd_m` |
+| `income_statement.operating_income` | `operating_income_usd_m` |
+| `income_statement.net_income` | `net_income_usd_m` |
+| `income_statement.eps_diluted` | `eps_diluted` |
+| `balance_sheet.shares_outstanding_m` | `shares_outstanding_m` |
+| `balance_sheet.cash_and_equivalents` | `cash_and_equivalents_usd_m` |
+| `balance_sheet.long_term_debt` | `total_debt_usd_m` |
+| `market_data.btc_held` | `btc_held` |
+
+**YoY 增长率计算**:
+- `revenue_yoy_pct` = (current.revenue - prior.revenue) / prior.revenue × 100
+- `gross_profit_yoy_pct` = (current.gross_profit - prior.gross_profit) / prior.gross_profit × 100
+- `net_income_yoy_pct` = 如果上期为负数则填 null，否则同上计算
+
+**操作步骤**:
+1. 打开 `data/financials.json`
+2. 在 `data` 数组中为该公司添加 1-2 条记录（最近财年 FY，可选加上期 FY）
+3. 如果该公司已有记录，更新缺失字段而非重复添加
+4. `fiscal_quarter` 填 `"FY"` 表示全年
+5. 保存文件
+
+### 6.4 完成后的验证步骤
+
+每家公司数据采集完成后:
+1. 确认 `data/raw_reports/{TICKER}/` 下有 2 个 JSON 文件（当期 + 上期）
+2. 确认 `data/analysis_data.json` 中该公司数据已更新为真实数据
+3. 确认 `data/financials.json` 中该公司记录已补全
+4. 提交并推送到 GitHub，等待 GitHub Pages 部署
+5. 在 btcmine.info 的"财务分析"和"财务数据"页面验证数据显示正常
 
 ---
 
