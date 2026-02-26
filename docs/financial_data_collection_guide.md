@@ -7,6 +7,32 @@
 
 ---
 
+## 第 -1 章：常见失误（历史教训，必读）
+
+> 以下是之前 Agent 执行时犯过的错误，**你必须避免**。
+
+### 失误 1：stock_price 更新了但 market_cap 没同步
+
+**错误表现**: MARA stock_price 从 14.52 改为 8.57，但 market_cap_usd_m 仍然是 4860。
+**正确做法**: **stock_price 和 market_cap_usd_m 必须同时更新**。market_cap = stock_price × shares_outstanding。如果无法获取实时市值，用 stock_price × shares_outstanding_m 估算。
+
+### 失误 2：只做了一小部分就声称完成
+
+**错误表现**: 只更新了股价和 4 条运营数据，对 news、sentiment、predictions、大量缺失的 financials 完全没有处理，就报告"执行完毕"。
+**正确做法**: 按照第 1 章的工作流，**对每个数据类别 (A-G) 都执行一遍 READ→DIFF→HUNT→WRITE**。如果时间或 token 不够处理全部，明确报告"已完成 X 类，Y 类未处理"，不要笼统说"完成"。
+
+### 失误 3：关键字段填 null 而没有尝试多个来源
+
+**错误表现**: RIOT 运营数据中 btc_mined、btc_held 等核心字段全部为 null，只填了 hashrate。
+**正确做法**: 如果第一个来源没有完整数据，**必须尝试其他来源**（IR 页面 → PRNewswire → SEC 8-K → 行业网站）。只有所有来源都查过仍找不到，才填 null。
+
+### 失误 4：股价数值异常未验证
+
+**错误表现**: HUT 股价从 $3.85 直接改成 $55.30（涨了 14 倍），没有验证合理性。
+**正确做法**: 更新股价时做基本 sanity check — 如果新旧价格变动超过 50%，需要确认数据来源的准确性。在 commit message 或 notes 中说明数据来源。
+
+---
+
 ## 第 0 章：安全红线
 
 > **历史事故**: Agent 曾删除网站核心文件（js/app.js、css/style.css、Analysis/*.js、CNAME），导致 btcmine.info 完全崩溃。以下规则基于事故教训，**绝对不可违反**。
@@ -519,6 +545,16 @@ data/raw_reports/{TICKER}/{YEAR}_{PERIOD}.json
 | YoY 百分比 | 保留 1 位小数 |
 | 日期 | `YYYY-MM-DD` |
 | 时间 | `YYYY-MM-DDTHH:MM:SSZ` (UTC) |
+
+### 跨文件一致性检查（必做）
+
+```
+1. companies.json 中的 stock_price 更新时，market_cap_usd_m 必须同步更新
+2. companies.json 中的 stock_price 和 analysis_data.json 中的 market.stock_price 必须一致
+3. companies.json 中的 market_cap_usd_m 和 analysis_data.json 中的 market.market_cap 必须一致
+4. 股价变动超过 50% 时，必须验证数据来源是否正确
+5. 运营数据中 btc_mined/btc_held/hash_rate_eh 等核心字段不应全部为 null — 如果是，说明没有充分搜索
+```
 
 ### 财务数据交叉验证
 
