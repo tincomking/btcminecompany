@@ -407,10 +407,31 @@ function toggleTheme() {
   applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
 }
 
+// ── Font Size ──
+const FONT_SIZES = [12, 13, 14, 15, 16, 18];
+let fontSizeIdx = parseInt(localStorage.getItem('btcmine-fontsize-idx'), 10);
+if (isNaN(fontSizeIdx) || fontSizeIdx < 0 || fontSizeIdx >= FONT_SIZES.length) fontSizeIdx = 2; // default 14px
+
+function applyFontSize() {
+  document.documentElement.style.fontSize = FONT_SIZES[fontSizeIdx] + 'px';
+  localStorage.setItem('btcmine-fontsize-idx', fontSizeIdx);
+}
+
+function fontUp() {
+  if (fontSizeIdx < FONT_SIZES.length - 1) { fontSizeIdx++; applyFontSize(); }
+}
+
+function fontDown() {
+  if (fontSizeIdx > 0) { fontSizeIdx--; applyFontSize(); }
+}
+
 // ── Init on load ──
 document.addEventListener('DOMContentLoaded', () => {
   // Theme
   applyTheme(currentTheme);
+
+  // Font size
+  applyFontSize();
 
   // Language
   const langBtn = document.getElementById('langToggle');
@@ -420,4 +441,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Event listeners
   document.getElementById('themeToggle').addEventListener('click', toggleTheme);
   document.getElementById('langToggle').addEventListener('click', toggleLang);
+  document.getElementById('fontUp').addEventListener('click', fontUp);
+  document.getElementById('fontDown').addEventListener('click', fontDown);
 });
