@@ -166,10 +166,7 @@
         <div class="autocomplete-dropdown" id="fin-company-dropdown"></div>
       </div>
       <span class="filter-label" data-i18n="filter.period">报告期：</span>
-      <span id="fin-period-buttons">
-        <button class="filter-btn active" data-period="latest" data-i18n="filter.latest">最新期</button>
-        <button class="filter-btn" data-period="FY" data-i18n="filter.fy">全年</button>
-      </span>
+      <span id="fin-period-buttons"></span>
     </div>
 
     <!-- Financials Table -->
@@ -336,6 +333,17 @@
           <div class="section-title" data-i18n="sent.analyst_ratings">机构评级</div>
           <span class="text-muted text-mono" style="font-size:10px;" data-i18n="sent.latest_reports">最新研报</span>
         </div>
+        <div class="filter-bar" id="sentimentFilterBar" style="margin-bottom:12px;">
+          <span class="filter-label" data-i18n="filter.company">公司：</span>
+          <select id="sentimentTickerFilter" class="filter-select"></select>
+          <span class="filter-label" data-i18n="th.rating">评级：</span>
+          <select id="sentimentRatingFilter" class="filter-select">
+            <option value="ALL">All</option>
+            <option value="buy">Buy</option>
+            <option value="hold">Hold</option>
+            <option value="sell">Sell</option>
+          </select>
+        </div>
         <div class="table-wrapper">
           <table id="ratingsTable">
             <thead>
@@ -489,6 +497,11 @@
   <span data-i18n="footer.left">BTC Mining Intelligence © 2026 | MOCK DATA — 仅供演示</span>
   <span data-i18n="footer.right">数据更新: 2026-02-26 | 公司: 12 US-listed miners</span>
 </footer>
+
+<!-- ═══════════════════════════ RATING DETAIL MODAL ═══════════════ -->
+<div class="modal-overlay" id="ratingDetailModal" onclick="if(event.target===this)this.classList.remove('open');">
+  <div class="modal"></div>
+</div>
 
 <!-- ═══════════════════════════ MODAL ═══════════════════════════ -->
 <div class="modal-overlay" id="companyModal">

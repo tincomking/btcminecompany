@@ -55,8 +55,21 @@ def build_financials_record(ticker, sec_rec):
     adj_ebitda = None
     oi = sec_rec.get("operating_income_usd_m")
     dep = sec_rec.get("depreciation_usd_m")
-    if oi is not None and dep is not None:
-        adj_ebitda = round(oi + dep, 1)  # Simplified EBITDA estimate
+    if oi is not None:
+        adj_ebitda = round(oi + (dep or 0), 1)
+
+    # Calculate EPS if not provided
+    eps = sec_rec.get("eps_diluted")
+    if eps is None:
+        ni = sec_rec.get("net_income_usd_m")
+        shares = sec_rec.get("shares_outstanding_m")
+        if ni is not None and shares and shares > 0:
+            eps = round(ni / shares, 2)
+
+    # Validate report_date is a string date, not numeric garbage
+    report_date = sec_rec.get("report_date")
+    if report_date is not None and not isinstance(report_date, str):
+        report_date = None
 
     return {
         "ticker": ticker,
@@ -64,7 +77,7 @@ def build_financials_record(ticker, sec_rec):
         "fiscal_quarter": q,
         "period_label": f"{q} {fy}",
         "period_end_date": sec_rec.get("period_end_date", ""),
-        "report_date": sec_rec.get("report_date"),
+        "report_date": report_date,
         "estimated_report_date": None,
         "is_reported": True,
         "revenue_usd_m": sec_rec.get("revenue_usd_m"),
@@ -72,7 +85,7 @@ def build_financials_record(ticker, sec_rec):
         "operating_income_usd_m": oi,
         "net_income_usd_m": sec_rec.get("net_income_usd_m"),
         "adjusted_ebitda_usd_m": adj_ebitda,
-        "eps_diluted": sec_rec.get("eps_diluted"),
+        "eps_diluted": eps,
         "revenue_yoy_pct": None,  # Will compute below
         "gross_profit_yoy_pct": None,
         "net_income_yoy_pct": None,
@@ -81,13 +94,23 @@ def build_financials_record(ticker, sec_rec):
         "cash_and_equivalents_usd_m": sec_rec.get("cash_and_equivalents_usd_m"),
         "btc_held": None,
         "total_debt_usd_m": sec_rec.get("long_term_debt_usd_m"),
-        "notes": f"Source: SEC EDGAR XBRL ({sec_rec.get('form', '')} filed {sec_rec.get('report_date', '')}). EBITDA estimated from operating_income + depreciation."
+        "notes": f"Source: SEC EDGAR XBRL ({sec_rec.get('form', '')} filed {report_date or ''})."
     }
 
 
+YOY_CAP = 1000.0  # Cap extreme YoY at ±1000%
+
+
+def _capped_yoy(curr_val, prev_val):
+    """Calculate YoY% capped at ±YOY_CAP."""
+    if curr_val is None or prev_val is None or prev_val == 0:
+        return None
+    val = round((curr_val - prev_val) / abs(prev_val) * 100, 1)
+    return max(-YOY_CAP, min(YOY_CAP, val))
+
+
 def compute_yoy(records):
-    """Compute YoY percentages for financial records."""
-    # Group by (ticker, quarter)
+    """Compute YoY percentages for financial records with ±1000% cap."""
     by_tq = {}
     for r in records:
         key = (r["ticker"], r["fiscal_quarter"])
@@ -101,24 +124,17 @@ def compute_yoy(records):
             if curr["fiscal_year"] != prev["fiscal_year"] + 1:
                 continue
 
-            # Revenue YoY
-            cr = curr.get("revenue_usd_m")
-            pr = prev.get("revenue_usd_m")
-            if cr is not None and pr is not None and pr != 0:
-                curr["revenue_yoy_pct"] = round((cr - pr) / abs(pr) * 100, 1)
+            curr["revenue_yoy_pct"] = _capped_yoy(curr.get("revenue_usd_m"), prev.get("revenue_usd_m"))
+            curr["gross_profit_yoy_pct"] = _capped_yoy(curr.get("gross_profit_usd_m"), prev.get("gross_profit_usd_m"))
+            curr["adjusted_ebitda_yoy_pct"] = _capped_yoy(curr.get("adjusted_ebitda_usd_m"), prev.get("adjusted_ebitda_usd_m"))
 
             # Net Income YoY (skip if both negative)
             cn = curr.get("net_income_usd_m")
             pn = prev.get("net_income_usd_m")
-            if cn is not None and pn is not None and pn != 0:
-                if not (cn < 0 and pn < 0):
-                    curr["net_income_yoy_pct"] = round((cn - pn) / abs(pn) * 100, 1)
-
-            # EBITDA YoY
-            ce = curr.get("adjusted_ebitda_usd_m")
-            pe = prev.get("adjusted_ebitda_usd_m")
-            if ce is not None and pe is not None and pe != 0:
-                curr["adjusted_ebitda_yoy_pct"] = round((ce - pe) / abs(pe) * 100, 1)
+            if cn is not None and pn is not None and pn != 0 and not (cn < 0 and pn < 0):
+                curr["net_income_yoy_pct"] = _capped_yoy(cn, pn)
+            else:
+                curr["net_income_yoy_pct"] = None
 
 
 def update_financials():

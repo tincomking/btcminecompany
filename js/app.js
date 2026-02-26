@@ -85,6 +85,24 @@ function avgTargetPrice(ticker) {
 
 // Calculate sentiment score from StockTwits bullish percentage
 // bullishPct: 0-100 → score: -1 to +1 (linear: 50% → 0, 100% → 1, 0% → -1)
+// ── COMPANY LOGO ──────────────────────────────────────────────────────────
+
+function companyLogo(ticker, size) {
+  size = size || 24;
+  const co = COMPANIES.find(c => c.ticker === ticker);
+  const domain = co && co.website ? co.website.replace(/^https?:\/\//, '').replace(/\/$/, '') : null;
+  const fallback = `<span class="logo-placeholder" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.45)}px;">${ticker[0]}</span>`;
+  if (!domain) return fallback;
+  return `<img class="company-logo" src="https://logo.clearbit.com/${domain}" width="${size}" height="${size}" alt="${ticker}" onerror="this.outerHTML='${fallback.replace(/'/g, "\\'")}'">`;
+}
+
+// ── SENTIMENT TAB STATE ──────────────────────────────────────────────────
+
+let sentimentPage = 1;
+let sentimentFilterTicker = 'ALL';
+let sentimentFilterRating = 'ALL';
+const SENTIMENT_PAGE_SIZE = 15;
+
 function calcSentimentScore(soc) {
   if (!soc || soc.stocktwits_bullish_pct == null) return null;
   return (soc.stocktwits_bullish_pct - 50) / 50; // e.g. 70% → 0.4, 42% → -0.16
@@ -314,6 +332,7 @@ function renderCompanyGrid(sortBy = 'mktcap') {
       <div class="company-card" data-ticker="${co.ticker}" onclick="openCompanyModal('${co.ticker}')">
         <div class="company-card-header">
           <div class="company-identity">
+            ${companyLogo(co.ticker, 28)}
             <div>
               <div class="ticker-badge">${co.ticker}</div>
             </div>
@@ -384,42 +403,47 @@ let finCurrentPeriod = 'latest';
 let finCurrentCompany = 'ALL';
 
 function renderFinancials() {
-  buildPeriodButtons();
+  buildPeriodSelectors();
   renderFinancialsTable();
   renderEarningsTable();
   renderRevenueChart();
   setupFinancialFilters();
 }
 
-function buildPeriodButtons() {
+function buildPeriodSelectors() {
   const container = document.getElementById('fin-period-buttons');
   if (!container) return;
-  // Collect all unique quarter-year combos from data, sorted newest first
-  const qPeriods = [];
-  const seen = {};
-  FINANCIALS.filter(f => f.is_reported && f.fiscal_quarter && f.fiscal_quarter !== 'FY').forEach(f => {
-    const key = f.fiscal_quarter + '-' + f.fiscal_year;
-    if (!seen[key]) {
-      seen[key] = true;
-      qPeriods.push({ key, label: f.fiscal_quarter + ' ' + f.fiscal_year, year: f.fiscal_year, q: f.fiscal_quarter });
-    }
+
+  // Collect unique years from reported data
+  const years = [...new Set(FINANCIALS.filter(f => f.is_reported).map(f => f.fiscal_year))].sort((a, b) => b - a);
+
+  let html = `<select id="fin-year-select" class="filter-select">
+    <option value="latest">${t('filter.latest') || 'Latest'}</option>`;
+  years.forEach(y => {
+    html += `<option value="${y}">${y}</option>`;
   });
-  // Sort: newest first (by year desc, then Q4 > Q3 > Q2 > Q1)
-  const qOrder = { Q4: 4, Q3: 3, Q2: 2, Q1: 1 };
-  qPeriods.sort((a, b) => b.year - a.year || (qOrder[b.q]||0) - (qOrder[a.q]||0));
-  // Build HTML: latest + dynamic quarters + FY
-  let html = `<button class="filter-btn${finCurrentPeriod === 'latest' ? ' active' : ''}" data-period="latest" data-i18n="filter.latest">${t('filter.latest')}</button>`;
-  qPeriods.forEach(p => {
-    html += `<button class="filter-btn${finCurrentPeriod === p.key ? ' active' : ''}" data-period="${p.key}">${p.label}</button>`;
-  });
-  html += `<button class="filter-btn${finCurrentPeriod === 'FY' ? ' active' : ''}" data-period="FY" data-i18n="filter.fy">${t('filter.fy')}</button>`;
+  html += `</select>`;
+  html += `<select id="fin-quarter-select" class="filter-select">
+    <option value="ALL">${t('filter.all_quarters') || 'All Quarters'}</option>
+    <option value="Q1">Q1</option>
+    <option value="Q2">Q2</option>
+    <option value="Q3">Q3</option>
+    <option value="Q4">Q4</option>
+    <option value="FY">${t('filter.fy') || 'FY'}</option>
+  </select>`;
   container.innerHTML = html;
 }
 
 function getFilteredFinancials() {
   let data = FINANCIALS.filter(f => f.is_reported);
   if (finCurrentCompany !== 'ALL') data = data.filter(f => f.ticker === finCurrentCompany);
-  if (finCurrentPeriod === 'latest') {
+
+  const yearSel = document.getElementById('fin-year-select');
+  const quarterSel = document.getElementById('fin-quarter-select');
+  const yearVal = yearSel ? yearSel.value : 'latest';
+  const quarterVal = quarterSel ? quarterSel.value : 'ALL';
+
+  if (yearVal === 'latest') {
     // Get latest reported for each company
     const map = {};
     data.forEach(f => {
@@ -428,11 +452,12 @@ function getFilteredFinancials() {
       }
     });
     data = Object.values(map);
-  } else if (finCurrentPeriod === 'FY') {
-    data = data.filter(f => f.fiscal_quarter === 'FY');
   } else {
-    const [q, y] = finCurrentPeriod.split('-');
-    data = data.filter(f => f.fiscal_quarter === q && String(f.fiscal_year) === y);
+    const year = parseInt(yearVal);
+    data = data.filter(f => f.fiscal_year === year);
+    if (quarterVal !== 'ALL') {
+      data = data.filter(f => f.fiscal_quarter === quarterVal);
+    }
   }
   return data.sort((a, b) => ((b.revenue_usd_m)||0) - ((a.revenue_usd_m)||0));
 }
@@ -453,9 +478,12 @@ function renderFinancialsTable() {
 
     return `<tr>
       <td>
-        <div style="display:flex;flex-direction:column;gap:1px;">
-          <span class="td-ticker">${f.ticker}</span>
-          <span style="font-size:10px;color:var(--text-muted);">${co ? co.name : ''}</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          ${companyLogo(f.ticker, 20)}
+          <div style="display:flex;flex-direction:column;gap:1px;">
+            <span class="td-ticker">${f.ticker}</span>
+            <span style="font-size:10px;color:var(--text-muted);">${co ? co.name : ''}</span>
+          </div>
         </div>
       </td>
       <td class="td-mono td-primary">${f.period_label}</td>
@@ -602,18 +630,20 @@ function setupFinancialFilters() {
     });
   }
 
-  // Period filter (event delegation on container, handles dynamic buttons)
-  const periodContainer = document.getElementById('fin-period-buttons');
-  if (periodContainer && !periodContainer._init) {
-    periodContainer._init = true;
-    periodContainer.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-period]');
-      if (!btn) return;
-      periodContainer.querySelectorAll('[data-period]').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      finCurrentPeriod = btn.dataset.period;
+  // Period filter (year + quarter selects)
+  const yearSelect = document.getElementById('fin-year-select');
+  const quarterSelect = document.getElementById('fin-quarter-select');
+  if (yearSelect && !yearSelect._init) {
+    yearSelect._init = true;
+    yearSelect.addEventListener('change', () => {
+      // When "Latest" is selected, disable quarter filter
+      if (quarterSelect) quarterSelect.disabled = yearSelect.value === 'latest';
       renderFinancialsTable();
     });
+  }
+  if (quarterSelect && !quarterSelect._init) {
+    quarterSelect._init = true;
+    quarterSelect.addEventListener('change', () => renderFinancialsTable());
   }
 }
 
@@ -656,9 +686,12 @@ function renderOpsTable(period) {
 
     return `<tr>
       <td>
-        <div style="display:flex;flex-direction:column;gap:1px;">
-          <span class="td-ticker">${o.ticker}</span>
-          <span style="font-size:10px;color:var(--text-muted);">${co ? co.name : ''}</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          ${companyLogo(o.ticker, 20)}
+          <div style="display:flex;flex-direction:column;gap:1px;">
+            <span class="td-ticker">${o.ticker}</span>
+            <span style="font-size:10px;color:var(--text-muted);">${co ? co.name : ''}</span>
+          </div>
         </div>
       </td>
       <td class="td-mono">${o.period_label}</td>
@@ -856,26 +889,41 @@ function setupNewsFilters() {
 // ── PAGE: SENTIMENT ─────────────────────────────────────────────────────────
 
 function renderSentiment() {
+  setupSentimentFilters();
   renderRatingsTable();
   renderRatingsPieChart();
   renderTargetPriceTable();
   renderSocialSentiment();
 }
 
+function getFilteredRatings() {
+  let data = [...SENTIMENT.analyst_ratings].sort((a, b) => b.date.localeCompare(a.date));
+  if (sentimentFilterTicker !== 'ALL') data = data.filter(r => r.ticker === sentimentFilterTicker);
+  if (sentimentFilterRating !== 'ALL') data = data.filter(r => r.rating_normalized === sentimentFilterRating);
+  return data;
+}
+
 function renderRatingsTable() {
   const body = document.getElementById('ratingsBody');
-  const data = [...SENTIMENT.analyst_ratings].sort((a, b) => b.date.localeCompare(a.date));
+  const allData = getFilteredRatings();
+  const totalPages = Math.max(1, Math.ceil(allData.length / SENTIMENT_PAGE_SIZE));
+  if (sentimentPage > totalPages) sentimentPage = totalPages;
+  const start = (sentimentPage - 1) * SENTIMENT_PAGE_SIZE;
+  const data = allData.slice(start, start + SENTIMENT_PAGE_SIZE);
 
-  body.innerHTML = data.map(r => {
+  body.innerHTML = data.map((r, idx) => {
     const co = COMPANIES.find(c => c.ticker === r.ticker);
     const targetDelta = r.target_price_usd && r.prev_target_price_usd
       ? ((r.target_price_usd / r.prev_target_price_usd - 1) * 100)
       : null;
     return `<tr>
       <td>
-        <div style="display:flex;flex-direction:column;gap:1px;">
-          <span class="td-ticker">${r.ticker}</span>
-          <span style="font-size:10px;color:var(--text-muted);">${co ? co.name : ''}</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          ${companyLogo(r.ticker, 20)}
+          <div style="display:flex;flex-direction:column;gap:1px;">
+            <span class="td-ticker">${r.ticker}</span>
+            <span style="font-size:10px;color:var(--text-muted);">${co ? co.name : ''}</span>
+          </div>
         </div>
       </td>
       <td class="td-primary" style="font-size:11px;">${r.analyst_firm}</td>
@@ -886,9 +934,93 @@ function renderRatingsTable() {
       </td>
       <td>${actionLabel(r.action)}</td>
       <td class="td-mono" style="color:var(--text-muted);">${r.date}</td>
-      <td style="font-size:10px;color:var(--text-muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;" title="${r.note||''}">${r.note ? r.note.substring(0,60) + (r.note.length>60?'…':'') : '—'}</td>
+      <td><span class="note-link" onclick="openRatingDetail(${start + idx})" style="cursor:pointer;color:var(--accent-blue);font-size:10px;max-width:180px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.note ? r.note.substring(0, 50) + (r.note.length > 50 ? '…' : '') : '—'}</span></td>
     </tr>`;
   }).join('');
+
+  // Render pagination
+  renderRatingsPagination(allData.length, totalPages);
+}
+
+function renderRatingsPagination(total, totalPages) {
+  let container = document.getElementById('ratingsPagination');
+  if (!container) {
+    const wrapper = document.getElementById('ratingsTable').parentElement;
+    container = document.createElement('div');
+    container.id = 'ratingsPagination';
+    container.className = 'pagination-bar';
+    wrapper.parentElement.appendChild(container);
+  }
+  if (totalPages <= 1) { container.innerHTML = `<span class="pagination-info">${total} ${t('js.items_total') || 'items'}</span>`; return; }
+
+  let html = `<span class="pagination-info">${total} ${t('js.items_total') || 'items'}</span>`;
+  html += `<button class="pagination-btn" ${sentimentPage <= 1 ? 'disabled' : ''} onclick="sentimentPage--;renderRatingsTable();">&#8249;</button>`;
+  for (let p = 1; p <= totalPages; p++) {
+    if (totalPages > 7 && p > 2 && p < totalPages - 1 && Math.abs(p - sentimentPage) > 1) {
+      if (p === 3 || p === totalPages - 2) html += '<span class="pagination-ellipsis">…</span>';
+      continue;
+    }
+    html += `<button class="pagination-btn ${p === sentimentPage ? 'active' : ''}" onclick="sentimentPage=${p};renderRatingsTable();">${p}</button>`;
+  }
+  html += `<button class="pagination-btn" ${sentimentPage >= totalPages ? 'disabled' : ''} onclick="sentimentPage++;renderRatingsTable();">&#8250;</button>`;
+  container.innerHTML = html;
+}
+
+function openRatingDetail(globalIdx) {
+  const allData = getFilteredRatings();
+  const r = allData[globalIdx];
+  if (!r) return;
+  const co = COMPANIES.find(c => c.ticker === r.ticker);
+  const overlay = document.getElementById('ratingDetailModal');
+  overlay.querySelector('.modal').innerHTML = `
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:10px;">
+        ${companyLogo(r.ticker, 28)}
+        <div>
+          <span class="ticker-badge">${r.ticker}</span>
+          <span style="font-size:14px;font-weight:600;margin-left:6px;">${co ? co.full_name : r.ticker}</span>
+        </div>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('ratingDetailModal').classList.remove('open');">✕</button>
+    </div>
+    <div class="rating-detail-grid">
+      <div class="rating-detail-item"><div class="rating-detail-label">${t('th.firm') || 'Firm'}</div><div class="rating-detail-value">${r.analyst_firm}</div></div>
+      <div class="rating-detail-item"><div class="rating-detail-label">${t('th.rating') || 'Rating'}</div><div class="rating-detail-value"><span class="rating-badge ${ratingClass(r.rating_normalized)}">${r.rating}</span></div></div>
+      <div class="rating-detail-item"><div class="rating-detail-label">${t('th.action') || 'Action'}</div><div class="rating-detail-value">${actionLabel(r.action)}</div></div>
+      <div class="rating-detail-item"><div class="rating-detail-label">${t('th.target_price') || 'Target'}</div><div class="rating-detail-value">${r.target_price_usd ? '$' + r.target_price_usd.toFixed(2) : '—'}${r.prev_target_price_usd ? ' <span style="font-size:11px;color:var(--text-muted);">(prev: $' + r.prev_target_price_usd.toFixed(2) + ')</span>' : ''}</div></div>
+      <div class="rating-detail-item"><div class="rating-detail-label">${t('th.date') || 'Date'}</div><div class="rating-detail-value">${r.date}</div></div>
+      <div class="rating-detail-item"><div class="rating-detail-label">${t('js.source') || 'Source'}</div><div class="rating-detail-value">${r.source || r.analyst_firm || '—'}</div></div>
+    </div>
+    <div style="margin-top:16px;">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted);margin-bottom:8px;">${t('th.notes') || 'Notes'}</div>
+      <div style="font-size:13px;line-height:1.6;color:var(--text-secondary);background:var(--bg-elevated);padding:14px;border-radius:var(--radius-md);">${r.note || '—'}</div>
+    </div>`;
+  overlay.classList.add('open');
+}
+
+function setupSentimentFilters() {
+  const filterBar = document.getElementById('sentimentFilterBar');
+  if (!filterBar || filterBar._init) return;
+  filterBar._init = true;
+
+  // Company filter
+  const tickerSelect = document.getElementById('sentimentTickerFilter');
+  const tickers = [...new Set(SENTIMENT.analyst_ratings.map(r => r.ticker))].sort();
+  tickerSelect.innerHTML = `<option value="ALL">${t('filter.all_companies') || 'All'}</option>` +
+    tickers.map(tk => `<option value="${tk}">${tk}</option>`).join('');
+  tickerSelect.addEventListener('change', () => {
+    sentimentFilterTicker = tickerSelect.value;
+    sentimentPage = 1;
+    renderRatingsTable();
+  });
+
+  // Rating filter
+  const ratingSelect = document.getElementById('sentimentRatingFilter');
+  ratingSelect.addEventListener('change', () => {
+    sentimentFilterRating = ratingSelect.value;
+    sentimentPage = 1;
+    renderRatingsTable();
+  });
 }
 
 function renderRatingsPieChart() {
@@ -1015,6 +1147,11 @@ function openCompanyModal(ticker) {
     .sort((a, b) => b.period_end_date.localeCompare(a.period_end_date));
   const latest = allFin[0];
 
+  const modalHeader = document.getElementById('modal-ticker').parentElement;
+  // Insert logo before ticker badge if not already present
+  const existingLogo = modalHeader.querySelector('.company-logo, .logo-placeholder');
+  if (existingLogo) existingLogo.remove();
+  modalHeader.insertAdjacentHTML('afterbegin', companyLogo(ticker, 28));
   document.getElementById('modal-ticker').textContent = ticker;
   document.getElementById('modal-name').textContent = co.full_name;
   document.getElementById('modal-desc').textContent = co.description;
@@ -1781,6 +1918,8 @@ function runFitting(method) {
           fill: false,
           borderWidth: 2.5,
           pointRadius: 0,
+          pointHitRadius: 15,
+          pointHoverRadius: 4,
           tension: 0.3,
           order: 1
         }
@@ -1794,7 +1933,19 @@ function runFitting(method) {
           backgroundColor: cc.tooltip.bg, borderColor: cc.tooltip.border, borderWidth: 1,
           titleColor: cc.tooltip.title, bodyColor: cc.tooltip.body,
           callbacks: {
-            title: ctx => ctx[0] ? (2025 + ctx[0].parsed.x).toFixed(0) : '',
+            title: ctx => {
+              if (!ctx[0]) return '';
+              const x = ctx[0].parsed.x;
+              const yearExact = 2025 + x;
+              const year = Math.floor(yearExact);
+              const monthFrac = (yearExact - year) * 12;
+              const month = Math.round(monthFrac);
+              if (month > 0 && month < 12) {
+                const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                return monthNames[month] + ' ' + year;
+              }
+              return year.toString();
+            },
             label: ctx => `$${ctx.parsed.y.toLocaleString('en-US', { maximumFractionDigits: 0 })}`
           }
         }
