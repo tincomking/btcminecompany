@@ -353,7 +353,7 @@ function renderCompanyGrid(sortBy = 'mktcap') {
 
         <div class="company-card-footer">
           <div class="earnings-info">
-            ${fin ? `<span class="earnings-label">${t('js.latest_report')}</span><span class="earnings-date">${fin.period_label} · ${fmt.date(fin.report_date)}</span>` : ''}
+            ${fin ? `<span class="earnings-label">${t('js.latest_report')}</span><span class="earnings-date">${fin.period_label}</span>` : ''}
             ${upcoming ? `<span class="earnings-label" style="margin-top:4px;">${t('js.next_expected')}</span><span class="earnings-date" style="color:var(--orange);">${upcoming.period_label} · ${fmt.date(upcoming.estimated_report_date)}</span>` : ''}
           </div>
           <div class="${sentimentClass(score)}" title="${sentimentTooltip(soc).replace(/"/g, '&quot;')}">
@@ -1841,23 +1841,30 @@ function runFitting(method) {
 
 async function fetchDifficulty() {
   try {
-    const res = await fetch('https://mempool.space/api/v1/difficulty-adjustment');
-    const d = await res.json();
-    // d has: progressPercent, difficultyChange, estimatedRetargetDate, remainingBlocks, remainingTime, previousRetarget, nextRetargetHeight, ...
+    // Fetch difficulty adjustment info and current difficulty in parallel
+    const [adjRes, hrRes] = await Promise.all([
+      fetch('https://mempool.space/api/v1/difficulty-adjustment').then(r => r.json()),
+      fetch('https://mempool.space/api/v1/mining/hashrate/1d').then(r => r.json()),
+    ]);
+
     const diffEl = document.getElementById('diffValue');
     const changeEl = document.getElementById('diffChange');
     const remainEl = document.getElementById('diffRemaining');
     if (!diffEl) return;
 
-    // Current difficulty (from previousRetarget or approximate from network)
-    const changePct = (d.difficultyChange * 100).toFixed(2);
-    const isUp = d.difficultyChange >= 0;
-    const remainDays = Math.ceil(d.remainingTime / 1000 / 60 / 60 / 24);
-    const progressPct = d.progressPercent.toFixed(1);
+    // Current difficulty in T (trillions)
+    const currentDiff = hrRes.currentDifficulty;
+    const diffT = (currentDiff / 1e12).toFixed(2);
+    diffEl.textContent = diffT + 'T';
 
-    diffEl.textContent = progressPct + '%';
+    // Estimated next epoch change — API returns percentage directly (e.g. 2.46 = +2.46%)
+    const changePct = adjRes.difficultyChange.toFixed(2);
+    const isUp = adjRes.difficultyChange >= 0;
     changeEl.textContent = (isUp ? '+' : '') + changePct + '%';
     changeEl.className = isUp ? 'btc-change-pos' : 'btc-change-neg';
+
+    // Remaining days until next adjustment
+    const remainDays = Math.ceil(adjRes.remainingTime / 1000 / 60 / 60 / 24);
     remainEl.textContent = remainDays + (currentLang === 'zh' ? '天' : 'd');
   } catch (e) {
     // Silently fail if API is unavailable
