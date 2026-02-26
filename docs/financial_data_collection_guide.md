@@ -22,33 +22,49 @@
 
 **优先级**: FY > Q4 > Q3 > Q2 > Q1 > H1/H2
 
-### 1.3 公司列表（23家）
+### 1.3 采集状态总览（2026-02-26 验证）
 
-| Ticker | 公司名称 | SEC Filing | 财年截止月 | 数据状态 |
-|--------|---------|-----------|-----------|---------|
-| FUFU | BitFuFu Inc. | 20-F / 6-K | 12月 | FY2023-FY2024 已采集 |
-| MARA | Marathon Digital Holdings | 10-K / 10-Q | 12月 | FY2023-FY2024 已采集 |
-| RIOT | Riot Platforms | 10-K / 10-Q | 12月 | FY2023-FY2024 已采集 |
-| CLSK | CleanSpark | 10-K / 10-Q | **9月** | FY2023-FY2024 已采集 |
-| CORZ | Core Scientific | 10-K / 10-Q | 12月 | 待采集 |
-| CIFR | Cipher Mining | 10-K / 10-Q | 12月 | 待采集 |
-| HUT | Hut 8 Corp | 10-K / 10-Q | 12月 | 待采集 |
-| WULF | TeraWulf | 10-K / 10-Q | 12月 | 待采集 |
-| IREN | Iris Energy | 20-F / 6-K | **6月** | 待采集 |
-| APLD | Applied Digital | 10-K / 10-Q | **5月** | 待采集 |
-| BITF | Bitfarms | 10-K / 10-Q | 12月 | 待采集 |
-| SDIG | Stronghold Digital Mining | 10-K / 10-Q | 12月 | 待采集 |
-| BTBT | Bit Digital | 10-K / 10-Q | 12月 | 待采集 |
-| BTDR | Bitdeer Technologies | 20-F / 6-K | 12月 | 待采集 |
-| HIVE | HIVE Digital Technologies | 10-K / 10-Q | **3月** | 待采集 |
-| GREE | Greenidge Generation | 10-K / 10-Q | 12月 | 待采集 |
-| ABTC | American Bitcoin | 10-K / 10-Q | 12月 | 待采集 |
-| ANY | Sphere 3D | 10-K / 10-Q | 12月 | 待采集 |
-| SLNH | Soluna Holdings | 10-K / 10-Q | 12月 | 待采集 |
-| AULT | Ault Alliance | 10-K / 10-Q | 12月 | 待采集 |
-| DGHI | Digihost Technology | 20-F / 6-K | 12月 | 待采集 |
-| MIGI | Mawson Infrastructure | 10-K / 10-Q | **6月** | 待采集 |
-| SAI | SAI.TECH | 20-F / 6-K | **6月** | 待采集 |
+> **总体进度**: 8 / ~250+ 个周期文件已采集（约 3%）。19 家公司零数据。
+
+| # | Ticker | 公司名称 | SEC Filing | 财年截止月 | raw_reports 文件 | 已有周期 | 缺失周期 | 优先级 |
+|---|--------|---------|-----------|-----------|-----------------|---------|---------|--------|
+| 1 | FUFU | BitFuFu Inc. | 20-F / 6-K | 12月 | 2 | FY2023, FY2024 | **Q1-Q4 2023, Q1-Q4 2024, 2025 Qs** | P0-补季报 |
+| 2 | MARA | Marathon Digital | 10-K / 10-Q | 12月 | 2 | FY2023, FY2024 | **Q1-Q4 2023, Q1-Q4 2024, 2025 Qs** | P0-补季报 |
+| 3 | RIOT | Riot Platforms | 10-K / 10-Q | 12月 | 2 | FY2023, FY2024 | **Q1-Q4 2023, Q1-Q4 2024, 2025 Qs** | P0-补季报 |
+| 4 | CLSK | CleanSpark | 10-K / 10-Q | **9月** | 2 | FY2023, FY2024 | **Q1-Q4 FY2023, Q1-Q4 FY2024, Q1 FY2025** | P0-补季报 |
+| 5 | CORZ | Core Scientific | 10-K / 10-Q | 12月 | **0** | — | **全部** | **P1-全量** |
+| 6 | CIFR | Cipher Mining | 10-K / 10-Q | 12月 | **0** | — | **全部** | **P1-全量** |
+| 7 | HUT | Hut 8 Corp | 10-K / 10-Q | 12月 | **0** | — | **全部** | **P1-全量** |
+| 8 | WULF | TeraWulf | 10-K / 10-Q | 12月 | **0** | — | **全部** | **P1-全量** |
+| 9 | IREN | Iris Energy | 20-F / 6-K | **6月** | **0** | — | **全部** | **P1-全量** |
+| 10 | BITF | Bitfarms | 10-K / 10-Q | 12月 | **0** | — | **全部** | **P2-全量** |
+| 11 | BTBT | Bit Digital | 10-K / 10-Q | 12月 | **0** | — | **全部** | **P2-全量** |
+| 12 | BTDR | Bitdeer Technologies | 20-F / 6-K | 12月 | **0** | — | **全部** | **P2-全量** |
+| 13 | APLD | Applied Digital | 10-K / 10-Q | **5月** | **0** | — | **全部** | **P2-全量** |
+| 14 | HIVE | HIVE Digital | 10-K / 10-Q | **3月** | **0** | — | **全部** | **P2-全量** |
+| 15 | SDIG | Stronghold Digital | 10-K / 10-Q | 12月 | **0** | — | **全部** | **P2-全量** |
+| 16 | GREE | Greenidge Generation | 10-K / 10-Q | 12月 | **0** | — | **全部** | **P3-全量** |
+| 17 | ABTC | American Bitcoin | 10-K / 10-Q | 12月 | **0** | — | **全部** | **P3-全量** |
+| 18 | ANY | Sphere 3D | 10-K / 10-Q | 12月 | **0** | — | **全部** | **P3-全量** |
+| 19 | SLNH | Soluna Holdings | 10-K / 10-Q | 12月 | **0** | — | **全部** | **P3-全量** |
+| 20 | AULT | Ault Alliance | 10-K / 10-Q | 12月 | **0** | — | **全部** | **P3-全量** |
+| 21 | DGHI | Digihost Technology | 20-F / 6-K | 12月 | **0** | — | **全部** | **P3-全量** |
+| 22 | MIGI | Mawson Infrastructure | 10-K / 10-Q | **6月** | **0** | — | **全部** | **P3-全量** |
+| 23 | SAI | SAI.TECH | 20-F / 6-K | **6月** | **0** | — | **全部** | **P3-全量** |
+
+### 1.4 优先级说明
+
+- **P0-补季报**: 已有 FY 数据的 4 家公司，需补充 2023-2024 所有季报 + 同步页面数据
+- **P1-全量**: 大型矿企，需从零开始全量采集（FY + 所有季报）+ 同步页面数据 + 更新 analysis_data.json 替换模拟数据
+- **P2-全量**: 中型矿企，同 P1
+- **P3-全量**: 小型/数据可能有限的公司
+
+### 1.5 页面数据同步状态
+
+| 数据文件 | 状态 | 问题 |
+|---------|------|------|
+| `data/financials.json` | 部分同步 | MARA/RIOT/CLSK 缺 FY2023 记录；多个公司的 Q4 记录大量字段为 null |
+| `data/analysis_data.json` | 4/12 真实 | FUFU/MARA/RIOT/CLSK 为真实 SEC 数据；CORZ/CIFR/HUT/WULF/IREN/BITF/BTDR/BTBT 为模拟数据；11 家公司完全缺失 |
 
 > **注意**: 标记为 20-F/6-K 的为外国私人发行人。粗体月份为非标准财年。
 
