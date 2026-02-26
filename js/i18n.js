@@ -407,22 +407,22 @@ function toggleTheme() {
   applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
 }
 
-// ── Font Size ──
-const FONT_SIZES = [12, 13, 14, 15, 16, 18];
-let fontSizeIdx = parseInt(localStorage.getItem('btcmine-fontsize-idx'), 10);
-if (isNaN(fontSizeIdx) || fontSizeIdx < 0 || fontSizeIdx >= FONT_SIZES.length) fontSizeIdx = 2; // default 14px
+// ── Font Size (zoom) ──
+const ZOOM_LEVELS = [0.8, 0.85, 0.9, 0.95, 1.0, 1.05, 1.1, 1.15, 1.2];
+let zoomIdx = parseInt(localStorage.getItem('btcmine-zoom-idx'), 10);
+if (isNaN(zoomIdx) || zoomIdx < 0 || zoomIdx >= ZOOM_LEVELS.length) zoomIdx = 4; // default 1.0
 
-function applyFontSize() {
-  document.documentElement.style.fontSize = FONT_SIZES[fontSizeIdx] + 'px';
-  localStorage.setItem('btcmine-fontsize-idx', fontSizeIdx);
+function applyZoom() {
+  document.body.style.zoom = ZOOM_LEVELS[zoomIdx];
+  localStorage.setItem('btcmine-zoom-idx', zoomIdx);
 }
 
 function fontUp() {
-  if (fontSizeIdx < FONT_SIZES.length - 1) { fontSizeIdx++; applyFontSize(); }
+  if (zoomIdx < ZOOM_LEVELS.length - 1) { zoomIdx++; applyZoom(); }
 }
 
 function fontDown() {
-  if (fontSizeIdx > 0) { fontSizeIdx--; applyFontSize(); }
+  if (zoomIdx > 0) { zoomIdx--; applyZoom(); }
 }
 
 // ── Init on load ──
@@ -430,8 +430,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Theme
   applyTheme(currentTheme);
 
-  // Font size
-  applyFontSize();
+  // Zoom
+  applyZoom();
 
   // Language
   const langBtn = document.getElementById('langToggle');
