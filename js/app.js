@@ -4,7 +4,23 @@
 
 'use strict';
 
+// ── ANALYSIS MODELS REGISTRY ──────────────────────────────────────────────
+if (typeof ANALYSIS_MODELS === 'undefined') window.ANALYSIS_MODELS = {};
+
 // ── HELPERS ────────────────────────────────────────────────────────────────
+
+function ensureFufuFirst(arr, tickerKey) {
+  tickerKey = tickerKey || 'ticker';
+  var fufuIdx = -1;
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i][tickerKey] === 'FUFU') { fufuIdx = i; break; }
+  }
+  if (fufuIdx > 0) {
+    var item = arr.splice(fufuIdx, 1)[0];
+    arr.unshift(item);
+  }
+  return arr;
+}
 
 function chartColors() {
   const isLight = currentTheme === 'light';
@@ -115,6 +131,7 @@ document.querySelectorAll('.nav-tab').forEach(btn => {
     if (page === 'operations') renderOperations();
     if (page === 'news') renderNews();
     if (page === 'sentiment') renderSentiment();
+    if (page === 'analysis') renderAnalysis();
   });
 });
 
@@ -904,6 +921,256 @@ document.getElementById('companyModal').addEventListener('click', (e) => {
     document.getElementById('companyModal').classList.remove('open');
   }
 });
+
+// ── PAGE: ANALYSIS ──────────────────────────────────────────────────────────
+
+let currentAnalysisModel = 'beneish';
+
+function renderAnalysis() {
+  setupAnalysisModelSelector();
+  renderAnalysisModel(currentAnalysisModel);
+}
+
+function setupAnalysisModelSelector() {
+  const container = document.getElementById('analysisModelSelector');
+  const modelKeys = ['beneish', 'piotroski', 'jones', 'altman', 'kmv', 'montecarlo'];
+  container.innerHTML = modelKeys.map(key => {
+    const model = ANALYSIS_MODELS[key];
+    if (!model) return '';
+    const info = model.info[currentLang] || model.info.zh;
+    const active = key === currentAnalysisModel ? ' active' : '';
+    return `<button class="model-tab${active}" data-model="${key}">${info.name}</button>`;
+  }).join('');
+
+  container.querySelectorAll('.model-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.model-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentAnalysisModel = btn.dataset.model;
+      renderAnalysisModel(currentAnalysisModel);
+    });
+  });
+}
+
+function renderAnalysisModel(modelKey) {
+  const model = ANALYSIS_MODELS[modelKey];
+  if (!model) return;
+  const lang = currentLang;
+  const info = model.info[lang] || model.info.zh;
+
+  // Info Panel
+  const panel = document.getElementById('analysisInfoPanel');
+  panel.innerHTML = `
+    <div class="analysis-info-content">
+      <div class="analysis-info-header">
+        <h3 class="analysis-model-name">${info.name}</h3>
+      </div>
+      <p class="analysis-model-desc">${info.description}</p>
+      <div class="analysis-pros-cons">
+        <div class="analysis-pros">
+          <div class="analysis-pc-title">${t('analysis.pros')}</div>
+          <ul>${info.pros.map(p => '<li>' + p + '</li>').join('')}</ul>
+        </div>
+        <div class="analysis-cons">
+          <div class="analysis-pc-title">${t('analysis.cons')}</div>
+          <ul>${info.cons.map(c => '<li>' + c + '</li>').join('')}</ul>
+        </div>
+      </div>
+    </div>`;
+
+  // Calculate results
+  const results = model.calculate(ANALYSIS_DATA);
+  ensureFufuFirst(results);
+
+  // Render table
+  renderAnalysisTable(modelKey, model, results);
+
+  // Monte Carlo chart area
+  const mcArea = document.getElementById('mcChartArea');
+  if (modelKey === 'montecarlo') {
+    mcArea.style.display = 'block';
+    setupMonteCarloSelector(results);
+  } else {
+    mcArea.style.display = 'none';
+  }
+}
+
+function renderAnalysisTable(modelKey, model, results) {
+  const lang = currentLang;
+  const columns = model.columns[lang] || model.columns.zh;
+  const thead = document.getElementById('analysisTableHead');
+  const tbody = document.getElementById('analysisTableBody');
+
+  thead.innerHTML = '<tr>' + columns.map((col, i) => {
+    const cls = i === 0 ? '' : ' class="td-right"';
+    return `<th${cls}>${col}</th>`;
+  }).join('') + '</tr>';
+
+  if (!results.length) {
+    tbody.innerHTML = `<tr><td colspan="${columns.length}" style="text-align:center;padding:32px;color:var(--text-muted);">${t('js.no_data')}</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = results.map(r => {
+    const vLabel = r.verdict[lang] || r.verdict.zh;
+    const verdictHtml = `<span class="verdict-badge ${r.verdictClass}">${vLabel}</span>`;
+
+    if (modelKey === 'beneish') {
+      return `<tr>
+        <td><div class="analysis-company-cell"><span class="td-ticker">${r.ticker}</span><span class="analysis-co-name">${r.name}</span></div></td>
+        <td class="td-right td-mono">${r.dsri.toFixed(3)}</td>
+        <td class="td-right td-mono">${r.gmi.toFixed(3)}</td>
+        <td class="td-right td-mono">${r.aqi.toFixed(3)}</td>
+        <td class="td-right td-mono">${r.sgi.toFixed(3)}</td>
+        <td class="td-right td-mono">${r.depi.toFixed(3)}</td>
+        <td class="td-right td-mono">${r.sgai.toFixed(3)}</td>
+        <td class="td-right td-mono">${r.tata.toFixed(4)}</td>
+        <td class="td-right td-mono">${r.lvgi.toFixed(3)}</td>
+        <td class="td-right td-mono td-primary">${r.score.toFixed(2)}</td>
+        <td class="td-right">${verdictHtml}</td>
+      </tr>`;
+    }
+
+    if (modelKey === 'piotroski') {
+      const s = r.signals;
+      const sig = v => v ? '<span class="text-green">1</span>' : '<span class="text-red">0</span>';
+      return `<tr>
+        <td><div class="analysis-company-cell"><span class="td-ticker">${r.ticker}</span><span class="analysis-co-name">${r.name}</span></div></td>
+        <td class="td-right">${sig(s.roa_pos)}</td>
+        <td class="td-right">${sig(s.cfo_pos)}</td>
+        <td class="td-right">${sig(s.roa_up)}</td>
+        <td class="td-right">${sig(s.cfo_gt_ni)}</td>
+        <td class="td-right">${sig(s.leverage_down)}</td>
+        <td class="td-right">${sig(s.liquidity_up)}</td>
+        <td class="td-right">${sig(s.no_dilution)}</td>
+        <td class="td-right">${sig(s.margin_up)}</td>
+        <td class="td-right">${sig(s.turnover_up)}</td>
+        <td class="td-right td-mono td-primary">${r.score}/9</td>
+        <td class="td-right">${verdictHtml}</td>
+      </tr>`;
+    }
+
+    if (modelKey === 'jones') {
+      return `<tr>
+        <td><div class="analysis-company-cell"><span class="td-ticker">${r.ticker}</span><span class="analysis-co-name">${r.name}</span></div></td>
+        <td class="td-right td-mono">${r.ta_scaled.toFixed(4)}</td>
+        <td class="td-right td-mono">${r.nda.toFixed(4)}</td>
+        <td class="td-right td-mono">${r.da.toFixed(4)}</td>
+        <td class="td-right td-mono td-primary">${r.absDA.toFixed(4)}</td>
+        <td class="td-right">${verdictHtml}</td>
+      </tr>`;
+    }
+
+    if (modelKey === 'altman') {
+      return `<tr>
+        <td><div class="analysis-company-cell"><span class="td-ticker">${r.ticker}</span><span class="analysis-co-name">${r.name}</span></div></td>
+        <td class="td-right td-mono">${r.x1.toFixed(3)}</td>
+        <td class="td-right td-mono">${r.x2.toFixed(3)}</td>
+        <td class="td-right td-mono">${r.x3.toFixed(3)}</td>
+        <td class="td-right td-mono">${r.x4.toFixed(3)}</td>
+        <td class="td-right td-mono">${r.x5.toFixed(3)}</td>
+        <td class="td-right td-mono td-primary">${r.score.toFixed(2)}</td>
+        <td class="td-right">${verdictHtml}</td>
+      </tr>`;
+    }
+
+    if (modelKey === 'kmv') {
+      return `<tr>
+        <td><div class="analysis-company-cell"><span class="td-ticker">${r.ticker}</span><span class="analysis-co-name">${r.name}</span></div></td>
+        <td class="td-right td-mono">$${r.assetValue.toFixed(0)}M</td>
+        <td class="td-right td-mono">$${r.defaultPoint.toFixed(0)}M</td>
+        <td class="td-right td-mono">${(r.assetVol * 100).toFixed(1)}%</td>
+        <td class="td-right td-mono td-primary">${r.dd.toFixed(2)}</td>
+        <td class="td-right td-mono">${(r.pd * 100).toFixed(2)}%</td>
+        <td class="td-right">${verdictHtml}</td>
+      </tr>`;
+    }
+
+    if (modelKey === 'montecarlo') {
+      return `<tr>
+        <td><div class="analysis-company-cell"><span class="td-ticker">${r.ticker}</span><span class="analysis-co-name">${r.name}</span></div></td>
+        <td class="td-right td-mono">$${r.currentRevenue.toFixed(1)}M</td>
+        <td class="td-right td-mono">${(r.growthMean * 100).toFixed(0)}%</td>
+        <td class="td-right td-mono">${(r.growthStd * 100).toFixed(0)}%</td>
+        <td class="td-right td-mono text-red">$${r.p10.toFixed(1)}M</td>
+        <td class="td-right td-mono text-orange">$${r.p25.toFixed(1)}M</td>
+        <td class="td-right td-mono td-primary">$${r.p50.toFixed(1)}M</td>
+        <td class="td-right td-mono text-green">$${r.p75.toFixed(1)}M</td>
+        <td class="td-right td-mono text-green">$${r.p90.toFixed(1)}M</td>
+      </tr>`;
+    }
+
+    return '';
+  }).join('');
+}
+
+function setupMonteCarloSelector(results) {
+  const sel = document.getElementById('mc-company-select');
+  sel.innerHTML = `<option value="">${t('analysis.select_company')}</option>` +
+    results.map(r => `<option value="${r.ticker}">${r.ticker} · ${r.name}</option>`).join('');
+
+  // Remove old listener
+  const newSel = sel.cloneNode(true);
+  sel.parentNode.replaceChild(newSel, sel);
+
+  newSel.addEventListener('change', () => {
+    const ticker = newSel.value;
+    if (!ticker) return;
+    const r = results.find(x => x.ticker === ticker);
+    if (r) renderMonteCarloChart(r);
+  });
+
+  // Default to first company
+  if (results.length) {
+    newSel.value = results[0].ticker;
+    renderMonteCarloChart(results[0]);
+  }
+}
+
+function renderMonteCarloChart(result) {
+  const canvas = document.getElementById('mcChart');
+  if (!canvas) return;
+
+  const pct = result.percentiles;
+  const steps = pct.p50.length;
+  const labels = [];
+  for (let i = 0; i < steps; i++) {
+    labels.push(i === 0 ? 'Now' : `${t('analysis.month')}${i}`);
+  }
+
+  const cc = chartColors();
+  if (canvas._chart) canvas._chart.destroy();
+
+  canvas._chart = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'P90', data: pct.p90, borderColor: 'rgba(16,185,129,0.3)', backgroundColor: 'rgba(16,185,129,0.05)', fill: '+1', borderWidth: 1, pointRadius: 0, tension: 0.3 },
+        { label: 'P75', data: pct.p75, borderColor: 'rgba(16,185,129,0.5)', backgroundColor: 'rgba(16,185,129,0.08)', fill: '+1', borderWidth: 1, pointRadius: 0, tension: 0.3 },
+        { label: 'P50', data: pct.p50, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: false, borderWidth: 2.5, pointRadius: 2, tension: 0.3 },
+        { label: 'P25', data: pct.p25, borderColor: 'rgba(245,158,11,0.5)', backgroundColor: 'rgba(245,158,11,0.08)', fill: '+1', borderWidth: 1, pointRadius: 0, tension: 0.3 },
+        { label: 'P10', data: pct.p10, borderColor: 'rgba(239,68,68,0.3)', backgroundColor: 'rgba(239,68,68,0.05)', fill: false, borderWidth: 1, pointRadius: 0, tension: 0.3 },
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: cc.legend, font: { size: 11, family: 'Inter' }, usePointStyle: true } },
+        tooltip: {
+          backgroundColor: cc.tooltip.bg, borderColor: cc.tooltip.border, borderWidth: 1,
+          titleColor: cc.tooltip.title, bodyColor: cc.tooltip.body,
+          callbacks: { label: ctx => `${ctx.dataset.label}: $${ctx.raw.toFixed(1)}M` }
+        }
+      },
+      scales: {
+        x: { ticks: { color: cc.tick, font: { size: 11, family: 'JetBrains Mono' } }, grid: { color: cc.grid } },
+        y: { ticks: { color: cc.tick, font: { size: 10 }, callback: v => `$${v.toFixed(0)}M` }, grid: { color: cc.grid } }
+      }
+    }
+  });
+}
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
 

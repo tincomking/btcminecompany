@@ -28,6 +28,7 @@
     <button class="nav-tab" data-page="operations" data-i18n="nav.operations">运营披露</button>
     <button class="nav-tab" data-page="news" data-i18n="nav.news">新闻动态</button>
     <button class="nav-tab" data-page="sentiment" data-i18n="nav.sentiment">市场情绪</button>
+    <button class="nav-tab" data-page="analysis" data-i18n="nav.analysis">财务分析</button>
   </nav>
 
   <div class="header-right">
@@ -339,6 +340,45 @@
     <div class="sentiment-panel" id="sentimentPanel"></div>
   </div>
 
+  <!-- ─────────────────────── PAGE: ANALYSIS ─────────────────────── -->
+  <div class="page" id="page-analysis">
+    <div class="section-header">
+      <div class="section-title" data-i18n="analysis.title">财务分析模型</div>
+      <span class="data-badge" data-i18n="analysis.subtitle">基于公开财务数据的量化分析（模拟数据，仅供演示）</span>
+    </div>
+
+    <!-- Model Selector Tabs -->
+    <div class="analysis-model-selector" id="analysisModelSelector"></div>
+
+    <!-- Model Info Panel -->
+    <div class="analysis-info-panel" id="analysisInfoPanel"></div>
+
+    <!-- Results Table -->
+    <div class="section-header mt-16">
+      <div class="section-title" data-i18n="analysis.results">分析结果</div>
+    </div>
+    <div class="table-wrapper mb-24" id="analysisTableWrapper">
+      <table id="analysisTable">
+        <thead id="analysisTableHead"></thead>
+        <tbody id="analysisTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Monte Carlo Chart Area -->
+    <div id="mcChartArea" style="display:none;">
+      <div class="section-header mb-16">
+        <div class="section-title" data-i18n="analysis.mc_chart_title">Monte Carlo 营收模拟（12个月）</div>
+        <div class="section-actions">
+          <select class="filter-select" id="mc-company-select"></select>
+        </div>
+      </div>
+      <div class="chart-container">
+        <div class="chart-title" data-i18n="analysis.mc_note">基于 GBM 模型的 1000 次随机路径模拟</div>
+        <canvas id="mcChart" height="100"></canvas>
+      </div>
+    </div>
+  </div>
+
 </div><!-- /#app -->
 
 <!-- ═══════════════════════════ FOOTER ═══════════════════════════ -->
@@ -367,6 +407,12 @@
 
 <script src="js/i18n.js"></script>
 <script src="js/data.js"></script>
+<script src="Analysis/beneish.js"></script>
+<script src="Analysis/piotroski.js"></script>
+<script src="Analysis/jones.js"></script>
+<script src="Analysis/altman.js"></script>
+<script src="Analysis/kmv.js"></script>
+<script src="Analysis/montecarlo.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

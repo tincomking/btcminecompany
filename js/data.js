@@ -8,17 +8,19 @@ let FINANCIALS = [];
 let OPERATIONAL = [];
 let NEWS = [];
 let SENTIMENT = { analyst_ratings: [], social_sentiment: [] };
+let ANALYSIS_DATA = {};
 
 let dataReady = false;
 
 async function loadAllData() {
   try {
-    const [companiesRes, financialsRes, operationalRes, newsRes, sentimentRes] = await Promise.all([
+    const [companiesRes, financialsRes, operationalRes, newsRes, sentimentRes, analysisRes] = await Promise.all([
       fetch('data/companies.json').then(r => r.json()),
       fetch('data/financials.json').then(r => r.json()),
       fetch('data/operational.json').then(r => r.json()),
       fetch('data/news.json').then(r => r.json()),
       fetch('data/sentiment.json').then(r => r.json()),
+      fetch('data/analysis_data.json').then(r => r.json()),
     ]);
 
     // Map companies — JSON has no stock_price/market_cap, set defaults
@@ -69,6 +71,9 @@ async function loadAllData() {
       analyst_ratings: sentimentRes.analyst_ratings || [],
       social_sentiment: sentimentRes.social_sentiment || [],
     };
+
+    // Analysis supplemental data
+    ANALYSIS_DATA = analysisRes.data || {};
 
     dataReady = true;
     console.log(`Data loaded: ${COMPANIES.length} companies, ${FINANCIALS.length} financials, ${OPERATIONAL.length} ops, ${NEWS.length} news`);

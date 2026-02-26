@@ -166,6 +166,20 @@ const I18N = {
     'js.quarter_history': '历史季报',
     'js.btc_held_label': 'BTC持仓',
     'js.total_debt': '总债务',
+
+    // Analysis tab
+    'nav.analysis': '财务分析',
+    'analysis.title': '财务分析模型',
+    'analysis.subtitle': '基于公开财务数据的量化分析（模拟数据，仅供演示）',
+    'analysis.model_info': '模型介绍',
+    'analysis.pros': '优势',
+    'analysis.cons': '局限性',
+    'analysis.results': '分析结果',
+    'analysis.select_company': '选择公司查看模拟',
+    'analysis.mc_chart_title': 'Monte Carlo 营收模拟（12个月）',
+    'analysis.mc_note': '基于 GBM 模型的 1000 次随机路径模拟',
+    'analysis.month': '月',
+    'analysis.revenue_m': '营收 (M)',
   },
 
   en: {
@@ -318,6 +332,20 @@ const I18N = {
     'js.quarter_history': 'Quarter History',
     'js.btc_held_label': 'BTC Held',
     'js.total_debt': 'Total Debt',
+
+    // Analysis tab
+    'nav.analysis': 'Analysis',
+    'analysis.title': 'Financial Analysis Models',
+    'analysis.subtitle': 'Quantitative analysis based on public financial data (simulated, demo only)',
+    'analysis.model_info': 'Model Info',
+    'analysis.pros': 'Strengths',
+    'analysis.cons': 'Limitations',
+    'analysis.results': 'Results',
+    'analysis.select_company': 'Select a company to view simulation',
+    'analysis.mc_chart_title': 'Monte Carlo Revenue Simulation (12 Months)',
+    'analysis.mc_note': '1000 random path simulations based on GBM model',
+    'analysis.month': 'Mo',
+    'analysis.revenue_m': 'Revenue (M)',
   }
 };
 
@@ -351,11 +379,12 @@ function toggleLang() {
     if (page === 'operations') renderOperations();
     if (page === 'news') renderNews();
     if (page === 'sentiment') renderSentiment();
+    if (page === 'analysis') renderAnalysis();
   }
 }
 
 // ── Theme ──
-let currentTheme = localStorage.getItem('btcmine-theme') || 'dark';
+let currentTheme = localStorage.getItem('btcmine-theme') || 'light';
 
 function applyTheme(theme) {
   currentTheme = theme;
