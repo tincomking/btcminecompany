@@ -1,288 +1,276 @@
 # BTC Mining Intelligence Platform
 
-> **Live Site: [btcmine.info](https://btcmine.info)**
+[![Live Site](https://img.shields.io/badge/Live-btcmine.info-blue?style=flat-square)](https://btcmine.info)
+[![GitHub Pages](https://img.shields.io/badge/Deploy-GitHub%20Pages-222?style=flat-square&logo=github)](https://btcmine.info)
+[![Companies](https://img.shields.io/badge/Companies-22-orange?style=flat-square)]()
+[![Data](https://img.shields.io/badge/Records-535+-green?style=flat-square)]()
 
-A comprehensive analytics platform tracking US-listed Bitcoin mining companies.
+A comprehensive, open-source analytics dashboard for tracking **22 US-listed Bitcoin mining companies** — covering financials, operations, market sentiment, quantitative analysis, and BTC price predictions.
 
-[中文版](#中文版)
+**[English](#features)** | **[中文](#中文版)**
 
 ---
 
-## For Data Agents (OpenClaw)
+## Features
 
-This section is the primary instruction set for automated data agents.
+### Data Dashboard (7 Tabs)
 
-### Core Principle: Collect Only What's Missing
+| Tab | Description |
+|-----|-------------|
+| **Overview** | Real-time BTC price & network difficulty, company grid cards with key metrics, earnings calendar |
+| **Financials** | Quarterly earnings (revenue, net income, EBITDA, EPS), YoY comparisons, interactive detail modal, pagination |
+| **Operations** | Monthly production reports — BTC mined, BTC holdings, hashrate, power capacity, fleet efficiency |
+| **News** | Industry news with sentiment analysis, category filtering, CSS-based sentiment & category charts |
+| **Sentiment** | Analyst ratings (Buy/Hold/Sell), target prices vs current, social sentiment (StockTwits/Reddit) |
+| **Analysis** | 6 quantitative models — Altman Z-Score, Piotroski F-Score, Beneish M-Score, Jones Model, KMV, Monte Carlo |
+| **Predictions** | BTC price forecasts from institutions & crypto platforms, fitting curves, interactive chart |
 
-**DO NOT re-collect data that already exists.** Before any collection task:
+### Key Highlights
 
-1. Read the target JSON file in `/data/`
-2. Identify what records are already present (check tickers, dates, periods)
-3. Only collect and fill in **gaps** — missing companies, missing quarters, missing months, null fields in existing records
+- **22 active companies** tracked with 420+ financial records and 110+ operational records
+- **Real-time data** — live BTC price (mempool.space), network difficulty, stock prices (Yahoo Finance)
+- **6 financial analysis models** for fraud detection, solvency, and risk assessment
+- **Bilingual UI** — full Chinese/English support with toggle
+- **Dark/Light theme** with font size adjustment
+- **Zero dependencies** — pure HTML/CSS/JS, no build step required
+- **Auto-deploy** — push to `main` triggers GitHub Pages deployment in ~60 seconds
+- **Agent-ready** — automated data collection via OpenClaw cron jobs
 
-### Data Categories
+---
 
-All data lives in `/data/*.json`. See `data/schema.json` for exact field definitions.
+## Covered Companies
 
-#### Category A: Company Profiles (`companies.json`)
-
-Basic company information: ticker, name, exchange, market cap, stock price, IR URLs.
-
-**When to update:** New company IPO/listing, delisting, merger, or significant corporate change.
-
-**Sources:**
-- SEC EDGAR (CIK lookup, company filings)
-- Yahoo Finance / Google Finance (stock price, market cap)
-- Company IR websites (official profiles)
-
-#### Category B: Quarterly Financials (`financials.json`)
-
-Earnings data: revenue, net income, Adj. EBITDA, EPS, cash, BTC holdings, debt.
-
-**When to update:** After each earnings release (10-Q / 10-K filing).
-
-**Priority fields:** `revenue_usd_m` > `net_income_usd_m` > `adjusted_ebitda_usd_m` > everything else.
-
-**Sources (try in order):**
-1. Company IR page → earnings press release (fastest, usually same day)
-2. SEC EDGAR → 10-Q / 10-K filing (authoritative, may lag 1-2 days)
-3. Financial data APIs (Yahoo Finance, Macrotrends, Wisesheets)
-4. Earnings call transcripts (for guidance, commentary, non-GAAP reconciliation)
-
-#### Category C: Monthly Operations (`operational.json`)
-
-Production reports: BTC mined, BTC held, hashrate, installed capacity, power cost, fleet efficiency.
-
-**When to update:** After each monthly production report (companies typically release first week of following month).
-
-**Sources (try in order):**
-1. Company IR page → monthly production/operations update
-2. GlobeNewswire / BusinessWire / PRNewswire (press release aggregators)
-3. SEC Form 8-K (some companies file 8-K for monthly updates)
-4. Mining pool data / on-chain analysis (for cross-validation)
-
-#### Category D: News & Events (`news.json`)
-
-Industry news, company announcements, regulatory changes, market events.
-
-**Sources:**
-- Company press releases (IR pages, PR wire services)
-- Crypto media (CoinDesk, The Block, Bitcoin Magazine)
-- Financial media (Bloomberg, Reuters, CNBC)
-- SEC filings (material events)
-- Social media trending topics
-
-#### Category E: Market Sentiment (`sentiment.json`)
-
-Two sub-categories:
-
-**Analyst Ratings** — investment bank ratings, price targets, upgrades/downgrades.
-- Sources: Research note summaries, TipRanks, MarketBeat, Benzinga, Seeking Alpha
-
-**Social Sentiment** — community sentiment metrics.
-- Sources: StockTwits API, Reddit (r/bitcoin, r/CryptoMining), Twitter/X search
-
-#### Category F: BTC Price Predictions (`btc_price_predictions.json`)
-
-Forecasts from crypto platforms and Wall Street / research institutions.
-
-**Sources:**
-- Crypto forecast platforms (DigitalCoinPrice, CoinPedia, Changelly, PricePrediction.net, etc.)
-- Institutional research (ARK, JPMorgan, Goldman Sachs, Bernstein, Standard Chartered, etc.)
-- Academic/quantitative models (Stock-to-Flow, on-chain metrics)
-
-#### Category G: Financial Analysis (`analysis_data.json`)
-
-Balance sheet and cash flow data for quantitative models (Altman Z-score, KMV, Beneish M-score, Piotroski F-score, Jones Model, Monte Carlo).
-
-**Sources:**
-- SEC EDGAR (10-K annual reports — balance sheet, income statement, cash flow statement)
-- Same as Category B sources
-
-### Data Collection Strategy
-
-When tasked with data collection, follow this workflow:
-
-```
-1. READ existing data files → understand current coverage
-2. IDENTIFY gaps:
-   - Companies with no data or stale data
-   - Missing quarters/months
-   - Null fields that should have values
-3. PRIORITIZE:
-   - Priority companies first: MARA, RIOT, CLSK, CORZ, HUT
-   - Then secondary: WULF, IREN, CIFR, APLD, BITF, BTBT, etc.
-4. COLLECT from sources (try multiple channels if first fails)
-5. VALIDATE data makes sense (no obvious errors, units correct)
-6. COMMIT changes to /data/*.json files
-```
-
-### How to Publish Data (Auto-Deploy)
-
-When the agent finishes collecting data, it should:
-
-1. Modify only files in `/data/` directory
-2. Commit with a descriptive message (e.g., `Update MARA Q4 2024 financials`)
-3. Create a Pull Request targeting `main` branch
-
-**The PR will be automatically merged and deployed** — no manual intervention needed. A GitHub Action validates that the PR only touches `data/` files and auto-merges it. GitHub Pages then re-deploys within ~60 seconds.
-
-If the agent has direct push access to `main`, it can also push directly — the deploy workflow triggers on any push to `main`.
+| Tier | Companies |
+|------|-----------|
+| **Priority** | MARA (Marathon) · RIOT (Riot Platforms) · CLSK (CleanSpark) · CORZ (Core Scientific) · HUT (Hut 8) |
+| **Major** | WULF (TeraWulf) · IREN (Iris Energy) · CIFR (Cipher Mining) · APLD (Applied Digital) · BITF (Bitfarms) · BTDR (Bitdeer) · HIVE (HIVE Digital) · FUFU (BitFuFu) |
+| **Secondary** | BTBT (Bit Digital) · ABTC (American Bitcoin) · ANY (Sphere 3D) · SLNH (Soluna) · GPUS (Hyperscale Data) · DGXX (Digi Power X) · MIGI (Mawson) · SAIH (SAIHEAT) · GREE (Greenidge) |
 
 ---
 
 ## Tech Stack
 
-- Static website (HTML + CSS + JavaScript)
-- Chart.js for data visualization
-- Data via local JSON files (`/data/`)
-- GitHub Pages + GitHub Actions auto-deployment
-- Live BTC price via mempool.space API
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Vanilla JavaScript, HTML5, CSS3 |
+| Charts | Chart.js 4.x + CSS conic-gradient / progress bars |
+| Data | JSON files (`/data/*.json`) — no database required |
+| Hosting | GitHub Pages (static, auto HTTPS) |
+| CI/CD | GitHub Actions — auto-merge data PRs, auto-deploy |
+| Data Collection | Python scripts + OpenClaw agent automation |
+| APIs | mempool.space (BTC price), Yahoo Finance v8 (stocks), SEC EDGAR XBRL (financials) |
 
-## Covered Companies
+---
 
-**Priority:** MARA · RIOT · CLSK · CORZ · HUT
+## Project Structure
 
-**Secondary:** WULF · IREN · CIFR · APLD · BITF · BTBT · DGXX · GPUS · SAIH and others
+```
+btcminecompany/
+├── index.html              # Main single-page application
+├── css/style.css           # All styles (dark/light themes)
+├── js/
+│   ├── app.js              # Core application logic (~2,400 lines)
+│   ├── data.js             # Data loading & initialization
+│   └── i18n.js             # Internationalization (zh/en)
+├── Analysis/               # 6 quantitative financial models
+│   ├── altman.js           # Altman Z-Score
+│   ├── beneish.js          # Beneish M-Score
+│   ├── jones.js            # Jones Model
+│   ├── kmv.js              # KMV Default Probability
+│   ├── montecarlo.js       # Monte Carlo Simulation
+│   └── piotroski.js        # Piotroski F-Score
+├── data/                   # All data (JSON)
+│   ├── companies.json      # Company master data (23 companies)
+│   ├── financials.json     # Quarterly/annual earnings (420+ records)
+│   ├── operational.json    # Monthly ops reports (110+ records)
+│   ├── news.json           # Industry news & events
+│   ├── sentiment.json      # Analyst ratings & social sentiment
+│   ├── btc_price_predictions.json
+│   ├── analysis_data.json  # Balance sheet data for models
+│   └── schema.json         # Field definitions
+├── scripts/                # Python data collection tools
+│   ├── fetch_sec_data.py   # SEC EDGAR XBRL scraper
+│   ├── fetch_prices.py     # Stock & BTC price fetcher
+│   ├── update_all_data.py  # Master data pipeline
+│   └── ...                 # Additional data scripts
+├── docs/                   # Documentation
+│   └── DATA_COLLECTION_GUIDE.md
+└── .github/workflows/      # CI/CD
+    ├── deploy.yml          # GitHub Pages deployment
+    └── auto-merge-data.yml # Auto-merge data PRs
+```
+
+---
+
+## Quick Start
+
+No build step needed. Just open `index.html` in a browser or serve locally:
+
+```bash
+# Clone
+git clone https://github.com/tincomking/btcminecompany.git
+cd btcminecompany
+
+# Serve locally (any static server works)
+python3 -m http.server 8080
+# Open http://localhost:8080
+```
+
+---
+
+## Data Collection
+
+Data is collected from public sources and stored as JSON in `/data/`. See [`docs/DATA_COLLECTION_GUIDE.md`](docs/DATA_COLLECTION_GUIDE.md) for the complete guide.
+
+### Sources
+
+| Data | Primary Source | Update Frequency |
+|------|---------------|-----------------|
+| Financials | SEC EDGAR XBRL, Company IR | Quarterly (earnings season) |
+| Operations | Company press releases | Monthly (1st week of following month) |
+| Stock Prices | Yahoo Finance v8 API | Daily |
+| BTC Price | mempool.space / CoinGecko | Real-time |
+| Analyst Ratings | TipRanks, MarketBeat, Benzinga | As published |
+| News | CoinDesk, Bloomberg, PR wire | Continuous |
+| BTC Predictions | Institutional research, crypto platforms | As published |
+
+### Auto-Deploy Pipeline
+
+```
+Data collected → git push / PR to main → GitHub Actions validates → Auto-merge → GitHub Pages deploys (~60s)
+```
+
+---
+
+## For Data Agents (OpenClaw)
+
+> Detailed instructions: [`docs/DATA_COLLECTION_GUIDE.md`](docs/DATA_COLLECTION_GUIDE.md)
+
+**Core principle: Collect only what's missing.**
+
+1. Read target JSON in `/data/` to check existing coverage
+2. Identify gaps (missing companies, quarters, months, null fields)
+3. Collect from sources (company IR → SEC EDGAR → financial APIs)
+4. Validate data (no obvious errors, correct units)
+5. Commit to `/data/*.json` and push — auto-deploy handles the rest
 
 ---
 
 <a name="中文版"></a>
+
 # 中文版
 
-> **网站访问：[btcmine.info](https://btcmine.info)**
+[![在线访问](https://img.shields.io/badge/访问-btcmine.info-blue?style=flat-square)](https://btcmine.info)
 
-美国上市比特币矿商财务数据追踪平台。
+全面追踪 **22 家美股上市比特币矿商** 的开源数据分析平台 — 涵盖财务数据、运营指标、市场情绪、量化分析和 BTC 价格预测。
 
 ---
 
-## 数据采集指南（OpenClaw Agent 专用）
+## 功能特色
 
-### 核心原则：只采集缺失的数据
+### 数据看板（7 个 Tab）
 
-**已有的数据不要重复采集。** 每次执行采集任务前：
+| Tab | 说明 |
+|-----|------|
+| **概览** | 实时 BTC 价格与网络难度、公司卡片、财报日历 |
+| **财务数据** | 季度财报（营收、净利润、EBITDA、EPS）、同比对比、点击查看财报详情、分页 |
+| **运营数据** | 月度产量报告 — BTC 产量、持仓、算力、电力容量、机队效率 |
+| **新闻动态** | 行业新闻、情绪分析、分类筛选、CSS 可视化图表 |
+| **市场情绪** | 机构评级（买入/持有/卖出）、目标价对比、社交情绪（StockTwits/Reddit） |
+| **财务分析** | 6 个量化模型 — Altman Z-Score、Piotroski F-Score、Beneish M-Score、Jones Model、KMV、蒙特卡洛 |
+| **BTC 预测** | 机构和加密平台的 BTC 价格预测、拟合曲线、交互图表 |
 
-1. 先读取 `/data/` 目录下的目标 JSON 文件
-2. 确认哪些记录已经存在（按 ticker、日期、季度核对）
-3. 只采集和补充**缺口**——缺失的公司、缺失的季度/月份、已有记录中为 null 的字段
+### 核心亮点
 
-### 数据分类
+- **22 家活跃公司**，420+ 条财务记录，110+ 条运营记录
+- **实时数据** — 实时 BTC 价格（mempool.space）、网络难度、股价（Yahoo Finance）
+- **6 个财务分析模型**，覆盖欺诈检测、偿付能力和风险评估
+- **中英双语 UI**，一键切换
+- **深色/浅色主题**，可调字号
+- **零依赖** — 纯 HTML/CSS/JS，无需构建步骤
+- **自动部署** — 推送到 `main` 分支后约 60 秒完成 GitHub Pages 部署
+- **Agent 就绪** — 通过 OpenClaw 定时任务自动采集数据
 
-所有数据存放于 `/data/*.json`，详细字段定义见 `data/schema.json`。
+---
 
-#### A 类：公司档案（`companies.json`）
+## 覆盖公司
 
-公司基本信息：代码、名称、交易所、市值、股价、投资者关系网址。
-
-**何时更新：** 新公司 IPO/上市、退市、合并、重大公司变更。
-
-**数据来源：**
-- SEC EDGAR（CIK 查询、公司文件）
-- Yahoo Finance / Google Finance（股价、市值）
-- 公司 IR 网站（官方资料）
-
-#### B 类：季度财务（`financials.json`）
-
-财报数据：营收、净利润、Adj. EBITDA、EPS、现金、BTC 持仓、负债。
-
-**何时更新：** 每次财报发布后（10-Q / 10-K）。
-
-**优先字段：** `revenue_usd_m` > `net_income_usd_m` > `adjusted_ebitda_usd_m` > 其他。
-
-**数据来源（按优先级）：**
-1. 公司 IR 页面 → 财报新闻稿（最快，通常当天）
-2. SEC EDGAR → 10-Q / 10-K 文件（权威，可能滞后 1-2 天）
-3. 金融数据 API（Yahoo Finance、Macrotrends、Wisesheets）
-4. 财报电话会议记录（获取业绩指引、非 GAAP 调整明细）
-
-#### C 类：月度运营（`operational.json`）
-
-月度产量报告：BTC 产量、BTC 持仓、算力、装机容量、电力成本、机队效率。
-
-**何时更新：** 每月产量报告发布后（公司通常在次月第一周发布）。
-
-**数据来源（按优先级）：**
-1. 公司 IR 页面 → 月度运营/产量报告
-2. GlobeNewswire / BusinessWire / PRNewswire（新闻稿聚合）
-3. SEC Form 8-K（部分公司通过 8-K 披露月度数据）
-4. 矿池数据 / 链上分析（用于交叉验证）
-
-#### D 类：新闻动态（`news.json`）
-
-行业新闻、公司公告、监管变化、市场事件。
-
-**数据来源：**
-- 公司新闻稿（IR 页面、PR 通讯社）
-- 加密媒体（CoinDesk、The Block、Bitcoin Magazine）
-- 财经媒体（Bloomberg、Reuters、CNBC）
-- SEC 备案文件（重大事件）
-- 社交媒体热点话题
-
-#### E 类：市场情绪（`sentiment.json`）
-
-**机构评级** — 投行评级、目标价、升降级。
-- 来源：研报摘要、TipRanks、MarketBeat、Benzinga、Seeking Alpha
-
-**社交情绪** — 社区情绪指标。
-- 来源：StockTwits API、Reddit（r/bitcoin、r/CryptoMining）、Twitter/X
-
-#### F 类：BTC 价格预测（`btc_price_predictions.json`）
-
-加密平台和华尔街/研究机构的预测。
-
-**数据来源：**
-- 加密预测平台（DigitalCoinPrice、CoinPedia、Changelly、PricePrediction.net 等）
-- 机构研报（ARK、JPMorgan、Goldman Sachs、Bernstein、Standard Chartered 等）
-- 量化模型（Stock-to-Flow、链上指标）
-
-#### G 类：财务分析（`analysis_data.json`）
-
-资产负债表和现金流数据，用于量化模型（Altman Z-score、KMV、Beneish M-score、Piotroski F-score、Jones Model、Monte Carlo）。
-
-**数据来源：**
-- SEC EDGAR（10-K 年报 — 资产负债表、利润表、现金流量表）
-- 同 B 类数据来源
-
-### 数据采集流程
-
-```
-1. 读取现有数据文件 → 了解当前覆盖范围
-2. 识别缺口：
-   - 没有数据或数据过时的公司
-   - 缺失的季度/月份
-   - 已有记录中应该有值但为 null 的字段
-3. 优先级排序：
-   - 重点公司优先：MARA, RIOT, CLSK, CORZ, HUT
-   - 然后：WULF, IREN, CIFR, APLD, BITF, BTBT 等
-4. 从数据来源采集（第一个来源失败就换其他渠道）
-5. 验证数据合理性（无明显错误、单位正确）
-6. 提交变更到 /data/*.json 文件
-```
-
-### 数据发布方式（自动部署）
-
-Agent 采集完数据后：
-
-1. 只修改 `/data/` 目录下的文件
-2. 提交并附描述性信息（如 `Update MARA Q4 2024 financials`）
-3. 创建指向 `main` 分支的 Pull Request
-
-**PR 会自动合并并部署** — 无需人工干预。GitHub Action 会验证 PR 仅修改了 `data/` 文件，然后自动合并。GitHub Pages 随后在约 60 秒内重新部署。
-
-如果 agent 有 `main` 分支的直接推送权限，也可以直接 push — 部署工作流在任何 push 到 `main` 时自动触发。
+| 优先级 | 公司 |
+|--------|------|
+| **核心** | MARA（Marathon）· RIOT（Riot Platforms）· CLSK（CleanSpark）· CORZ（Core Scientific）· HUT（Hut 8） |
+| **重要** | WULF（TeraWulf）· IREN（Iris Energy）· CIFR（Cipher Mining）· APLD（Applied Digital）· BITF（Bitfarms）· BTDR（Bitdeer）· HIVE · FUFU（BitFuFu） |
+| **次要** | BTBT · ABTC · ANY · SLNH · GPUS · DGXX · MIGI · SAIH · GREE |
 
 ---
 
 ## 技术栈
 
-- 纯静态网站（HTML + CSS + JavaScript）
-- Chart.js（图表可视化）
-- 数据通过本地 JSON 文件管理（`/data/`）
-- GitHub Pages + GitHub Actions 自动部署
-- 实时 BTC 价格（mempool.space API）
+| 层级 | 技术方案 |
+|------|---------|
+| 前端 | 原生 JavaScript、HTML5、CSS3 |
+| 图表 | Chart.js 4.x + CSS conic-gradient / 进度条 |
+| 数据 | JSON 文件（`/data/*.json`）— 无需数据库 |
+| 托管 | GitHub Pages（静态站点，自动 HTTPS） |
+| CI/CD | GitHub Actions — 自动合并数据 PR、自动部署 |
+| 数据采集 | Python 脚本 + OpenClaw Agent 自动化 |
+| API | mempool.space（BTC 价格）、Yahoo Finance v8（股价）、SEC EDGAR XBRL（财务数据） |
 
-## 覆盖公司
+---
 
-**重点：** MARA · RIOT · CLSK · CORZ · HUT
+## 快速开始
 
-**其他：** WULF · IREN · CIFR · APLD · BITF · BTBT · DGXX · GPUS · SAIH 等
+无需构建。直接在浏览器中打开 `index.html` 或本地起服务：
+
+```bash
+# 克隆项目
+git clone https://github.com/tincomking/btcminecompany.git
+cd btcminecompany
+
+# 本地服务（任意静态服务器均可）
+python3 -m http.server 8080
+# 打开 http://localhost:8080
+```
+
+---
+
+## 数据采集
+
+数据来源于公开信息，以 JSON 格式存储在 `/data/` 目录。完整指南见 [`docs/DATA_COLLECTION_GUIDE.md`](docs/DATA_COLLECTION_GUIDE.md)。
+
+### 数据来源
+
+| 数据类型 | 主要来源 | 更新频率 |
+|---------|---------|---------|
+| 季度财务 | SEC EDGAR XBRL、公司 IR 页面 | 季度（财报季） |
+| 月度运营 | 公司新闻稿 | 月度（次月第一周） |
+| 股价 | Yahoo Finance v8 API | 每日 |
+| BTC 价格 | mempool.space / CoinGecko | 实时 |
+| 机构评级 | TipRanks、MarketBeat、Benzinga | 随时发布 |
+| 新闻 | CoinDesk、Bloomberg、PR 通讯社 | 持续 |
+| BTC 预测 | 机构研报、加密预测平台 | 随时发布 |
+
+### 自动部署流程
+
+```
+数据采集 → git push / PR 到 main → GitHub Actions 验证 → 自动合并 → GitHub Pages 部署（~60秒）
+```
+
+---
+
+## 数据采集 Agent（OpenClaw）
+
+> 详细文档：[`docs/DATA_COLLECTION_GUIDE.md`](docs/DATA_COLLECTION_GUIDE.md)
+
+**核心原则：只采集缺失的数据。**
+
+1. 读取 `/data/` 中的目标 JSON，了解当前覆盖范围
+2. 识别缺口（缺失的公司、季度、月份、空值字段）
+3. 从数据来源采集（公司 IR → SEC EDGAR → 金融 API）
+4. 验证数据（无明显错误、单位正确）
+5. 提交到 `/data/*.json` 并推送 — 自动部署会处理后续
+
+---
+
+## License
+
+MIT
