@@ -1,94 +1,94 @@
 {
-  "last_updated": "2026-02-28T18:30:00Z",
+  "last_updated": "2026-02-28T19:06:00Z",
   "source": "OpenNews API (aiRating scores) + OpenTwitter",
   "sentiments": [
     {
       "ticker": "MARA",
-      "avg_score": 65,
+      "avg_score": 65.5,
       "sentiment": "neutral",
-      "sample_size": 3,
-      "bullish": 0,
-      "bearish": 0,
-      "neutral": 3,
+      "sample_size": 8,
+      "bullish": 4,
+      "bearish": 2,
+      "neutral": 2,
       "twitter_sentiment": "bullish",
-      "twitter_summary": "Q4 2025 strong: hashrate +25% to 66.4 EH/s, BTC stack +20% to 53.8k, liquidity ~$5.3B. AI inference expansion with Starwood Capital (1GW target)."
+      "twitter_summary": "Q4 2025: hashrate +25% to 66.4 EH/s, BTC stack +20% to 53.8k. Exaion acquisition final. Starwood AI partnership. Revenue up 92% YoY."
     },
     {
       "ticker": "RIOT",
-      "avg_score": 59.2,
-      "sentiment": "neutral",
-      "sample_size": 8,
-      "bullish": 1,
-      "bearish": 1,
-      "neutral": 6,
+      "avg_score": null,
+      "sentiment": "no_data",
+      "sample_size": 0,
+      "bullish": 0,
+      "bearish": 0,
+      "neutral": 0,
       "twitter_sentiment": "bullish",
-      "twitter_summary": "AI pivot positive. Corsicana 400MW active, 600MW ready. Whinstone largest Bitcoin mining facility. Analyst upgraded on AI transition."
+      "twitter_summary": "AI pivot positive. Corsicana 400MW active, 600MW ready. Analyst upgraded on AI transition."
     },
     {
       "ticker": "CLSK",
-      "avg_score": null,
-      "sentiment": "no_data",
-      "sample_size": 0,
+      "avg_score": 64.2,
+      "sentiment": "neutral",
+      "sample_size": 10,
       "bullish": 0,
-      "bearish": 0,
-      "neutral": 0,
+      "bearish": 6,
+      "neutral": 4,
       "twitter_sentiment": "neutral",
-      "twitter_summary": "No significant news today"
+      "twitter_summary": "Revenue up 7,916%, 140% CAGR. CleanSpark Q4 earnings miss. Weather impact in Tennessee."
     },
     {
       "ticker": "CORZ",
-      "avg_score": 45.0,
+      "avg_score": 36.7,
       "sentiment": "neutral",
       "sample_size": 3,
       "bullish": 0,
-      "bearish": 1,
-      "neutral": 2,
+      "bearish": 2,
+      "neutral": 1,
       "twitter_sentiment": "neutral",
-      "twitter_summary": "Q4 earnings scheduled. Third Point dissolved stake."
+      "twitter_summary": "Third Point dissolved stake. Q4 earnings scheduled. Activist Two Seas nominated directors."
     },
     {
       "ticker": "BITF",
-      "avg_score": 62.1,
-      "sentiment": "neutral",
-      "sample_size": 8,
-      "bullish": 2,
-      "bearish": 1,
-      "neutral": 5,
+      "avg_score": 71.9,
+      "sentiment": "bullish",
+      "sample_size": 7,
+      "bullish": 3,
+      "bearish": 2,
+      "neutral": 2,
       "twitter_sentiment": "bullish",
-      "twitter_summary": "Sale of 70MW Paraguay site for $30M. US redomiciliation plan advancing. Strong Q4 performance."
+      "twitter_summary": "US redomiciliation to Delaware. Paraguay 100MW PPA signed. Nesquehoning expansion approved. AI/HPC pivot."
     },
     {
       "ticker": "IREN",
-      "avg_score": null,
-      "sentiment": "no_data",
-      "sample_size": 0,
+      "avg_score": 37.5,
+      "sentiment": "neutral",
+      "sample_size": 2,
       "bullish": 0,
       "bearish": 0,
-      "neutral": 0,
-      "twitter_sentiment": "bullish",
-      "twitter_summary": "FY25 revenue $501M (168% YoY). AI data center pivot. Analysts rate outperform. 40 EH/s capacity expansion."
+      "neutral": 2,
+      "twitter_sentiment": "neutral",
+      "twitter_summary": "Mixed analyst views. Goldman Sachs and JPMorgan say overvalued. Long-term AI infrastructure play."
     },
     {
       "ticker": "BTDR",
-      "avg_score": 65.6,
+      "avg_score": 69.5,
       "sentiment": "neutral",
-      "sample_size": 8,
-      "bullish": 2,
-      "bearish": 3,
-      "neutral": 3,
+      "sample_size": 9,
+      "bullish": 1,
+      "bearish": 4,
+      "neutral": 4,
       "twitter_sentiment": "neutral",
-      "twitter_summary": "Sold all BTC treasury. CEO says balance won't stay zero. Land acquisition plans. $40M Canaan-Cipher deal."
+      "twitter_summary": "Sold all BTC treasury ($62M). CEO says balance won't stay zero. Land acquisition planned. Canaan $40M deal."
     },
     {
       "ticker": "HIVE",
-      "avg_score": null,
-      "sentiment": "no_data",
-      "sample_size": 0,
+      "avg_score": 65.0,
+      "sentiment": "neutral",
+      "sample_size": 1,
       "bullish": 0,
       "bearish": 0,
-      "neutral": 0,
+      "neutral": 1,
       "twitter_sentiment": "bullish",
-      "twitter_summary": "December 2025: 306 BTC produced (+197% YoY). Paraguay hydro expansion to 540 MW by 2026. Dual-engine AI+HPC strategy."
+      "twitter_summary": "Paraguay 540MW target by 2026. 100MW PPA signed. Substation development. AI/HPC dual strategy."
     },
     {
       "ticker": "FUFU",
@@ -99,10 +99,43 @@
       "bearish": 0,
       "neutral": 0,
       "twitter_sentiment": "neutral",
-      "twitter_summary": "No significant news today"
+      "twitter_summary": "January 2026: 229 BTC produced. Holdings 1,796 BTC (+16 BTC from Dec)."
     },
     {
       "ticker": "HUT",
+      "avg_score": 63.9,
+      "sentiment": "neutral",
+      "sample_size": 10,
+      "bullish": 3,
+      "bearish": 3,
+      "neutral": 4,
+      "twitter_sentiment": "bullish",
+      "twitter_summary": "$85 target from Benchmark. Q4 $279M loss but compute revenue jumping. 216% YoY stock gain. AI pivot."
+    },
+    {
+      "ticker": "WULF",
+      "avg_score": 55.9,
+      "sentiment": "neutral",
+      "sample_size": 9,
+      "bullish": 0,
+      "bearish": 6,
+      "neutral": 3,
+      "twitter_sentiment": "bearish",
+      "twitter_summary": "Google becomes top shareholder. Q4 earnings miss. Bitcoin production decline. AI/HPC pivot accelerating."
+    },
+    {
+      "ticker": "CIFR",
+      "avg_score": 63.3,
+      "sentiment": "neutral",
+      "sample_size": 8,
+      "bullish": 2,
+      "bearish": 1,
+      "neutral": 5,
+      "twitter_sentiment": "neutral",
+      "twitter_summary": "Canaan acquired West Texas assets for $40M. Focus on AI/HPC pivot. Q4 loss wider than expected."
+    },
+    {
+      "ticker": "ABTC",
       "avg_score": null,
       "sentiment": "no_data",
       "sample_size": 0,
@@ -111,39 +144,6 @@
       "neutral": 0,
       "twitter_sentiment": "neutral",
       "twitter_summary": "No significant news today"
-    },
-    {
-      "ticker": "WULF",
-      "avg_score": 62.5,
-      "sentiment": "neutral",
-      "sample_size": 8,
-      "bullish": 1,
-      "bearish": 6,
-      "neutral": 1,
-      "twitter_sentiment": "bullish",
-      "twitter_summary": "Q4 earnings miss. $3.2B bond for AI pivot. Google partnership ($3.7B deal). Lake Mariner AI hub expansion. Debt-free, profitable mining."
-    },
-    {
-      "ticker": "CIFR",
-      "avg_score": 66.1,
-      "sentiment": "neutral",
-      "sample_size": 7,
-      "bullish": 4,
-      "bearish": 0,
-      "neutral": 3,
-      "twitter_sentiment": "neutral",
-      "twitter_summary": "West Texas assets acquired by Canaan for $40M. Focus on AI/HPC pivot."
-    },
-    {
-      "ticker": "ABTC",
-      "avg_score": 65.4,
-      "sentiment": "neutral",
-      "sample_size": 8,
-      "bullish": 1,
-      "bearish": 5,
-      "neutral": 2,
-      "twitter_sentiment": "neutral",
-      "twitter_summary": "Q4 $59M loss despite $78.3M revenue. BTC holdings +58% QoQ to 6,000+ BTC. Stock down 90% from high."
     },
     {
       "ticker": "BTBT",
