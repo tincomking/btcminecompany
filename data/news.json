@@ -1,0 +1,1559 @@
+{
+  "last_updated": "2026-02-28T10:02:18Z",
+  "source": "OpenNews API",
+  "companies": [
+    "MARA",
+    "RIOT",
+    "CLSK",
+    "CORZ",
+    "BITF",
+    "IREN",
+    "BTDR",
+    "HIVE",
+    "FUFU",
+    "HUT",
+    "WULF",
+    "CIFR",
+    "ABTC",
+    "BTBT"
+  ],
+  "news": [
+    {
+      "aiRating": {
+        "enSummary": "According to The Wall Street Journal, TeraWulf&#39;s stock price fell as declining Bitcoin production impacted its fourth-quarter revenue.",
+        "grade": "B+",
+        "score": 70,
+        "signal": "short",
+        "status": "done",
+        "summary": "《华尔街日报》报道，TeraWulf因比特币产量下降影响四季度营收，其股价下跌。"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN"
+          ]
+        }
+      ],
+      "description": "WSJ: TeraWulf Shares Down After Decline in Bitcoin Production Dents 4Q Revenue",
+      "engineType": "news",
+      "id": 952957,
+      "link": "",
+      "newsType": "tree",
+      "source": "Blogs",
+      "text": "WSJ: TeraWulf Shares Down After Decline in Bitcoin Production Dents 4Q Revenue",
+      "ts": "2026-02-27T20:35:21.447Z",
+      "ticker": "WULF"
+    },
+    {
+      "coins": null,
+      "description": "",
+      "engineType": "news",
+      "id": 952464,
+      "link": "https://www.sec.gov/Archives/edgar/data/1083301/000108330126000031/wulf-20251231.htm",
+      "newsType": "SEC Filing",
+      "source": "",
+      "text": "10-K (10-K) - TERAWULF INC. (WULF) (CIK 0001083301)",
+      "ts": "2026-02-27T18:55:24.992535Z",
+      "ticker": "WULF"
+    },
+    {
+      "aiRating": {
+        "enSummary": "TeraWulf&#39;s Q4 2025 earnings report showed that profits fell short of expectations, with Bitcoin mining revenue declining.",
+        "grade": "B",
+        "score": 65,
+        "signal": "short",
+        "status": "done",
+        "summary": "TeraWulf公司2025年第四季度财报显示盈利未达预期，比特币挖矿收入下降"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN"
+          ]
+        }
+      ],
+      "description": "",
+      "engineType": "news",
+      "id": 952079,
+      "link": "https://financefeeds.com/terawulf-q4-2025-earnings-miss-expectations/",
+      "newsType": "News Websites",
+      "source": "",
+      "text": "TeraWulf Q4 2025 Earnings Miss Expectations as Bitcoin Mining Revenue Declines",
+      "ts": "2026-02-27T17:54:50.95662Z",
+      "ticker": "WULF"
+    },
+    {
+      "aiRating": {
+        "enSummary": "TeraWulf&#39;s Q4 2025 financial results fell short of expectations, with a decline in its Bitcoin mining revenue.",
+        "grade": "B",
+        "score": 60,
+        "signal": "short",
+        "status": "done",
+        "summary": "TeraWulf公布的2025年第四季度财报未达预期，其比特币挖矿收入出现下降。"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN"
+          ]
+        }
+      ],
+      "description": "",
+      "engineType": "news",
+      "id": 952077,
+      "link": "https://financefeeds.com/terawulf-q4-2025-earnings-miss-expectations/",
+      "newsType": "phoenixnews",
+      "source": "Webs",
+      "text": "TeraWulf Q4 2025 Earnings Miss Expectations as Bitcoin Mining Revenue Declines",
+      "ts": "2026-02-27T17:54:45.846Z",
+      "ticker": "WULF"
+    },
+    {
+      "aiRating": {
+        "enSummary": "TeraWulf failed to meet its Q4 2025 forecast due to declining Bitcoin mining revenue.",
+        "grade": "B",
+        "score": 55,
+        "signal": "short",
+        "status": "done",
+        "summary": "TeraWulf因比特币挖矿收入下降，未能达到2025年第四季度的预期。"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN"
+          ]
+        }
+      ],
+      "description": "",
+      "engineType": "news",
+      "id": 948032,
+      "link": "https://cointelegraph.com/news/terawulf-q4-2025-miss-estimate-mining-revenue-drop",
+      "newsType": "Cointelegraph",
+      "source": "",
+      "text": "TeraWulf misses Q4 2025 estimates as Bitcoin mining revenue falls",
+      "ts": "2026-02-27T09:18:54.536744Z",
+      "ticker": "WULF"
+    },
+    {
+      "aiRating": {
+        "enSummary": "According to COINTELEGRAPH, TeraWulf failed to meet its Q4 2025 forecast due to declining Bitcoin mining revenue.",
+        "grade": "B",
+        "score": 55,
+        "signal": "short",
+        "status": "done",
+        "summary": "COINTELEGRAPH消息，TeraWulf因比特币挖矿收入下降，未能达到2025年第四季度预期。"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN"
+          ]
+        }
+      ],
+      "description": "COINTELEGRAPH: TeraWulf misses Q4 2025 estimates as Bitcoin mining revenue falls",
+      "engineType": "news",
+      "id": 948034,
+      "link": "",
+      "newsType": "tree",
+      "source": "Blogs",
+      "text": "COINTELEGRAPH: TeraWulf misses Q4 2025 estimates as Bitcoin mining revenue falls",
+      "ts": "2026-02-27T09:18:54.218Z",
+      "ticker": "WULF"
+    },
+    {
+      "aiRating": {
+        "enSummary": "TeraWulf failed to meet its Q4 2025 projections due to declining Bitcoin mining revenue.",
+        "grade": "B",
+        "score": 65,
+        "signal": "short",
+        "status": "done",
+        "summary": "TeraWulf在比特币挖矿收入下降的情况下，未能达到2025年第四季度的预期。"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN"
+          ]
+        }
+      ],
+      "description": "",
+      "engineType": "news",
+      "id": 948031,
+      "link": "https://cointelegraph.com/news/terawulf-q4-2025-miss-estimate-mining-revenue-drop",
+      "newsType": "phoenixnews",
+      "source": "Crypto",
+      "text": "TeraWulf misses Q4 2025 estimates as Bitcoin mining revenue falls",
+      "ts": "2026-02-27T09:18:53Z",
+      "ticker": "WULF"
+    },
+    {
+      "aiRating": {
+        "enSummary": "TeraWulf reported revenue growth but widening losses in 2025, and its transformation toward AI and HPC is accelerating.",
+        "grade": "B",
+        "score": 65,
+        "signal": "neutral",
+        "status": "done",
+        "summary": "TeraWulf在2025年公布营收增长但亏损扩大，其向AI和HPC领域的转型正在加速。"
+      },
+      "coins": null,
+      "description": "The Block (@TheBlockCo)",
+      "engineType": "news",
+      "id": 945459,
+      "link": "https://twitter.com/TheBlockCo/status/2027224429785121159",
+      "newsType": "tree",
+      "source": "",
+      "text": "TeraWulf posts higher revenue, wider loss in 2025 as AI, HPC pivot accelerates https://www.theblock.co/post/391539/terawulf-posts-higher-revenue-wider-loss-in-2025-as-ai-hpc-pivot-accelerates?utm_source=twitter&utm_medium=social",
+      "ts": "2026-02-27T03:29:04.134Z",
+      "ticker": "WULF"
+    },
+    {
+      "aiRating": {
+        "enSummary": "The Trump brothers&#39; U.S. Bitcoin mining company reported a $59 million loss in the fourth quarter.",
+        "grade": "B",
+        "score": 60,
+        "signal": "short",
+        "status": "done",
+        "summary": "特朗普兄弟的美国比特币矿业公司报告第四季度亏损5900万美元"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN",
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "ETH",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "SOL",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "TRUMP",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        }
+      ],
+      "description": "",
+      "engineType": "news",
+      "id": 940573,
+      "link": "https://decrypt.co/359252/trump-brothers-american-bitcoin-mining-firm-59-million-loss",
+      "newsType": "Decrypt",
+      "source": "",
+      "text": "Trump Brothers' American Bitcoin Mining Firm Reports $59 Million Q4 Loss",
+      "ts": "2026-02-26T19:08:18.798489Z",
+      "ticker": "ABTC"
+    },
+    {
+      "aiRating": {
+        "enSummary": "The Trump brothers&#39; U.S. Bitcoin mining company reported a fourth-quarter loss of $59 million.",
+        "grade": "B",
+        "score": 65,
+        "signal": "short",
+        "status": "done",
+        "summary": "特朗普兄弟的美国比特币矿业公司公布第四季度亏损5900万美元"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN",
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "ETH",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "SOL",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "TRUMP",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        }
+      ],
+      "description": "",
+      "engineType": "news",
+      "id": 940568,
+      "link": "https://decrypt.co/359252",
+      "newsType": "Decrypt",
+      "source": "",
+      "text": "Trump Brothers' American Bitcoin Mining Firm Reports $59 Million Q4 Loss",
+      "ts": "2026-02-26T19:08:11.796957Z",
+      "ticker": "ABTC"
+    },
+    {
+      "aiRating": {
+        "enSummary": "The Trump brothers&#39; U.S. Bitcoin mining company reported a fourth-quarter loss of $59 million.",
+        "grade": "B+",
+        "score": 65,
+        "signal": "short",
+        "status": "done",
+        "summary": "特朗普兄弟的美国比特币矿业公司公布第四季度亏损5900万美元"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN",
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "ETH",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "SOL",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "TRUMP",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        }
+      ],
+      "description": "DECRYPT: Trump Brothers' American Bitcoin Mining Firm Reports $59 Million Q4 Loss",
+      "engineType": "news",
+      "id": 940571,
+      "link": "",
+      "newsType": "tree",
+      "source": "Blogs",
+      "text": "DECRYPT: Trump Brothers' American Bitcoin Mining Firm Reports $59 Million Q4 Loss",
+      "ts": "2026-02-26T19:08:11.479Z",
+      "ticker": "ABTC"
+    },
+    {
+      "aiRating": {
+        "enSummary": "American Bitcoin Corp ($ABTC), a Bitcoin mining company backed by the Trump family, reported revenue of $78.3 million for the fourth quarter of 2025, with its Bitcoin holdings increasing by 58% quarter-over-quarter.",
+        "grade": "A",
+        "score": 80,
+        "signal": "long",
+        "status": "done",
+        "summary": "特朗普家族支持的比特币矿企American Bitcoin Corp（$ABTC）公布2025年第四季度营收7830万美元，比特币持有量环比增长58%。"
+      },
+      "coins": [
+        {
+          "symbol": "JST",
+          "market_type": "cex",
+          "match": [
+            "JUST"
+          ]
+        },
+        {
+          "symbol": "TRUMP",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN",
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "ETH",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "SOL",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        }
+      ],
+      "description": "",
+      "engineType": "news",
+      "id": 939257,
+      "link": "https://twitter.com/erictrump/status/2027066024911102061",
+      "newsType": "Twitter",
+      "source": "erictrump",
+      "text": "JUST IN: The Trump family-backed #Bitcoin miner American Bitcoin Corp $ABTC reported $78.3 million in revenue for Q4 2025 and has increased its Bitcoin holdings by 58% quarter-over-quarter. https://t.co/y3G5KFxLv0",
+      "ts": "2026-02-26T16:59:36.894737Z",
+      "ticker": "ABTC"
+    },
+    {
+      "aiRating": {
+        "enSummary": "American Bitcoin, which is associated with the Trump family, recorded a $59 million loss in the fourth quarter as falling BTC prices eroded its holdings, despite raising $150 million through a stock offering; the company currently holds over 6,000 BTC, and its stock price has fallen 90% from its high of $9.",
+        "grade": "B+",
+        "score": 68,
+        "signal": "short",
+        "status": "done",
+        "summary": "与特朗普家族有关联的American Bitcoin在第四季度录得5900万美元亏损，因BTC价格下跌侵蚀持仓，尽管通过股票发行募资1.5亿美元；该公司目前持有超6000枚BTC，股价较9美元高点下跌90%。"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN",
+            "BTC",
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "ETH",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "SOL",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "TRUMP",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        }
+      ],
+      "description": "",
+      "engineType": "news",
+      "id": 939164,
+      "link": "https://twitter.com/coindesk/status/2027063401336254862",
+      "newsType": "Twitter",
+      "source": "coindesk",
+      "text": "Latest: Trump family-linked American Bitcoin posts $59M Q4 loss as $BTC price slide erodes holdings, despite raising $150M through stock offering.<br/><br/>Company now holds 6,000+ $BTC with shares down 90% from $9 high. https://t.co/16Ut7OgeuY",
+      "ts": "2026-02-26T16:49:11.362786Z",
+      "ticker": "ABTC"
+    },
+    {
+      "aiRating": {
+        "enSummary": "American Bitcoin, associated with the Trump family, recorded a $59 million loss in the fourth quarter as falling BTC prices eroded its holdings. Despite raising $150 million through a stock offering, it currently holds over 6,000 BTC, with its share price down 90% from its $9 high.",
+        "grade": "B+",
+        "score": 65,
+        "signal": "short",
+        "status": "done",
+        "summary": "与特朗普家族有关的American Bitcoin在第四季度录得5900万美元亏损，因BTC价格下跌侵蚀持仓，尽管通过股票发行筹集1.5亿美元，目前持有超6000枚BTC，股价较9美元高点下跌90%。"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN",
+            "BTC",
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "ETH",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "SOL",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "TRUMP",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        }
+      ],
+      "description": "CoinDesk (@CoinDesk)",
+      "engineType": "news",
+      "id": 939163,
+      "link": "https://twitter.com/CoinDesk/status/2027063401336254862",
+      "newsType": "tree",
+      "source": "",
+      "text": "Latest: Trump family-linked American Bitcoin posts $59M Q4 loss as $BTC price slide erodes holdings, despite raising $150M through stock offering.\n\nCompany now holds 6,000+ $BTC with shares down 90% from $9 high.",
+      "ts": "2026-02-26T16:49:10.989Z",
+      "ticker": "ABTC"
+    },
+    {
+      "aiRating": {
+        "enSummary": "American Bitcoin, a mining company backed by the Trump family, reported a quarterly loss of $59 million.",
+        "grade": "B",
+        "score": 55,
+        "signal": "short",
+        "status": "done",
+        "summary": "特朗普家族支持的矿企American Bitcoin公布季度亏损5900万美元。"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN",
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "ETH",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "SOL",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "TRUMP",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        }
+      ],
+      "description": "",
+      "engineType": "news",
+      "id": 938000,
+      "link": "https://cointelegraph.com/news/american-bitcoin-trump-nets-59m-quarterly-loss",
+      "newsType": "Cointelegraph",
+      "source": "",
+      "text": "Trump family-backed miner American Bitcoin posts $59M quarterly loss",
+      "ts": "2026-02-26T14:37:19.749727Z",
+      "ticker": "ABTC"
+    },
+    {
+      "aiRating": {
+        "enSummary": "American Bitcoin, a mining company backed by the Trump family, reported a quarterly loss of $59 million.",
+        "grade": "B",
+        "score": 55,
+        "signal": "neutral",
+        "status": "done",
+        "summary": "特朗普家族支持的矿企American Bitcoin公布季度亏损5900万美元。"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN",
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "ETH",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "SOL",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "TRUMP",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        }
+      ],
+      "description": "COINTELEGRAPH: Trump family-backed miner American Bitcoin posts $59M quarterly loss",
+      "engineType": "news",
+      "id": 938001,
+      "link": "",
+      "newsType": "tree",
+      "source": "Blogs",
+      "text": "COINTELEGRAPH: Trump family-backed miner American Bitcoin posts $59M quarterly loss",
+      "ts": "2026-02-26T14:37:19.414Z",
+      "ticker": "ABTC"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Bitcoin surged over 5%, driving up cryptocurrency-related stocks, with Coinbase up 9.3% and Bitfarms up 5.5%; Bitcoin ETFs such as ProShares Bitcoin Strategy and iShares Bitcoin Trust each rose 4.8%.",
+        "grade": "A+",
+        "score": 95,
+        "signal": "long",
+        "status": "done",
+        "summary": "比特币涨幅超5%，带动加密货币相关股票上涨，Coinbase涨9.3%、Bitfarms涨5.5%等；比特币ETF如ProShares Bitcoin Strategy和iShares Bitcoin Trust各涨4.8%。"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN"
+          ]
+        },
+        {
+          "symbol": "TRUST",
+          "market_type": "cex",
+          "match": [
+            "TRUST"
+          ]
+        }
+      ],
+      "description": "Walter Bloomberg",
+      "engineType": "news",
+      "id": 925582,
+      "link": "https://twitter.com/deitaone/status/2026690179973464351",
+      "newsType": "Twitter",
+      "source": "deitaone",
+      "text": "CRYPTO STOCKS SURGE AS BITCOIN JUMPS 5%+<br/><br/>Bitcoin climbs over 5%, lifting crypto stocks: <br/><br/>Coinbase +9.3%<br/>Bitfarms +5.5%<br/>Strategy +6%<br/>Riot +2.2%<br/>Hut 8 +0.7%<br/>Mara +6%. <br/><br/>Bitcoin ETFs also rally—ProShares Bitcoin Strategy and iShares Bitcoin Trust up 4.8% each.",
+      "ts": "2026-02-25T16:06:09.139967Z",
+      "ticker": "BITF"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Riot Platforms rose 2.2%, Hut 8 rose 0.7%, and Mara Holdings rose 6%.",
+        "grade": "B",
+        "score": 55,
+        "signal": "long",
+        "status": "done",
+        "summary": "Riot Platforms上涨2.2%，Hut 8上涨0.7%，Mara Holdings上涨6%。"
+      },
+      "coins": null,
+      "description": "",
+      "engineType": "news",
+      "id": 925559,
+      "link": "",
+      "newsType": "Reuters",
+      "source": "",
+      "text": "Riot Platforms Up 2.2%, Hut 8 Up 0.7%, Mara Holdings Up 6%",
+      "ts": "2026-02-25T16:04:26.961041Z",
+      "ticker": "RIOT"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Coinbase Global rose 9.3%, Bitfarms rose 5.5%, and Strategy rose 6.2%.",
+        "grade": "B+",
+        "score": 65,
+        "signal": "long",
+        "status": "done",
+        "summary": "Coinbase Global上涨9.3%，Bitfarms上涨5.5%，Strategy上涨6.2%。"
+      },
+      "coins": null,
+      "description": "",
+      "engineType": "news",
+      "id": 925558,
+      "link": "",
+      "newsType": "Reuters",
+      "source": "",
+      "text": "Coinbase Global Up 9.3%, Bitfarms Up 5.5%, Strategy Up 6.2%",
+      "ts": "2026-02-25T16:04:26.591403Z",
+      "ticker": "BITF"
+    },
+    {
+      "coins": null,
+      "description": "",
+      "engineType": "news",
+      "id": 922456,
+      "link": "https://www.sec.gov/Archives/edgar/data/1812477/000121390026020066/ea02779011ex99-5_bitfarms.htm",
+      "newsType": "SEC Filing",
+      "source": "",
+      "text": "6-K (BITFARMS ANNOUNCES FILING AND MAILING OF MATERIALS FOR SPECIAL MEETING OF SHAREHOLDERS TO APPROVE U.S. REDOMICILIATION PLAN) - Bitfarms Ltd (BITF) (CIK 0001812477)",
+      "ts": "2026-02-25T11:03:08.703434Z",
+      "ticker": "BITF"
+    },
+    {
+      "coins": [
+        {
+          "symbol": "AN",
+          "market_type": "cex",
+          "match": [
+            "AN"
+          ]
+        },
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN"
+          ]
+        }
+      ],
+      "description": "",
+      "engineType": "news",
+      "id": 922455,
+      "link": "https://www.sec.gov/Archives/edgar/data/1812477/000121390026020066/ea02779011ex99-4_bitfarms.htm",
+      "newsType": "SEC Filing",
+      "source": "",
+      "text": "6-K (WE NEED YOUR VOTE TO FINALIZE OUR TRANSFORMATION FROM AN INTERNATIONAL BITCOIN MINER TO A NORTH AMERICAN DIGITAL INFRASTRUCTURE AND ENERGY COMPANY. VOTE FOR BITFARMS REDOMICILIATION FROM CANADA TO THE U.S. TODAY UPON COMPLETION OF THE REDOMICILIATION, IS) - Bitfarms Ltd (BITF) (CIK 0001812477)",
+      "ts": "2026-02-25T11:03:08.684375Z",
+      "ticker": "BITF"
+    },
+    {
+      "coins": null,
+      "description": "",
+      "engineType": "news",
+      "id": 922454,
+      "link": "https://www.sec.gov/Archives/edgar/data/1812477/000121390026020066/ea02779011ex99-1_bitfarms.htm",
+      "newsType": "SEC Filing",
+      "source": "",
+      "text": "6-K (NOTICE OF SPECIAL MEETING OF SHAREHOLDERS AND MANAGEMENT PROXY CIRCULAR DATED FEBRUARY 17, 2026) - Bitfarms Ltd (BITF) (CIK 0001812477)",
+      "ts": "2026-02-25T11:03:08.655967Z",
+      "ticker": "BITF"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Riot Platforms rose 2.2%, and Mara Holdings rose 1.5%.",
+        "grade": "B",
+        "score": 60,
+        "signal": "long",
+        "status": "done",
+        "summary": "Riot Platforms上涨2.2%，Mara Holdings上涨1.5%。"
+      },
+      "coins": null,
+      "description": "",
+      "engineType": "news",
+      "id": 922324,
+      "link": "",
+      "newsType": "Reuters",
+      "source": "",
+      "text": "Riot Platforms Up 2.2%, Mara Holdings Up 1.5%",
+      "ts": "2026-02-25T10:47:12.639418Z",
+      "ticker": "RIOT"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Coinbase Global rose 2.1%, Bitfarms rose 1.8%, and Strategy rose 2.3%.",
+        "grade": "B",
+        "score": 60,
+        "signal": "long",
+        "status": "done",
+        "summary": "Coinbase Global上涨2.1%，Bitfarms上涨1.8%，Strategy上涨2.3%。"
+      },
+      "coins": null,
+      "description": "",
+      "engineType": "news",
+      "id": 922323,
+      "link": "",
+      "newsType": "Reuters",
+      "source": "",
+      "text": "Coinbase Global Up 2.1%, Bitfarms Up 1.8%, Strategy Up 2.3%",
+      "ts": "2026-02-25T10:47:12.102354Z",
+      "ticker": "BITF"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Bitfarms announced that it has submitted and mailed materials for a special shareholders&#39; meeting to approve its U.S. relocation plan.",
+        "grade": "B",
+        "score": 65,
+        "signal": "neutral",
+        "status": "done",
+        "summary": "Bitfarms宣布提交并邮寄股东特别会议材料，以批准美国迁册计划。"
+      },
+      "coins": null,
+      "description": "",
+      "engineType": "news",
+      "id": 913779,
+      "link": "https://www.globenewswire.com/newsroom",
+      "newsType": "phoenixnews",
+      "source": "Webs",
+      "text": "Bitfarms Announces Filing and Mailing of Materials for Special Meeting of Shareholders to Approve U.S. Redomiciliation Plan",
+      "ts": "2026-02-24T22:15:03.673Z",
+      "ticker": "BITF"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Crypto news in the past 24 hours: Binance denies firing investigators over Iranian funding flows; Terraform Labs sues Jane Street for alleged insider trading; Chainlink&#39;s Taylor Lindman joins the SEC&#39;s crypto task force; several institutions have made moves regarding mining, financing, and compliance.",
+        "grade": "A",
+        "score": 80,
+        "signal": "neutral",
+        "status": "done",
+        "summary": "过去24小时加密领域新闻：Binance否认因伊朗资金流解雇调查人员；Terraform Labs起诉Jane Street涉嫌内幕交易；Chainlink的Taylor Lindman加入SEC加密工作组；多家机构在挖矿、融资、合规等方面有动态。"
+      },
+      "coins": [
+        {
+          "symbol": "AN",
+          "market_type": "cex",
+          "match": [
+            "AN"
+          ]
+        },
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN",
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "SOL",
+          "market_type": "cex",
+          "match": [
+            "SOLANA",
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "HYPE",
+          "market_type": "cex",
+          "match": [
+            "HYPERLIQUID"
+          ]
+        },
+        {
+          "symbol": "BID",
+          "market_type": "cex",
+          "match": [
+            "BID"
+          ]
+        },
+        {
+          "symbol": "BANK",
+          "market_type": "cex",
+          "match": [
+            "BANK"
+          ]
+        },
+        {
+          "symbol": "LIBERTY",
+          "market_type": "cex",
+          "match": [
+            "LIBERTY"
+          ]
+        },
+        {
+          "symbol": "ETH",
+          "market_type": "cex",
+          "match": [
+            "ETHEREUM",
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "LINK",
+          "market_type": "cex",
+          "match": [
+            "CHAINLINK"
+          ]
+        },
+        {
+          "symbol": "EPT",
+          "market_type": "cex",
+          "match": [
+            "BALANCE"
+          ]
+        },
+        {
+          "symbol": "TRUMP",
+          "market_type": "cex",
+          "match": [
+            "TRUMP"
+          ]
+        },
+        {
+          "symbol": "LUNA",
+          "market_type": "cex",
+          "match": [
+            "TERRA",
+            "LUNA"
+          ]
+        },
+        {
+          "symbol": "AAVE",
+          "market_type": "cex",
+          "match": [
+            "AAVE"
+          ]
+        },
+        {
+          "symbol": "USD1",
+          "market_type": "cex",
+          "match": [
+            "USD1"
+          ]
+        },
+        {
+          "symbol": "JTO",
+          "market_type": "cex",
+          "match": [
+            "JITO"
+          ]
+        }
+      ],
+      "description": "China's business and market",
+      "engineType": "news",
+      "id": 904735,
+      "link": "https://twitter.com/sino_market/status/2026195738125017403",
+      "newsType": "Twitter",
+      "source": "sino_market",
+      "text": "Top Crypto Stories of PAST 24 Hours - @MKTNews_Global <br/>Regulatory and Legal Developments<br/>- Binance denies firing investigators over reported $1.7 billion crypto flows to Iran.<br/>- Terraform Labs sues Jane Street for alleged insider trading prior to the Terra-Luna collapse (WSJ).<br/>- Chainlink’s Taylor Lindman joins SEC as chief counsel for the crypto task force.<br/>- Australian police charge a man over his role in an alleged $3.5 million crypto investment scam targeting elderly victims.<br/>Mining and Infrastructure<br/>- Canaan acquires Cipher Mining’s stake in West Texas bitcoin mining projects in a $40 million deal.<br/>- Bitdeer CEO says bitcoin balance “will not always be zero” as the miner eyes land acquisitions after liquidating its entire treasury.<br/>- Pantera-backed Solana Company begins APAC staking infrastructure buildout.<br/>Institutional and Market Commentary<br/>- Bitwise CIO Matt Hougan says we’re in a classic crypto winter, but fundamentals are racing ahead of price and expects a 2027 recovery.<br/>- Global crypto ETP outflows stretch to the fifth week with $4 billion exiting funds amid growing investor apathy (CoinShares).<br/>- Stablecoins could drive $1 trillion in T-bill demand, giving Treasury room to shift issuance (Standard Chartered).<br/>- Missouri advances bitcoin reserve bill to House committee, reviving the crypto treasury push.<br/>Corporate and Funding News<br/>- Aave faces $50 million funding controversy with ACI Founder Marc Zeller.<br/>- Hyperliquid Web3 “SuperApp” Based raises $11.5 million Series A led by Pantera.<br/>- Backpack to offer users access to equity representing 20% of the company via one-year token staking.<br/>- Crypto. com secures conditional OCC approval in bid to become a federally regulated bank.<br/>Bitcoin Investment Moves<br/>- Michael Saylor’s Strategy buys another 592 bitcoin for $40 million: “If it’s not going to zero, it’s going to a million.”<br/>Stablecoin Initiatives<br/>- Trump’s Board of Peace explores a stablecoin to support digital transactions in Gaza (FT).<br/>- Trump-backed World Liberty Financial says a USD1 short and social media attack failed as its stablecoin briefly dipped.<br/>Ethereum / DeFi Ecosystem<br/>- Ethereum Foundation forms a team to support protocol development, stating it “believes in Defipunk.”<br/>- South Korea’s Hanwha taps Jito Foundation for liquidity staking ETPs. (https://mktnews.com/flashDetail.html?id=019c8e70-f483-7118-bcf5-cc0047def732)",
+      "ts": "2026-02-24T07:21:25.8576Z",
+      "ticker": "BTDR"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Bitdeer sold all its Bitcoin, and Metaplanet denied allegations of wrongdoing.",
+        "grade": "B+",
+        "score": 65,
+        "signal": "short",
+        "status": "done",
+        "summary": "Bitdeer出售了所有比特币，Metaplanet否认不当行为指控。"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN"
+          ]
+        }
+      ],
+      "description": "",
+      "engineType": "news",
+      "id": 904719,
+      "link": "https://cointelegraph.com/bitdeer-sells-all-bitcoin-metaplanet-rejects-misconduct-claims-asia-express/",
+      "newsType": "Cointelegraph",
+      "source": "",
+      "text": "Bitdeer sells all Bitcoin, Metaplanet rejects misconduct claims: Asia Express",
+      "ts": "2026-02-24T07:20:10.634816Z",
+      "ticker": "BTDR"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Bitdeer sells all of its Bitcoin; Metaplanet denies allegations of wrongdoing. (Source: Asia Express)",
+        "grade": "B+",
+        "score": 70,
+        "signal": "short",
+        "status": "done",
+        "summary": "Bitdeer出售其所有比特币，Metaplanet否认不当行为指控，相关信息来自亚洲快报。"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN"
+          ]
+        }
+      ],
+      "description": "COINTELEGRAPH: Bitdeer sells all Bitcoin, Metaplanet rejects misconduct claims: Asia Express",
+      "engineType": "news",
+      "id": 904720,
+      "link": "",
+      "newsType": "tree",
+      "source": "Blogs",
+      "text": "COINTELEGRAPH: Bitdeer sells all Bitcoin, Metaplanet rejects misconduct claims: Asia Express",
+      "ts": "2026-02-24T07:20:10.288Z",
+      "ticker": "BTDR"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Canaan acquired a stake in Cipher Mining’s Bitcoin mining project in West Texas for $40 million.",
+        "grade": "B+",
+        "score": 65,
+        "signal": "long",
+        "status": "done",
+        "summary": "迦南公司以4000万美元收购Cipher Mining在西德克萨斯州比特币挖矿项目中的股份。"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN"
+          ]
+        }
+      ],
+      "description": "The Block (@TheBlock__)",
+      "engineType": "news",
+      "id": 903314,
+      "link": "https://twitter.com/TheBlock__/status/2026154317166559315",
+      "newsType": "tree",
+      "source": "",
+      "text": "Canaan acquires Cipher Mining's stake in West Texas bitcoin mining projects in $40 million deal https://www.theblock.co/post/390926/canaan-cipher-mining-west-texas-bitcoin-mining?utm_source=twitter&utm_medium=social",
+      "ts": "2026-02-24T04:36:48.2Z",
+      "ticker": "CIFR"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Canaan acquires a $40 million stake in Cipher Mining’s Bitcoin mining project in West Texas.",
+        "grade": "B+",
+        "score": 65,
+        "signal": "neutral",
+        "status": "done",
+        "summary": "嘉楠耘智（Canaan）以4000万美元收购Cipher Mining在西德克萨斯州比特币挖矿项目中的股份"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN"
+          ]
+        }
+      ],
+      "description": "",
+      "engineType": "news",
+      "id": 903313,
+      "link": "https://www.theblock.co/post/390926/canaan-cipher-mining-west-texas-bitcoin-mining",
+      "newsType": "phoenixnews",
+      "source": "Crypto",
+      "text": "Canaan acquires Cipher Mining's stake in West Texas bitcoin mining projects in $40 million deal",
+      "ts": "2026-02-24T04:36:46.901Z",
+      "ticker": "CIFR"
+    },
+    {
+      "aiRating": {
+        "enSummary": "According to THE BLOCK, Canaan has acquired a stake in Cipher Mining’s Bitcoin mining project in West Texas for $40 million.",
+        "grade": "B+",
+        "score": 65,
+        "signal": "long",
+        "status": "done",
+        "summary": "据THE BLOCK报道，迦南公司以4000万美元收购Cipher Mining在西德克萨斯州比特币挖矿项目中的股份。"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN"
+          ]
+        }
+      ],
+      "description": "THE BLOCK: Canaan acquires Cipher Mining's stake in West Texas bitcoin mining projects in $40 million deal",
+      "engineType": "news",
+      "id": 903317,
+      "link": "",
+      "newsType": "tree",
+      "source": "Blogs",
+      "text": "THE BLOCK: Canaan acquires Cipher Mining's stake in West Texas bitcoin mining projects in $40 million deal",
+      "ts": "2026-02-24T04:36:46.788Z",
+      "ticker": "CIFR"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Canaan Creative acquires a stake in Cipher Mining&#39;s Bitcoin mining project in West Texas for $40 million.",
+        "grade": "B+",
+        "score": 65,
+        "signal": "neutral",
+        "status": "done",
+        "summary": "嘉楠耘智以4000万美元收购Cipher Mining在西德克萨斯州比特币挖矿项目中的股份"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN"
+          ]
+        }
+      ],
+      "description": "",
+      "engineType": "news",
+      "id": 903312,
+      "link": "https://www.theblock.co/post/390926/canaan-cipher-mining-west-texas-bitcoin-mining",
+      "newsType": "The Block",
+      "source": "",
+      "text": "Canaan acquires Cipher Mining's stake in West Texas bitcoin mining projects in $40 million deal",
+      "ts": "2026-02-24T04:36:46.783798Z",
+      "ticker": "CIFR"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Canaan Creative ($CAN) acquired Cipher Mining&#39;s stake in multiple operating mining projects in West Texas with a total hashrate of approximately 4.4 EH/s by issuing $40 million worth of new $CAN shares (with a 6-month lock-up period).",
+        "grade": "A",
+        "score": 78,
+        "signal": "long",
+        "status": "done",
+        "summary": "嘉楠耘智（$CAN）以4000万美元的新发行$CAN股票（6个月锁定期）收购Cipher Mining在西德克萨斯州多个运营中、总算力约4.4 EH/s的挖矿项目权益"
+      },
+      "coins": [
+        {
+          "symbol": "W",
+          "market_type": "cex",
+          "match": [
+            "W"
+          ]
+        }
+      ],
+      "description": "VanEck Head of Digital Assets",
+      "engineType": "news",
+      "id": 900545,
+      "link": "https://twitter.com/matthew_sigel/status/2026085912061386862",
+      "newsType": "Twitter",
+      "source": "matthew_sigel",
+      "text": "$CIFR Canaan ($CAN) Acquires Cipher Mining's Interest in Multiple Operational Mining Projects Totaling ~4.4 EH/s in West Texas<br/><br/>Pays $40M...in new $CAN shares w/ 6-month lockup https://t.co/ZBGExqbCCf",
+      "ts": "2026-02-24T00:04:59.640776Z",
+      "ticker": "CIFR"
+    },
+    {
+      "coins": null,
+      "description": "",
+      "engineType": "news",
+      "id": 898381,
+      "link": "https://www.sec.gov/Archives/edgar/data/1899123/000121390026019332/ea0277924-424b5_bitdeer.htm",
+      "newsType": "SEC Filing",
+      "source": "",
+      "text": "424B5 (PROSPECTUS SUPPLEMENT) - Bitdeer Technologies Group (BTDR) (CIK 0001899123)",
+      "ts": "2026-02-23T21:15:45.255801Z",
+      "ticker": "BTDR"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Canaan Corporation acquired Cipher Mining&#39;s stake in several operating mining farms in West Texas, with a total hashrate of approximately 4.4 EH/s.",
+        "grade": "B+",
+        "score": 65,
+        "signal": "neutral",
+        "status": "done",
+        "summary": "迦南公司收购Cipher Mining在德克萨斯州西部多个运营中的矿场权益，这些矿场总算力约为4.4 EH/s"
+      },
+      "coins": null,
+      "description": "",
+      "engineType": "news",
+      "id": 898309,
+      "link": "https://dbws.io/newsbot/i/nPn2ytXp0a",
+      "newsType": "PRNewswire",
+      "source": "",
+      "text": "Canaan Inc. Acquires Cipher Mining’s Interest in Multiple Operational Mining Projects Totaling ~4.4 EH/s in West Texas",
+      "ts": "2026-02-23T21:10:00.247356Z",
+      "ticker": "CIFR"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Riot Platforms fell 3.1%, Hut 8 (US stock) fell 2.4%, and Mara Holdings fell 3%.",
+        "grade": "B",
+        "score": 61,
+        "signal": "short",
+        "status": "done",
+        "summary": "Riot Platforms下跌3.1%，美股Hut 8下跌2.4%，Mara Holdings下跌3%。"
+      },
+      "coins": null,
+      "description": "",
+      "engineType": "news",
+      "id": 893712,
+      "link": "",
+      "newsType": "Reuters",
+      "source": "",
+      "text": "Riot Platforms Down 3.1%, U.S.-Listed Shares of Hut 8 Down 2.4%, Mara Holdings Down 3%",
+      "ts": "2026-02-23T14:31:35.896001Z",
+      "ticker": "RIOT"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Coinbase Global fell 3%, Bitfarms fell 4.4%, and Strategy fell 2.7%.",
+        "grade": "B",
+        "score": 62,
+        "signal": "short",
+        "status": "done",
+        "summary": "Coinbase Global下跌3%，美股Bitfarms下跌4.4%，Strategy下跌2.7%。"
+      },
+      "coins": null,
+      "description": "",
+      "engineType": "news",
+      "id": 893711,
+      "link": "",
+      "newsType": "Reuters",
+      "source": "",
+      "text": "Coinbase Global Down 3%, U.S.-Listed Shares of Bitfarms Down 4.4%, Strategy Down 2.7%",
+      "ts": "2026-02-23T14:31:35.834439Z",
+      "ticker": "BITF"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Core Scientific, Inc. plans to release its fourth-quarter fiscal 2025 earnings report, and has scheduled a conference call and webcast.",
+        "grade": "C",
+        "score": 20,
+        "signal": "neutral",
+        "status": "done",
+        "summary": "Core Scientific, Inc.计划发布2025财年第四季度收益报告，并安排电话会议及网络直播。"
+      },
+      "coins": [
+        {
+          "symbol": "CORE",
+          "market_type": "cex",
+          "match": [
+            "CORE"
+          ]
+        }
+      ],
+      "description": "",
+      "engineType": "news",
+      "id": 892291,
+      "link": "https://www.businesswire.com/portal/site/home/news/",
+      "newsType": "phoenixnews",
+      "source": "Webs",
+      "text": "Core Scientific, Inc. Schedules Fourth Quarter Fiscal Year 2025 Earnings Release, Conference Call and Webcast",
+      "ts": "2026-02-23T12:00:13.244Z",
+      "ticker": "CORZ"
+    },
+    {
+      "coins": [
+        {
+          "symbol": "CORE",
+          "market_type": "cex",
+          "match": [
+            "CORE"
+          ]
+        }
+      ],
+      "description": "",
+      "engineType": "news",
+      "id": 892279,
+      "link": "https://dbws.io/newsbot/i/nBw74PwXFa",
+      "newsType": "Business Wire",
+      "source": "",
+      "text": "Core Scientific, Inc. Schedules Fourth Quarter Fiscal Year 2025 Earnings Release, Conference Call and Webcast",
+      "ts": "2026-02-23T12:00:01.466549Z",
+      "ticker": "CORZ"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Bitdeer&#39;s CEO stated that its Bitcoin balance will not remain zero indefinitely, and the mining company is considering acquiring land after clearing out all its Bitcoin reserves.",
+        "grade": "B+",
+        "score": 65,
+        "signal": "neutral",
+        "status": "done",
+        "summary": "Bitdeer CEO表示其比特币余额不会一直为零，该矿企在清空全部比特币储备后正考虑收购土地。"
+      },
+      "coins": [
+        {
+          "symbol": "EPT",
+          "market_type": "cex",
+          "match": [
+            "BALANCE"
+          ]
+        },
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN"
+          ]
+        }
+      ],
+      "description": "The Block (@TheBlock__)",
+      "engineType": "news",
+      "id": 892105,
+      "link": "https://twitter.com/TheBlock__/status/2025895148777857088",
+      "newsType": "tree",
+      "source": "",
+      "text": "Bitdeer CEO says bitcoin balance \"will not always be zero\" as miner eyes land acquisitions after liquidating entire treasury https://www.theblock.co/post/390785/bitdeer-ceo-says-bitcoin-balance-will-not-always-be-zero-as-miner-eyes-land-acquisitions-after-liquidating-entire-treasury?utm_source=twitter&utm_medium=social",
+      "ts": "2026-02-23T11:26:57.618Z",
+      "ticker": "BTDR"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Bitdeer&#39;s CEO stated that the Bitcoin balance &quot;will not remain zero forever,&quot; and the miner is considering land acquisitions after clearing out all its inventory reserves.",
+        "grade": "B+",
+        "score": 65,
+        "signal": "neutral",
+        "status": "done",
+        "summary": "Bitdeer首席执行官表示比特币余额“不会一直为零”，该矿商在清空全部库存储备后正考虑土地收购。"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN"
+          ]
+        },
+        {
+          "symbol": "EPT",
+          "market_type": "cex",
+          "match": [
+            "BALANCE"
+          ]
+        }
+      ],
+      "description": "",
+      "engineType": "news",
+      "id": 892104,
+      "link": "https://www.theblock.co/post/390785/bitdeer-ceo-says-bitcoin-balance-will-not-always-be-zero-as-miner-eyes-land-acquisitions-after-liquidating-entire-treasury",
+      "newsType": "phoenixnews",
+      "source": "Crypto",
+      "text": "Bitdeer CEO says bitcoin balance \"will not always be zero\" as miner eyes land acquisitions after liquidating entire treasury",
+      "ts": "2026-02-23T11:26:55.676Z",
+      "ticker": "BTDR"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Bitdeer&#39;s CEO stated that his Bitcoin balance &quot;will not remain zero forever,&quot; and the miner is considering land acquisitions after emptying all its KuCoins.",
+        "grade": "B+",
+        "score": 65,
+        "signal": "neutral",
+        "status": "done",
+        "summary": "Bitdeer CEO表示其比特币余额“不会永远为零”，该矿商在清空全部库币后正考虑土地收购。"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN"
+          ]
+        },
+        {
+          "symbol": "EPT",
+          "market_type": "cex",
+          "match": [
+            "BALANCE"
+          ]
+        }
+      ],
+      "description": "",
+      "engineType": "news",
+      "id": 892103,
+      "link": "https://www.theblock.co/post/390785/bitdeer-ceo-says-bitcoin-balance-will-not-always-be-zero-as-miner-eyes-land-acquisitions-after-liquidating-entire-treasury",
+      "newsType": "The Block",
+      "source": "",
+      "text": "Bitdeer CEO says bitcoin balance \"will not always be zero\" as miner eyes land acquisitions after liquidating entire treasury",
+      "ts": "2026-02-23T11:26:55.053801Z",
+      "ticker": "BTDR"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Bitdeer&#39;s CEO stated that its Bitcoin balance &quot;will not be zero forever,&quot; and the mining company is considering land acquisitions after liquidating all its KuCoin holdings.",
+        "grade": "B+",
+        "score": 65,
+        "signal": "long",
+        "status": "done",
+        "summary": "Bitdeer首席执行官表示其比特币余额“不会永远为零”，该矿企在清算全部库币后正考虑土地收购"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN"
+          ]
+        },
+        {
+          "symbol": "EPT",
+          "market_type": "cex",
+          "match": [
+            "BALANCE"
+          ]
+        }
+      ],
+      "description": "THE BLOCK: Bitdeer CEO says bitcoin balance \"will not always be zero\" as miner eyes land acquisitions after liquidating entire treasury",
+      "engineType": "news",
+      "id": 892106,
+      "link": "",
+      "newsType": "tree",
+      "source": "Blogs",
+      "text": "THE BLOCK: Bitdeer CEO says bitcoin balance \"will not always be zero\" as miner eyes land acquisitions after liquidating entire treasury",
+      "ts": "2026-02-23T11:26:55.04Z",
+      "ticker": "BTDR"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Strategy fell 2.3%, Coinbase Global fell 2%, and Riot Platforms fell 2.5%.",
+        "grade": "B",
+        "score": 60,
+        "signal": "short",
+        "status": "done",
+        "summary": "Strategy下跌2.3%，Coinbase Global下跌2%，Riot Platforms下跌2.5%。"
+      },
+      "coins": null,
+      "description": "",
+      "engineType": "news",
+      "id": 891492,
+      "link": "",
+      "newsType": "Reuters",
+      "source": "",
+      "text": "Strategy Down 2.3%, Coinbase Global Down 2%, Riot Platforms Down 2.5%",
+      "ts": "2026-02-23T09:19:10.386697Z",
+      "ticker": "RIOT"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Riot Platforms rose 1.3%, and Mara Holdings rose 1.5%.",
+        "grade": "B",
+        "score": 55,
+        "signal": "long",
+        "status": "done",
+        "summary": "Riot Platforms上涨1.3%，Mara Holdings上涨1.5%。"
+      },
+      "coins": null,
+      "description": "",
+      "engineType": "news",
+      "id": 860481,
+      "link": "",
+      "newsType": "Reuters",
+      "source": "",
+      "text": "Riot Platforms Up 1.3%, Mara Holdings Rise 1.5%",
+      "ts": "2026-02-20T09:18:47.703154Z",
+      "ticker": "RIOT"
+    },
+    {
+      "coins": null,
+      "description": "",
+      "engineType": "news",
+      "id": 837479,
+      "link": "https://www.barrons.com/articles/riot-platforms-pushed-speed-up-ai-transition-cbbcdaca",
+      "newsType": "Barrons",
+      "source": "",
+      "text": "Riot Platforms Pushed by Activist Investor to Speed Up AI Transition. The Stock Rises.",
+      "ts": "2026-02-18T17:50:22.113238Z",
+      "ticker": "RIOT"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Activist investors push Riot Platforms to accelerate its AI transformation, causing the company&#39;s stock to rise.",
+        "grade": "B+",
+        "score": 65,
+        "signal": "long",
+        "status": "done",
+        "summary": "维权投资者推动Riot Platforms加快向AI转型，该公司股票上涨"
+      },
+      "coins": null,
+      "description": "",
+      "engineType": "news",
+      "id": 837478,
+      "link": "https://www.barrons.com/articles/riot-platforms-pushed-speed-up-ai-transition-cbbcdaca",
+      "newsType": "phoenixnews",
+      "source": "Webs",
+      "text": "Riot Platforms Pushed by Activist Investor to Speed Up AI Transition. The Stock Rises.",
+      "ts": "2026-02-18T17:50:17.001Z",
+      "ticker": "RIOT"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Shares of Bitcoin mining company Riot Platforms rose nearly 9% after Starboard urged it to expand its AI data center business.",
+        "grade": "B+",
+        "score": 68,
+        "signal": "long",
+        "status": "done",
+        "summary": "比特币矿企Riot Platforms因Starboard敦促其扩展AI数据中心业务，股价上涨近9%。"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN"
+          ]
+        }
+      ],
+      "description": "",
+      "engineType": "news",
+      "id": 836977,
+      "link": "https://www.coindesk.com/business/2026/02/18/bitcoin-miner-riot-platforms-stock-jumps-nearly-7-as-starboard-urges-ai-data-center-expansion",
+      "newsType": "phoenixnews",
+      "source": "Crypto",
+      "text": "Bitcoin miner Riot Platforms stock jumps nearly 9% as Starboard urges AI data center expansion",
+      "ts": "2026-02-18T17:15:11.721Z",
+      "ticker": "RIOT"
+    },
+    {
+      "aiRating": {
+        "enSummary": "Third Point announced in SEC filings that it is dissolving its stake in Core Scientific.",
+        "grade": "B+",
+        "score": 65,
+        "signal": "short",
+        "status": "done",
+        "summary": "Third Point通过SEC文件宣布解散其在Core Scientific的股权。"
+      },
+      "coins": [
+        {
+          "symbol": "CORE",
+          "market_type": "cex",
+          "match": [
+            "CORE"
+          ]
+        }
+      ],
+      "description": "",
+      "engineType": "news",
+      "id": 827290,
+      "link": "",
+      "newsType": "Reuters",
+      "source": "",
+      "text": "Third Point Dissolves Share Stake in Core Scientific - SEC Filing",
+      "ts": "2026-02-17T21:46:39.432355Z",
+      "ticker": "CORZ"
+    },
+    {
+      "aiRating": {
+        "enSummary": "",
+        "grade": "B",
+        "score": 60,
+        "signal": "neutral",
+        "status": "done",
+        "summary": "Cipher Mining Inc.（CIFR，CIK 0001819989）提交了8-K表格，内容未详细说明，与比特币相关。"
+      },
+      "coins": [
+        {
+          "symbol": "BTC",
+          "market_type": "cex",
+          "match": [
+            "BITCOIN"
+          ]
+        }
+      ],
+      "description": "SEC FILINGS",
+      "engineType": "news",
+      "id": 759508,
+      "link": "https://www.sec.gov/Archives/edgar/data/1819989/000181998926000002/exhibit991dudanewdirectori.htm",
+      "newsType": "phoenixnews",
+      "source": "Terminal",
+      "text": "FOUND BITCOIN: 8-K - Cipher Mining Inc.  (CIFR)  (CIK 0001819989)",
+      "ts": "2026-02-11T21:38:22.543Z",
+      "ticker": "CIFR"
+    }
+  ]
+}

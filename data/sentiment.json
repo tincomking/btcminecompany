@@ -1,0 +1,132 @@
+{
+  "last_updated": "2026-02-28T10:03:27Z",
+  "source": "OpenNews API (aiRating scores)",
+  "sentiments": [
+    {
+      "ticker": "MARA",
+      "avg_score": null,
+      "sentiment": "no_data",
+      "sample_size": 0,
+      "bullish": 0,
+      "bearish": 0,
+      "neutral": 0
+    },
+    {
+      "ticker": "RIOT",
+      "avg_score": 59.2,
+      "sentiment": "neutral",
+      "sample_size": 8,
+      "bullish": 0,
+      "bearish": 0,
+      "neutral": 8
+    },
+    {
+      "ticker": "CLSK",
+      "avg_score": null,
+      "sentiment": "no_data",
+      "sample_size": 0,
+      "bullish": 0,
+      "bearish": 0,
+      "neutral": 0
+    },
+    {
+      "ticker": "CORZ",
+      "avg_score": 45.0,
+      "sentiment": "neutral",
+      "sample_size": 3,
+      "bullish": 0,
+      "bearish": 1,
+      "neutral": 2
+    },
+    {
+      "ticker": "BITF",
+      "avg_score": 62.1,
+      "sentiment": "neutral",
+      "sample_size": 8,
+      "bullish": 1,
+      "bearish": 0,
+      "neutral": 7
+    },
+    {
+      "ticker": "IREN",
+      "avg_score": null,
+      "sentiment": "no_data",
+      "sample_size": 0,
+      "bullish": 0,
+      "bearish": 0,
+      "neutral": 0
+    },
+    {
+      "ticker": "BTDR",
+      "avg_score": 65.6,
+      "sentiment": "neutral",
+      "sample_size": 8,
+      "bullish": 2,
+      "bearish": 0,
+      "neutral": 6
+    },
+    {
+      "ticker": "HIVE",
+      "avg_score": null,
+      "sentiment": "no_data",
+      "sample_size": 0,
+      "bullish": 0,
+      "bearish": 0,
+      "neutral": 0
+    },
+    {
+      "ticker": "FUFU",
+      "avg_score": null,
+      "sentiment": "no_data",
+      "sample_size": 0,
+      "bullish": 0,
+      "bearish": 0,
+      "neutral": 0
+    },
+    {
+      "ticker": "HUT",
+      "avg_score": null,
+      "sentiment": "no_data",
+      "sample_size": 0,
+      "bullish": 0,
+      "bearish": 0,
+      "neutral": 0
+    },
+    {
+      "ticker": "WULF",
+      "avg_score": 60.6,
+      "sentiment": "neutral",
+      "sample_size": 8,
+      "bullish": 1,
+      "bearish": 0,
+      "neutral": 7
+    },
+    {
+      "ticker": "CIFR",
+      "avg_score": 66.1,
+      "sentiment": "neutral",
+      "sample_size": 7,
+      "bullish": 1,
+      "bearish": 0,
+      "neutral": 6
+    },
+    {
+      "ticker": "ABTC",
+      "avg_score": 64.1,
+      "sentiment": "neutral",
+      "sample_size": 8,
+      "bullish": 1,
+      "bearish": 0,
+      "neutral": 7
+    },
+    {
+      "ticker": "BTBT",
+      "avg_score": null,
+      "sentiment": "no_data",
+      "sample_size": 0,
+      "bullish": 0,
+      "bearish": 0,
+      "neutral": 0
+    }
+  ]
+}
