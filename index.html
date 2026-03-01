@@ -52,7 +52,7 @@
       <span class="btc-change-pos" id="diffChange">--</span>
       <span class="diff-remaining" id="diffRemaining">--</span>
     </div>
-    <span class="data-badge">MOCK DATA</span>
+    <span class="data-badge" id="lastUpdatedBadge">LIVE</span>
     <div class="toggle-group">
       <button class="toggle-btn font-btn" id="fontDown" title="缩小字体">A-</button>
       <button class="toggle-btn font-btn" id="fontUp" title="放大字体">A+</button>
@@ -214,29 +214,29 @@
 
     <!-- Op Highlights -->
     <div class="section-header">
-      <div class="section-title" data-i18n="ops.industry_summary">行业汇总（2024年10月）</div>
+      <div class="section-title" data-i18n="ops.industry_summary">行业汇总</div>
       <span class="data-badge" data-i18n="ops.latest_monthly">最新月度数据</span>
     </div>
     <div class="op-highlights">
       <div class="op-highlight-card">
         <div class="op-h-label" data-i18n="ops.total_btc_mined">合计 BTC 产量</div>
-        <div class="op-h-value">3,282</div>
-        <div class="op-h-sub">BTC / Oct 2024</div>
+        <div class="op-h-value" id="ops-total-mined">—</div>
+        <div class="op-h-sub" id="ops-mined-sub"></div>
       </div>
       <div class="op-highlight-card">
         <div class="op-h-label" data-i18n="ops.total_hashrate">合计算力</div>
-        <div class="op-h-value">168.4 EH/s</div>
-        <div class="op-h-sub" data-i18n="ops.avg_hashrate">平均算力</div>
+        <div class="op-h-value" id="ops-total-hashrate">—</div>
+        <div class="op-h-sub" id="ops-hashrate-sub"></div>
       </div>
       <div class="op-highlight-card">
         <div class="op-h-label" data-i18n="ops.total_btc_held">合计持有 BTC</div>
-        <div class="op-h-value">46,384</div>
+        <div class="op-h-value" id="ops-total-btc-held">—</div>
         <div class="op-h-sub" data-i18n="ops.eom_total">各公司合计（月底）</div>
       </div>
       <div class="op-highlight-card">
         <div class="op-h-label" data-i18n="ops.lowest_power">最低电力成本</div>
-        <div class="op-h-value">$0.018/kWh</div>
-        <div class="op-h-sub" data-i18n="ops.riot_dr">RIOT（需量响应后）</div>
+        <div class="op-h-value" id="ops-lowest-power">—</div>
+        <div class="op-h-sub" id="ops-power-sub"></div>
       </div>
     </div>
 
@@ -381,7 +381,7 @@
     <!-- Social Sentiment -->
     <div class="section-header mb-16">
       <div class="section-title" data-i18n="sent.social_sentiment">社交媒体情绪</div>
-      <span class="data-badge">2026-02-25</span>
+      <span class="data-badge" id="sentimentDateBadge"></span>
     </div>
     <div class="sentiment-panel" id="sentimentPanel"></div>
   </div>
@@ -482,8 +482,8 @@
 
 <!-- ═══════════════════════════ FOOTER ═══════════════════════════ -->
 <footer>
-  <span data-i18n="footer.left">BTC Mining Intelligence © 2026 | MOCK DATA — 仅供演示</span>
-  <span data-i18n="footer.right">数据更新: 2026-02-26 | 公司: 12 US-listed miners</span>
+  <span data-i18n="footer.left">BTC Mining Intelligence © 2026</span>
+  <span data-i18n="footer.right">数据来源: SEC EDGAR, Yahoo Finance, RSS</span>
 </footer>
 
 <!-- ═══════════════════════════ FINANCIAL DETAIL MODAL ════════════ -->
@@ -522,7 +522,7 @@
 </div>
 
 <script src="js/i18n.js"></script>
-<script src="js/data.js?v=3"></script>
+<script src="js/data.js?v=4"></script>
 <script src="Analysis/beneish.js"></script>
 <script src="Analysis/piotroski.js"></script>
 <script src="Analysis/jones.js"></script>

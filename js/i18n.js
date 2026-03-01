@@ -19,9 +19,9 @@ const I18N = {
     'stats.btc_held': '合并持仓 BTC',
     'stats.btc_held_sub': '各公司合计持有',
     'stats.hashrate': '合并算力',
-    'stats.hashrate_sub': '10月 运营算力',
+    'stats.hashrate_sub': '运营算力',
     'stats.monthly': '合并月产量',
-    'stats.monthly_sub': 'BTC / 2024年10月',
+    'stats.monthly_sub': 'BTC 月产量',
     'stats.companies_disclosed': '家公司已披露',
 
     // Header
@@ -95,7 +95,7 @@ const I18N = {
     'th.upside': '上涨空间',
 
     // Operations
-    'ops.industry_summary': '行业汇总（2024年10月）',
+    'ops.industry_summary': '行业汇总',
     'ops.latest_monthly': '最新月度数据',
     'ops.total_btc_mined': '合计 BTC 产量',
     'ops.total_hashrate': '合计算力',
@@ -133,8 +133,8 @@ const I18N = {
     'sent.social_sentiment': '社交媒体情绪',
 
     // Footer
-    'footer.left': 'BTC Mining Intelligence © 2026 | MOCK DATA — 仅供演示',
-    'footer.right': '数据更新: 2026-02-26 | 公司: 12 US-listed miners',
+    'footer.left': 'BTC Mining Intelligence © 2026',
+    'footer.right': '数据来源: SEC EDGAR, Yahoo Finance, RSS',
 
     // Dynamic JS strings
     'js.days_later': '天后',
@@ -248,9 +248,9 @@ const I18N = {
     'stats.btc_held': 'BTC Holdings',
     'stats.btc_held_sub': 'All companies total',
     'stats.hashrate': 'Hashrate',
-    'stats.hashrate_sub': 'Oct operational',
+    'stats.hashrate_sub': 'Operational',
     'stats.monthly': 'Monthly Output',
-    'stats.monthly_sub': 'BTC / Oct 2024',
+    'stats.monthly_sub': 'BTC monthly',
     'stats.companies_disclosed': ' companies disclosed',
 
     // Header
@@ -318,7 +318,7 @@ const I18N = {
     'th.avg_target': 'Avg Target',
     'th.upside': 'Upside',
 
-    'ops.industry_summary': 'Industry Summary (Oct 2024)',
+    'ops.industry_summary': 'Industry Summary',
     'ops.latest_monthly': 'Latest Monthly',
     'ops.total_btc_mined': 'Total BTC Mined',
     'ops.total_hashrate': 'Total Hashrate',
@@ -352,8 +352,8 @@ const I18N = {
     'sent.target_vs_current': 'Target Price vs Current Price',
     'sent.social_sentiment': 'Social Media Sentiment',
 
-    'footer.left': 'BTC Mining Intelligence © 2026 | MOCK DATA — Demo Only',
-    'footer.right': 'Updated: 2026-02-26 | 12 US-listed miners',
+    'footer.left': 'BTC Mining Intelligence © 2026',
+    'footer.right': 'Data: SEC EDGAR, Yahoo Finance, RSS',
 
     'js.days_later': 'd away',
     'js.today': 'Today',

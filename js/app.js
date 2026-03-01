@@ -55,8 +55,19 @@ const fmt = {
 };
 
 function getLatestFinancial(ticker) {
-  return FINANCIALS.filter(f => f.ticker === ticker && f.is_reported)
-    .sort((a, b) => b.period_end_date.localeCompare(a.period_end_date))[0] || null;
+  const reported = FINANCIALS.filter(f => f.ticker === ticker && f.is_reported);
+  if (!reported.length) return null;
+  // Prefer quarterly data over FY — sort by date desc, then quarterly before FY
+  reported.sort((a, b) => {
+    const dateCmp = b.period_end_date.localeCompare(a.period_end_date);
+    if (dateCmp !== 0) return dateCmp;
+    const aIsQ = a.fiscal_quarter && a.fiscal_quarter.startsWith('Q');
+    const bIsQ = b.fiscal_quarter && b.fiscal_quarter.startsWith('Q');
+    if (aIsQ && !bIsQ) return -1;
+    if (!aIsQ && bIsQ) return 1;
+    return 0;
+  });
+  return reported[0];
 }
 
 function getLatestPeriod() {
@@ -977,9 +988,47 @@ function renderOperations() {
   periods.forEach(p => { periodCounts[p] = OPERATIONAL.filter(o => o.period === p).length; });
   const bestPeriod = periods.reduce((best, p) => periodCounts[p] > periodCounts[best] ? p : best, periods[0]) || '2025-01';
   if (sel) sel.value = bestPeriod;
+
+  // Update op-highlights dynamically
+  updateOpsHighlights(bestPeriod);
+
   renderOpsTable(bestPeriod);
   renderBtcProductionChart();
   setupOpsFilters();
+}
+
+function updateOpsHighlights(period) {
+  const data = OPERATIONAL.filter(o => o.period === period);
+  const periodLabel = data.length && data[0].period_label ? data[0].period_label : period;
+
+  // Total BTC mined
+  const totalMined = data.reduce((s, o) => s + (o.btc_mined || 0), 0);
+  const el1 = document.getElementById('ops-total-mined');
+  if (el1) el1.textContent = totalMined > 0 ? totalMined.toLocaleString() : '—';
+  const sub1 = document.getElementById('ops-mined-sub');
+  if (sub1) sub1.textContent = totalMined > 0 ? `BTC / ${periodLabel}` : '';
+
+  // Total hashrate
+  const totalHash = data.reduce((s, o) => s + (o.hash_rate_eh || 0), 0);
+  const el2 = document.getElementById('ops-total-hashrate');
+  if (el2) el2.textContent = totalHash > 0 ? `${totalHash.toFixed(1)} EH/s` : '—';
+  const sub2 = document.getElementById('ops-hashrate-sub');
+  if (sub2) sub2.textContent = totalHash > 0 ? `${data.filter(o => o.hash_rate_eh > 0).length} ${t('stats.companies_disclosed')}` : '';
+
+  // Total BTC held
+  const totalHeld = data.reduce((s, o) => s + (o.btc_held || 0), 0);
+  const el3 = document.getElementById('ops-total-btc-held');
+  if (el3) el3.textContent = totalHeld > 0 ? totalHeld.toLocaleString() : '—';
+
+  // Lowest power cost
+  const withPower = data.filter(o => o.avg_power_cost_cents_kwh > 0);
+  if (withPower.length) {
+    const lowest = withPower.reduce((min, o) => o.avg_power_cost_cents_kwh < min.avg_power_cost_cents_kwh ? o : min);
+    const el4 = document.getElementById('ops-lowest-power');
+    if (el4) el4.textContent = `${lowest.avg_power_cost_cents_kwh.toFixed(1)}¢/kWh`;
+    const sub4 = document.getElementById('ops-power-sub');
+    if (sub4) sub4.textContent = lowest.ticker;
+  }
 }
 
 function renderOpsTable(period) {
@@ -1213,6 +1262,12 @@ function renderSentiment() {
   renderRatingsPieChart();
   renderTargetPriceTable();
   renderSocialSentiment();
+  // Update sentiment date badge
+  const dateBadge = document.getElementById('sentimentDateBadge');
+  if (dateBadge) {
+    const dates = SENTIMENT.social_sentiment.map(s => s.date || s.updated_at).filter(Boolean).sort().reverse();
+    dateBadge.textContent = dates.length ? dates[0] : new Date().toISOString().slice(0, 10);
+  }
 }
 
 function getFilteredRatings() {
