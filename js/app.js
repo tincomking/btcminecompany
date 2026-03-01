@@ -1554,8 +1554,12 @@ function openCompanyModal(ticker) {
   const co = COMPANIES.find(c => c.ticker === ticker);
   if (!co) return;
 
+  const qOrder = {Q1:1, Q2:2, Q3:3, Q4:4, FY:5};
   const allFin = FINANCIALS.filter(f => f.ticker === ticker && f.is_reported)
-    .sort((a, b) => b.period_end_date.localeCompare(a.period_end_date));
+    .sort((a, b) => {
+      if (b.fiscal_year !== a.fiscal_year) return b.fiscal_year - a.fiscal_year;
+      return (qOrder[b.fiscal_quarter]||0) - (qOrder[a.fiscal_quarter]||0);
+    });
   const latest = allFin[0];
 
   const modalHeader = document.getElementById('modal-ticker').parentElement;
