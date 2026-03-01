@@ -1,7 +1,10 @@
 /**
  * BTC Mining Intelligence — Data Loader
- * Fetches data from /data/*.json files
+ * Fetches data from Data Center API (api.btcmine.info)
+ * Fallback to local /data/*.json files if API unavailable
  */
+
+const API_BASE = 'https://api.btcmine.info';
 
 let COMPANIES = [];
 let FINANCIALS = [];
@@ -13,16 +16,26 @@ let BTC_PREDICTIONS = {};
 
 let dataReady = false;
 
+async function fetchWithFallback(apiPath, localPath) {
+  try {
+    const res = await fetch(`${API_BASE}${apiPath}`, { signal: AbortSignal.timeout(8000) });
+    if (res.ok) return await res.json();
+  } catch (e) {
+    console.warn(`API ${apiPath} failed, falling back to local:`, e.message);
+  }
+  return fetch(localPath).then(r => r.json());
+}
+
 async function loadAllData() {
   try {
     const [companiesRes, financialsRes, operationalRes, newsRes, sentimentRes, analysisRes, predictionsRes] = await Promise.all([
-      fetch('data/companies.json').then(r => r.json()),
-      fetch('data/financials.json').then(r => r.json()),
-      fetch('data/operational.json').then(r => r.json()),
-      fetch('data/news.json').then(r => r.json()),
-      fetch('data/sentiment.json').then(r => r.json()),
-      fetch('data/analysis_data.json').then(r => r.json()),
-      fetch('data/btc_price_predictions.json').then(r => r.json()),
+      fetchWithFallback('/api/btcmine/companies', 'data/companies.json'),
+      fetchWithFallback('/api/btcmine/financials', 'data/financials.json'),
+      fetchWithFallback('/api/btcmine/operational', 'data/operational.json'),
+      fetchWithFallback('/api/btcmine/news', 'data/news.json'),
+      fetchWithFallback('/api/btcmine/sentiment', 'data/sentiment.json'),
+      fetchWithFallback('/api/btcmine/analysis', 'data/analysis_data.json'),
+      fetchWithFallback('/api/btcmine/predictions', 'data/btc_price_predictions.json'),
     ]);
 
     // Map companies — JSON has no stock_price/market_cap, set defaults
