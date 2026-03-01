@@ -75,10 +75,17 @@ async function loadAllData() {
       avg_power_cost_cents_kwh: o.avg_power_cost_cents_kwh || null,
     }));
 
-    // News
+    // News — map API field names to frontend expectations
     NEWS = (newsRes.data || []).map(n => ({
       ...n,
-      sentiment_score: n.sentiment_score || 0,
+      // API uses ts/symbol/newsType/description; frontend expects published_at/ticker/category/summary
+      published_at: n.published_at || n.ts || '',
+      ticker: n.ticker || n.symbol || '',
+      category: n.category || n.newsType || 'news',
+      summary: n.summary || n.description || '',
+      sentiment: n.sentiment || (n.ai_signal === 'bullish' ? 'positive' : n.ai_signal === 'bearish' ? 'negative' : 'neutral'),
+      sentiment_score: n.sentiment_score || n.ai_score || 0,
+      source_url: n.source_url || n.link || '',
     }));
 
     // Sentiment
