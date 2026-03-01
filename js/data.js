@@ -76,17 +76,23 @@ async function loadAllData() {
     }));
 
     // News — map API field names to frontend expectations
-    NEWS = (newsRes.data || []).map(n => ({
-      ...n,
-      // API uses ts/symbol/newsType/description; frontend expects published_at/ticker/category/summary
-      published_at: n.published_at || n.ts || '',
-      ticker: n.ticker || n.symbol || '',
-      category: n.category || n.newsType || 'news',
-      summary: n.summary || n.description || '',
-      sentiment: n.sentiment || (n.ai_signal === 'bullish' ? 'positive' : n.ai_signal === 'bearish' ? 'negative' : 'neutral'),
-      sentiment_score: n.sentiment_score || n.ai_score || 0,
-      source_url: n.source_url || n.link || '',
-    }));
+    // API returns aiRating:{grade,score,signal,summary}; local JSON has flat ai_grade/ai_score/ai_signal
+    NEWS = (newsRes.data || []).map(n => {
+      const ai = n.aiRating || {};
+      const signal = ai.signal || n.ai_signal || '';
+      const score = ai.score || n.ai_score || 0;
+      return {
+        ...n,
+        published_at: n.published_at || n.ts || '',
+        ticker: n.ticker || n.symbol || '',
+        category: n.category || n.newsType || 'news',
+        summary: ai.summary || n.ai_summary || n.summary || n.description || '',
+        sentiment: n.sentiment || (signal === 'bullish' ? 'positive' : signal === 'bearish' ? 'negative' : 'neutral'),
+        sentiment_score: n.sentiment_score || score,
+        ai_grade: ai.grade || n.ai_grade || null,
+        source_url: n.source_url || n.link || '',
+      };
+    });
 
     // Sentiment
     SENTIMENT = {
