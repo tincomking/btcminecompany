@@ -70,6 +70,17 @@ function getLatestFinancial(ticker) {
   return reported[0];
 }
 
+/**
+ * Find the last known non-null value for a field across all reported financials for a ticker.
+ * Returns { value, period_label } or null if never reported.
+ */
+function findLastKnownValue(ticker, field) {
+  const reported = FINANCIALS.filter(f => f.ticker === ticker && f.is_reported && f[field] != null)
+    .sort((a, b) => b.period_end_date.localeCompare(a.period_end_date));
+  if (!reported.length) return null;
+  return { value: reported[0][field], period_label: reported[0].period_label };
+}
+
 function getLatestPeriod() {
   if (!OPERATIONAL.length) return null;
   return OPERATIONAL.reduce((max, o) => o.period > max ? o.period : max, OPERATIONAL[0].period);
@@ -408,27 +419,41 @@ function renderCompanyGrid(sortBy = 'mktcap') {
         <div class="company-metrics">
           <div class="metric-block">
             <div class="metric-label">${t('js.latest_revenue')}</div>
-            <div class="metric-value">${fin ? fmt.usd(fin.revenue_usd_m) : t('js.pending')}</div>
+            <div class="metric-value">${(() => {
+              if (fin && fin.revenue_usd_m != null) return fmt.usd(fin.revenue_usd_m);
+              const h = findLastKnownValue(co.ticker, 'revenue_usd_m');
+              return h ? fmt.usd(h.value) : t('js.pending');
+            })()}</div>
             <div class="metric-yoy">${fin ? fmt.pct(fin.revenue_yoy_pct, fin.revenue_yoy_pct != null ? 'yoy' : null) : ''}</div>
           </div>
           <div class="metric-block">
             <div class="metric-label">${t('th.net_income')}</div>
-            <div class="metric-value">${fin && fin.net_income_usd_m != null ? `<span class="${fin.net_income_usd_m >= 0 ? 'text-green' : 'text-red'}">${fmt.usd(fin.net_income_usd_m)}</span>` : t('js.pending')}</div>
+            <div class="metric-value">${(() => {
+              if (fin && fin.net_income_usd_m != null) return `<span class="${fin.net_income_usd_m >= 0 ? 'text-green' : 'text-red'}">${fmt.usd(fin.net_income_usd_m)}</span>`;
+              const h = findLastKnownValue(co.ticker, 'net_income_usd_m');
+              if (h) return `<span class="${h.value >= 0 ? 'text-green' : 'text-red'}">${fmt.usd(h.value)}</span>`;
+              return t('js.pending');
+            })()}</div>
             <div class="metric-yoy">${fin ? fmt.pct(fin.net_income_yoy_pct, fin.net_income_yoy_pct != null ? 'yoy' : null) : ''}</div>
           </div>
           <div class="metric-block">
             <div class="metric-label">Adj. EBITDA</div>
-            <div class="metric-value">${fin ? fmt.usd(fin.adjusted_ebitda_usd_m) : t('js.pending')}</div>
+            <div class="metric-value">${(() => {
+              if (fin && fin.adjusted_ebitda_usd_m != null) return fmt.usd(fin.adjusted_ebitda_usd_m);
+              const h = findLastKnownValue(co.ticker, 'adjusted_ebitda_usd_m');
+              return h ? fmt.usd(h.value) : t('js.pending');
+            })()}</div>
             <div class="metric-yoy">${fin ? fmt.pct(fin.adjusted_ebitda_yoy_pct, fin.adjusted_ebitda_yoy_pct != null ? 'yoy' : null) : ''}</div>
           </div>
           <div class="metric-block">
             <div class="metric-label">${t('js.btc_holding')}</div>
             <div class="metric-value">${(() => {
-              // Find latest BTC held from operational (monthly) or financial data
               const opsRecs = OPERATIONAL.filter(o => o.ticker === co.ticker && o.btc_held > 0)
                 .sort((a, b) => b.period.localeCompare(a.period));
               if (opsRecs.length) return opsRecs[0].btc_held.toLocaleString();
               if (fin && fin.btc_held) return fin.btc_held.toLocaleString();
+              const h = findLastKnownValue(co.ticker, 'btc_held');
+              if (h) return h.value.toLocaleString();
               return '—';
             })()}</div>
             <div class="metric-yoy" style="color:var(--text-muted);font-size:10px;">${(() => {
@@ -436,6 +461,8 @@ function renderCompanyGrid(sortBy = 'mktcap') {
                 .sort((a, b) => b.period.localeCompare(a.period));
               if (opsRecs.length) return opsRecs[0].period_label || opsRecs[0].period;
               if (fin && fin.btc_held) return fin.period_label || '';
+              const h = findLastKnownValue(co.ticker, 'btc_held');
+              if (h) return h.period_label;
               return t('js.btc_unit');
             })()}</div>
           </div>
@@ -1542,13 +1569,36 @@ function openCompanyModal(ticker) {
 
   const metrics = document.getElementById('modalMetrics');
   if (latest) {
+    // Helper: use latest value, or fall back to last known historical value
+    function modalVal(field, formatter, suffix) {
+      if (latest[field] != null) return { value: formatter(latest[field]) + (suffix || ''), period: latest.period_label };
+      const hist = findLastKnownValue(ticker, field);
+      if (hist) return { value: formatter(hist.value) + (suffix || ''), period: hist.period_label };
+      return { value: '—', period: null };
+    }
+    const rev = modalVal('revenue_usd_m', fmt.usd);
+    const ni = modalVal('net_income_usd_m', fmt.usd);
+    const ebitda = modalVal('adjusted_ebitda_usd_m', fmt.usd);
+    const epsV = modalVal('eps_diluted', v => (v>=0?'+':'')+v.toFixed(2));
+    // BTC held: check operational data first, then financials with fallback
+    let btcVal = { value: '—', period: null };
+    const opsRecs = OPERATIONAL.filter(o => o.ticker === ticker && o.btc_held > 0)
+      .sort((a, b) => b.period.localeCompare(a.period));
+    if (opsRecs.length) {
+      btcVal = { value: opsRecs[0].btc_held.toLocaleString() + ' BTC', period: opsRecs[0].period_label || opsRecs[0].period };
+    } else {
+      const btcHist = findLastKnownValue(ticker, 'btc_held');
+      if (btcHist) btcVal = { value: btcHist.value.toLocaleString() + ' BTC', period: btcHist.period_label };
+    }
+    const debt = modalVal('total_debt_usd_m', fmt.usd);
+
     metrics.innerHTML = [
-      { label:t('js.latest_revenue'), value:fmt.usd(latest.revenue_usd_m), yoy:latest.revenue_yoy_pct, yoyType:'yoy', period:latest.period_label },
-      { label:t('th.net_income'), value: latest.net_income_usd_m != null ? fmt.usd(latest.net_income_usd_m) : '—', yoy:null, period:latest.period_label },
-      { label:'Adj. EBITDA', value:fmt.usd(latest.adjusted_ebitda_usd_m), yoy:latest.adjusted_ebitda_yoy_pct, yoyType:'yoy', period:latest.period_label },
-      { label:t('th.eps'), value:latest.eps_diluted != null ? (latest.eps_diluted>=0?'+':'')+latest.eps_diluted.toFixed(2) : '—', yoy:null },
-      { label:t('js.btc_held_label'), value:latest.btc_held ? latest.btc_held.toLocaleString()+' BTC' : '—', yoy:null },
-      { label:t('js.total_debt'), value:fmt.usd(latest.total_debt_usd_m), yoy:null },
+      { label:t('js.latest_revenue'), value:rev.value, yoy:latest.revenue_yoy_pct, yoyType:'yoy', period:rev.period },
+      { label:t('th.net_income'), value:ni.value, yoy:null, period:ni.period },
+      { label:'Adj. EBITDA', value:ebitda.value, yoy:latest.adjusted_ebitda_yoy_pct, yoyType:'yoy', period:ebitda.period },
+      { label:t('th.eps'), value:epsV.value, yoy:null, period:epsV.period },
+      { label:t('js.btc_held_label'), value:btcVal.value, yoy:null, period:btcVal.period },
+      { label:t('js.total_debt'), value:debt.value, yoy:null, period:debt.period },
     ].map(m => `
       <div class="modal-metric">
         <div class="modal-metric-label">${m.label} ${m.period ? `<span style="font-weight:400;">(${m.period})</span>` : ''}</div>
