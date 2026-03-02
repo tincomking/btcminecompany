@@ -1540,6 +1540,18 @@ canvas { max-width: 100%; }
 
 .pred-section { margin-bottom: 24px; }
 
+.pred-section-desc {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--accent-blue);
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
 .inst-type-badge {
   display: inline-block;
   padding: 2px 6px;
