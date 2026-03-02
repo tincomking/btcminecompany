@@ -254,6 +254,12 @@ const I18N = {
     'pred.bear': '熊市',
     'pred.base': '基本',
     'pred.bull': '牛市',
+    'pred.inst_consensus_title': 'BTC 机构预测共识',
+    'pred.inst_consensus_subtitle': '2025-2030 价格预测汇总',
+    'pred.inst_consensus_note': '部分来源使用算法/ML 模型，部分为分析师驱动',
+    'pred.data_date': '数据采集',
+    'pred.current_price': '当前价格',
+    'pred.range_all': '全部预测区间',
   },
 
   en: {
@@ -494,6 +500,12 @@ const I18N = {
     'pred.bear': 'Bear',
     'pred.base': 'Base',
     'pred.bull': 'Bull',
+    'pred.inst_consensus_title': 'BTC Institutional Consensus',
+    'pred.inst_consensus_subtitle': '2025-2030 Price Forecast Summary',
+    'pred.inst_consensus_note': 'Some sources use algorithmic/ML models; others are analyst-driven',
+    'pred.data_date': 'Data collected',
+    'pred.current_price': 'Current Price',
+    'pred.range_all': 'Full Prediction Range',
   }
 };
 

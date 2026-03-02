@@ -2051,7 +2051,100 @@ function renderPlatformPredictions() {
   }).join('');
 }
 
+function renderInstitutionalConsensusCard() {
+  const container = document.getElementById('institutionConsensusCard');
+  if (!container) return;
+
+  const consensus = BTC_PREDICTIONS.summary_consensus || {};
+  const years = ['2025', '2026', '2027', '2028', '2029', '2030'];
+  const btcPrice = _lastBtcPrice || 0;
+
+  // Collect all data points to determine scale
+  let globalMax = 0;
+  const rowData = years.map(y => {
+    const c = consensus[y];
+    if (!c) return null;
+    const low = c.range_low || 0;
+    const high = c.range_high || 0;
+    let cLow = 0, cHigh = 0;
+    if (c.institutional_consensus) {
+      const parts = c.institutional_consensus.split('-');
+      cLow = parseInt(parts[0]) || 0;
+      cHigh = parseInt(parts[1] || parts[0]) || 0;
+    }
+    if (high > globalMax) globalMax = high;
+    if (cHigh > globalMax) globalMax = cHigh;
+    return { year: y, low, high, cLow, cHigh };
+  }).filter(Boolean);
+
+  if (rowData.length === 0) { container.innerHTML = ''; return; }
+
+  // Add 5% padding to max for visual breathing room
+  globalMax = globalMax * 1.05;
+
+  const pct = v => ((v / globalMax) * 100).toFixed(2);
+  const fmtK = v => {
+    if (v >= 1000000) return '$' + (v / 1000000).toFixed(1) + 'M';
+    if (v >= 1000) return '$' + (v / 1000).toFixed(0) + 'K';
+    return '$' + v.toLocaleString();
+  };
+
+  const priceLinePct = btcPrice > 0 ? pct(btcPrice) : null;
+
+  const barsHtml = rowData.map(r => {
+    const rangeLeft = pct(r.low);
+    const rangeWidth = (pct(r.high) - pct(r.low)).toFixed(2);
+    const cLeft = pct(r.cLow);
+    const cWidth = (pct(r.cHigh) - pct(r.cLow)).toFixed(2);
+
+    return `<div class="inst-consensus-row">
+      <div class="inst-consensus-year">${r.year}</div>
+      <div class="inst-consensus-bar-area">
+        <div class="inst-consensus-range-bar" style="left:${rangeLeft}%;width:${rangeWidth}%;"></div>
+        <div class="inst-consensus-consensus-bar" style="left:${cLeft}%;width:${cWidth}%;"></div>
+        ${priceLinePct !== null ? `<div class="inst-consensus-price-line" style="left:${priceLinePct}%;"></div>` : ''}
+        <div class="inst-consensus-labels">
+          <span class="inst-consensus-label-range" style="position:absolute;left:${rangeLeft}%;">${fmtK(r.low)}</span>
+          <span class="inst-consensus-label-range" style="position:absolute;left:${pct(r.high)}%;transform:translateX(-100%);">${fmtK(r.high)}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const dataDate = BTC_PREDICTIONS.data_collection_date || '2026-02-26';
+
+  container.innerHTML = `<div class="inst-consensus-card">
+    <div class="inst-consensus-header">
+      <span class="inst-consensus-title">${t('pred.inst_consensus_title')}</span>
+      <span class="inst-consensus-subtitle">${t('pred.inst_consensus_subtitle')}</span>
+    </div>
+    <div class="inst-consensus-meta">${t('pred.data_date')}: ${dataDate} | ${t('pred.inst_consensus_note')}</div>
+    <div class="inst-consensus-price-row">
+      <span class="inst-consensus-price-label">${t('pred.current_price')}</span>
+      <span class="inst-consensus-price-value">${btcPrice > 0 ? '$' + btcPrice.toLocaleString() : '$—'}</span>
+    </div>
+    <div class="inst-consensus-chart">
+      ${barsHtml}
+    </div>
+    <div class="inst-consensus-legend">
+      <div class="inst-consensus-legend-item">
+        <div class="inst-consensus-legend-swatch" style="background:rgba(59,130,246,0.2);border:1px solid rgba(59,130,246,0.4);"></div>
+        ${t('pred.range_all')}
+      </div>
+      <div class="inst-consensus-legend-item">
+        <div class="inst-consensus-legend-swatch" style="background:rgba(16,185,129,0.3);border:1px solid rgba(16,185,129,0.6);"></div>
+        ${t('pred.institutional_consensus')}
+      </div>
+      <div class="inst-consensus-legend-item">
+        <div class="inst-consensus-legend-swatch" style="width:3px;height:12px;background:var(--orange);border-radius:1px;"></div>
+        ${t('pred.current_price')}
+      </div>
+    </div>
+  </div>`;
+}
+
 function renderInstitutionalPredictions() {
+  renderInstitutionalConsensusCard();
   const data = BTC_PREDICTIONS.institutional_predictions || [];
   const years = ['2025', '2026', '2027', '2028', '2029', '2030'];
   const thead = document.getElementById('institutionPredHead');

@@ -1581,6 +1581,182 @@ canvas { max-width: 100%; }
   line-height: 1.5;
 }
 
+/* ── Institutional Consensus Card ─────────────────────── */
+.inst-consensus-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+
+.inst-consensus-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.inst-consensus-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.inst-consensus-subtitle {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.inst-consensus-meta {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.inst-consensus-price-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding: 10px 14px;
+  background: var(--bg-elevated);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.inst-consensus-price-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.inst-consensus-price-value {
+  font-size: 22px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--accent-blue);
+}
+
+.inst-consensus-chart {
+  position: relative;
+}
+
+.inst-consensus-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 10px;
+}
+
+.inst-consensus-year {
+  width: 44px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+
+.inst-consensus-bar-area {
+  flex: 1;
+  position: relative;
+  height: 32px;
+}
+
+.inst-consensus-range-bar {
+  position: absolute;
+  height: 10px;
+  top: 2px;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 3px;
+}
+
+.inst-consensus-consensus-bar {
+  position: absolute;
+  height: 14px;
+  top: 0;
+  background: rgba(16, 185, 129, 0.25);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  border-radius: 4px;
+}
+
+.inst-consensus-labels {
+  position: absolute;
+  top: 17px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.inst-consensus-label-range {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+.inst-consensus-label-consensus {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  color: var(--green);
+  font-weight: 600;
+}
+
+.inst-consensus-price-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--orange);
+  z-index: 2;
+}
+
+.inst-consensus-price-line::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--orange);
+}
+
+.inst-consensus-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.inst-consensus-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.inst-consensus-legend-swatch {
+  width: 14px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .inst-consensus-card { padding: 14px 12px; }
+  .inst-consensus-header { flex-direction: column; gap: 2px; }
+  .inst-consensus-price-value { font-size: 18px; }
+  .inst-consensus-year { width: 36px; font-size: 11px; }
+  .inst-consensus-label-range,
+  .inst-consensus-label-consensus { font-size: 8px; }
+}
+
 .fitting-controls {
   display: flex;
   gap: 6px;
