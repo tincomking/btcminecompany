@@ -1245,7 +1245,7 @@ function renderNewsList() {
           ${n.ticker ? `<span class="ticker-badge" style="font-size:9px;padding:2px 5px;">${n.ticker}</span>` : ''}
           <span class="news-sentiment-dot ${sentDot}" style="margin-left:auto;"></span>
         </div>
-        <div class="news-title">${n.title}</div>
+        <div class="news-title">${n.title_cn || n.title}</div>
         <div class="news-meta">
           <span class="news-source">${n.source}</span>
           <span>·</span>

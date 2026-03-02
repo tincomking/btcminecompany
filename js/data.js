@@ -85,6 +85,7 @@ async function loadAllData() {
         sentiment: n.sentiment || (signal === 'bullish' ? 'positive' : signal === 'bearish' ? 'negative' : 'neutral'),
         sentiment_score: n.sentiment_score || score,
         ai_grade: ai.grade || n.ai_grade || null,
+        title_cn: n.titleCn || n.title_cn || '',
         source_url: n.source_url || n.link || '',
       };
     });
