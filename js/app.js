@@ -1965,7 +1965,7 @@ function renderMonteCarloChart(result) {
 
 // ── PAGE: PREDICTIONS ────────────────────────────────────────────────────────
 
-let currentPredTab = 'platform';
+let currentPredTab = 'institution';
 
 function renderPredictions() {
   if (!BTC_PREDICTIONS || !BTC_PREDICTIONS.crypto_platform_predictions) {
@@ -1982,8 +1982,8 @@ function renderPredictions() {
 function setupPredictionTabs() {
   const container = document.getElementById('predSubTabs');
   const tabs = [
-    { key: 'platform', label: t('pred.platform_tab') },
     { key: 'institution', label: t('pred.institution_tab') },
+    { key: 'platform', label: t('pred.platform_tab') },
     { key: 'consensus', label: t('pred.consensus_tab') },
     { key: 'fitting', label: t('pred.fitting_tab') },
   ];
