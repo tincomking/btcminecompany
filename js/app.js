@@ -196,6 +196,7 @@ document.querySelectorAll('.nav-tab').forEach(btn => {
     if (page === 'sentiment') renderSentiment();
     if (page === 'analysis') renderAnalysis();
     if (page === 'predictions') renderPredictions();
+    if (page === 'market-predict') renderMarketPredict();
   });
 });
 
@@ -2478,6 +2479,243 @@ function runFitting(method) {
           <div class="fitting-stat-value td-mono">$${predict(y - 2025).toLocaleString('en-US', { maximumFractionDigits: 0 })}</div>
         </div>
       `).join('')}
+    </div>`;
+}
+
+// ── PAGE: MARKET PREDICT ─────────────────────────────────────────────────────
+
+let mpForecastChart = null;
+
+async function renderMarketPredict() {
+  await loadMarketPredictions();
+  const { latest, forecast, models, polymarket, fearGreed } = MARKET_PREDICT;
+
+  // Hero section
+  if (latest && !latest.error) {
+    document.getElementById('mp-price').textContent = '$' + (latest.current_price || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const main = latest['24h'] || latest['4h'];
+    if (main) {
+      const isUp = main.direction === 'UP';
+      const arrowEl = document.getElementById('mp-arrow');
+      arrowEl.textContent = isUp ? 'LONG' : 'SHORT';
+      arrowEl.className = 'mp-arrow ' + (isUp ? 'mp-up' : 'mp-down');
+      document.getElementById('mp-conf-text').textContent =
+        `${t('mp.confidence')} ${main.confidence}% | ${t('mp.return')} ${main.expected_return >= 0 ? '+' : ''}${main.expected_return}%`;
+    }
+    const genAt = latest.generated_at;
+    if (genAt) {
+      const d = new Date(genAt);
+      document.getElementById('mp-updated').textContent =
+        d.toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Singapore' });
+    }
+    // Cards
+    renderMPCard('4h', latest['4h']);
+    renderMPCard('24h', latest['24h']);
+    renderMPCard('168h', latest['168h']);
+  }
+
+  // Forecast chart
+  if (forecast && !forecast.error && forecast.hourly_forecast) {
+    renderMPForecastChart(forecast);
+  }
+
+  // Models
+  if (models && models.predictions) {
+    renderMPModels(models.predictions);
+  }
+
+  // Polymarket
+  renderMPPolymarket(polymarket);
+
+  // Fear & Greed
+  renderMPFearGreed(fearGreed);
+}
+
+function renderMPCard(key, pred) {
+  const dirEl = document.getElementById(`mp-${key}-dir`);
+  const retEl = document.getElementById(`mp-${key}-return`);
+  const targetEl = document.getElementById(`mp-${key}-target`);
+  const confEl = document.getElementById(`mp-${key}-conf`);
+  const card = document.getElementById(`mp-card-${key}`);
+  if (!pred) { dirEl.textContent = '--'; return; }
+
+  const isUp = pred.direction === 'UP';
+  dirEl.textContent = isUp ? 'LONG' : 'SHORT';
+  dirEl.className = 'mp-card-dir ' + (isUp ? 'mp-up' : 'mp-down');
+  retEl.textContent = `${pred.expected_return >= 0 ? '+' : ''}${pred.expected_return}%`;
+  retEl.className = 'mp-card-return ' + (isUp ? 'mp-up' : 'mp-down');
+  targetEl.textContent = `${t('mp.target')}: $${(pred.target_price || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })} | ${t('mp.confidence')}: ${pred.confidence}%`;
+  confEl.style.width = pred.confidence + '%';
+  card.classList.remove('mp-card-up', 'mp-card-down');
+  card.classList.add(isUp ? 'mp-card-up' : 'mp-card-down');
+}
+
+function renderMPForecastChart(forecast) {
+  const canvas = document.getElementById('mp-forecast-chart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (mpForecastChart) mpForecastChart.destroy();
+
+  const cc = chartColors();
+  const datasets = [];
+
+  if (forecast.hourly_forecast) {
+    datasets.push({
+      label: t('mp.combined'),
+      data: forecast.hourly_forecast.map(p => ({ x: new Date(p.timestamp), y: p.price })),
+      borderColor: '#f59e0b',
+      backgroundColor: 'rgba(245,158,11,0.05)',
+      borderWidth: 2,
+      pointRadius: 0,
+      fill: true,
+      tension: 0.3,
+    });
+  }
+  if (forecast.hourly_model_only) {
+    datasets.push({
+      label: t('mp.model_only'),
+      data: forecast.hourly_model_only.map(p => ({ x: new Date(p.timestamp), y: p.price })),
+      borderColor: '#3b82f6',
+      borderWidth: 1.5,
+      borderDash: [5, 5],
+      pointRadius: 0,
+      tension: 0.3,
+    });
+  }
+  if (forecast.hourly_poly_only) {
+    datasets.push({
+      label: t('mp.poly_only'),
+      data: forecast.hourly_poly_only.map(p => ({ x: new Date(p.timestamp), y: p.price })),
+      borderColor: '#a78bfa',
+      borderWidth: 1.5,
+      borderDash: [3, 3],
+      pointRadius: 0,
+      tension: 0.3,
+    });
+  }
+
+  mpForecastChart = new Chart(ctx, {
+    type: 'line',
+    data: { datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: { color: cc.legend, font: { size: 11, family: 'Inter' }, usePointStyle: true, boxWidth: 20 },
+        },
+        tooltip: {
+          backgroundColor: cc.tooltip.bg, borderColor: cc.tooltip.border, borderWidth: 1,
+          titleColor: cc.tooltip.title, bodyColor: cc.tooltip.body,
+          callbacks: { label: ctx => `${ctx.dataset.label}: $${ctx.parsed.y.toLocaleString('en-US', { maximumFractionDigits: 0 })}` }
+        },
+      },
+      scales: {
+        x: {
+          type: 'time',
+          time: { unit: 'hour', displayFormats: { hour: 'MM/dd HH:mm' } },
+          grid: { color: cc.grid },
+          ticks: { color: cc.tick, font: { size: 10 }, maxTicksLimit: 8 },
+        },
+        y: {
+          grid: { color: cc.grid },
+          ticks: { color: cc.tick, font: { size: 10, family: 'JetBrains Mono' }, callback: v => '$' + v.toLocaleString() },
+        }
+      },
+      interaction: { intersect: false, mode: 'index' },
+    },
+  });
+}
+
+function renderMPModels(predictions) {
+  const thead = document.getElementById('mp-models-head');
+  const tbody = document.getElementById('mp-models-body');
+  if (!predictions) { tbody.innerHTML = '<tr><td colspan="5" class="no-data">--</td></tr>'; return; }
+
+  const horizon = predictions['24h'] || predictions['4h'] || predictions['168h'];
+  if (!horizon) { tbody.innerHTML = '<tr><td colspan="5" class="no-data">--</td></tr>'; return; }
+
+  thead.innerHTML = `<tr>
+    <th>${t('mp.model')}</th>
+    <th>${t('mp.direction')}</th>
+    <th class="td-right">${t('mp.confidence')}</th>
+    <th class="td-right">${t('mp.return')}</th>
+    <th class="td-right">${t('mp.target')}</th>
+  </tr>`;
+
+  const catOrder = { ensemble: 0, ml: 1, nn: 2, ts: 3, ta: 4 };
+  const catLabels = { ml: 'ML', nn: 'NN', ts: 'TS', ta: 'TA', ensemble: 'ENS' };
+  const sorted = Object.entries(horizon).sort((a, b) => (catOrder[a[1].category] ?? 5) - (catOrder[b[1].category] ?? 5));
+
+  tbody.innerHTML = sorted.map(([key, m]) => {
+    const isUp = m.direction === 'UP';
+    const dirCls = isUp ? 'mp-up' : 'mp-down';
+    return `<tr>
+      <td><span style="font-size:12px;">${m.name}</span> <span class="mp-cat-badge">${catLabels[m.category] || ''}</span></td>
+      <td class="${dirCls}" style="font-weight:600;">${isUp ? 'LONG' : 'SHORT'}</td>
+      <td class="td-right td-mono">${m.confidence}%</td>
+      <td class="td-right td-mono ${dirCls}">${m.expected_return >= 0 ? '+' : ''}${m.expected_return}%</td>
+      <td class="td-right td-mono">$${(m.target_price || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderMPPolymarket(data) {
+  const el = document.getElementById('mp-polymarket-panel');
+  if (!data || !data.markets || data.markets.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-text">${t('js.no_data')}</div></div>`;
+    return;
+  }
+  const markets = data.markets.slice(0, 8);
+  el.innerHTML = markets.map(m => {
+    const yesPct = m.yes_price != null ? (m.yes_price * 100).toFixed(1) : '?';
+    const volStr = m.volume > 1000000 ? `$${(m.volume / 1000000).toFixed(1)}M` :
+                   m.volume > 1000 ? `$${(m.volume / 1000).toFixed(0)}K` : `$${m.volume || 0}`;
+    const q = m.question.length > 70 ? m.question.substring(0, 67) + '...' : m.question;
+    return `<div class="mp-pm-item">
+      <div class="mp-pm-question">${q}</div>
+      <div class="mp-pm-bar-bg"><div class="mp-pm-bar-fill" style="width:${yesPct}%"></div></div>
+      <div class="mp-pm-meta"><span>Yes ${yesPct}%</span><span>${volStr}</span></div>
+    </div>`;
+  }).join('');
+}
+
+function renderMPFearGreed(data) {
+  const el = document.getElementById('mp-fg-panel');
+  if (!data || !data.data || data.data.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-text">${t('js.no_data')}</div></div>`;
+    return;
+  }
+  const latest = data.data[0];
+  const val = latest.value;
+  let gaugeClass = 'mp-fg-neutral';
+  if (val <= 25) gaugeClass = 'mp-fg-extreme-fear';
+  else if (val <= 40) gaugeClass = 'mp-fg-fear';
+  else if (val <= 60) gaugeClass = 'mp-fg-neutral';
+  else if (val <= 75) gaugeClass = 'mp-fg-greed';
+  else gaugeClass = 'mp-fg-extreme-greed';
+
+  const history = data.data.slice(0, 7).reverse();
+  const sparkline = history.map(d => {
+    const h = Math.max(4, (d.value / 100) * 40);
+    let color = 'var(--orange, #f59e0b)';
+    if (d.value <= 25) color = 'var(--red, #ef4444)';
+    else if (d.value <= 40) color = '#f97316';
+    else if (d.value >= 75) color = 'var(--green, #22c55e)';
+    else if (d.value >= 60) color = '#84cc16';
+    return `<div style="width:8px;height:${h}px;background:${color};border-radius:2px;" title="${d.value}"></div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="mp-fg-row">
+      <div class="mp-fg-gauge ${gaugeClass}">${val}</div>
+      <div class="mp-fg-info">
+        <div class="mp-fg-label">${latest.class || ''}</div>
+        <div class="mp-fg-date">${latest.ts ? new Date(latest.ts).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) : ''}</div>
+        <div class="mp-fg-sparkline">${sparkline}</div>
+      </div>
     </div>`;
 }
 

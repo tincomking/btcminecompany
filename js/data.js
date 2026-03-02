@@ -12,8 +12,10 @@ let NEWS = [];
 let SENTIMENT = { analyst_ratings: [], social_sentiment: [] };
 let ANALYSIS_DATA = {};
 let BTC_PREDICTIONS = {};
+let MARKET_PREDICT = { latest: null, forecast: null, models: null, polymarket: null, fearGreed: null };
 
 let dataReady = false;
+let marketPredictLoaded = false;
 
 async function fetchAPI(apiPath) {
   const res = await fetch(`${API_BASE}${apiPath}`, { signal: AbortSignal.timeout(8000) });
@@ -106,5 +108,28 @@ async function loadAllData() {
     console.log(`Data loaded: ${COMPANIES.length} companies, ${FINANCIALS.length} financials, ${OPERATIONAL.length} ops, ${NEWS.length} news`);
   } catch (err) {
     console.error('Failed to load data:', err);
+  }
+}
+
+async function loadMarketPredictions() {
+  if (marketPredictLoaded) return;
+  try {
+    const [latestRes, forecastRes, modelsRes, pmRes, fgRes] = await Promise.all([
+      fetchAPI('/api/predict/latest'),
+      fetchAPI('/api/predict/forecast'),
+      fetchAPI('/api/predict/models'),
+      fetchAPI('/api/predict/polymarket'),
+      fetchAPI('/api/predict/fear-greed'),
+    ]);
+    MARKET_PREDICT = {
+      latest: latestRes,
+      forecast: forecastRes,
+      models: modelsRes,
+      polymarket: pmRes,
+      fearGreed: fgRes,
+    };
+    marketPredictLoaded = true;
+  } catch (err) {
+    console.error('Failed to load market predictions:', err);
   }
 }

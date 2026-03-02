@@ -195,10 +195,31 @@ const I18N = {
     'analysis.month': '月',
     'analysis.revenue_m': '营收 (M)',
 
-    // Predictions tab
-    'nav.predictions': '币价预测',
-    'pred.title': '比特币价格预测',
+    // Predictions tab (institutional)
+    'nav.predictions': '币价机构预测',
+    'nav.market_predict': '币价市场预测',
+    'pred.title': 'BTC 机构预测',
     'pred.subtitle': '综合多平台与机构的 BTC 价格预测（2025-2030）',
+    'overview.desc_market_predict': '基于 12 个 ML 模型的实时 BTC 价格预测（4h/24h/7d），集成 Polymarket 预测市场信号和恐惧贪婪指数。',
+
+    // Market predictions tab
+    'mp.title': 'BTC 市场预测',
+    'mp.subtitle': '基于 ML 模型 + Polymarket + 恐惧贪婪指数的实时预测',
+    'mp.current_price': '当前价格',
+    'mp.h4': '4 小时预测',
+    'mp.h24': '24 小时预测',
+    'mp.h168': '7 天预测',
+    'mp.all_models': '全模型预测',
+    'mp.polymarket': 'Polymarket 信号',
+    'mp.fear_greed': '恐惧贪婪指数',
+    'mp.model': '模型',
+    'mp.direction': '方向',
+    'mp.confidence': '信心',
+    'mp.return': '回报',
+    'mp.target': '目标价',
+    'mp.combined': '综合预测',
+    'mp.model_only': '模型预测',
+    'mp.poly_only': 'Polymarket',
     'pred.platform_tab': '平台预测',
     'pred.institution_tab': '机构预测',
     'pred.consensus_tab': '共识汇总',
@@ -413,10 +434,31 @@ const I18N = {
     'analysis.month': 'Mo',
     'analysis.revenue_m': 'Revenue (M)',
 
-    // Predictions tab
-    'nav.predictions': 'BTC Forecast',
-    'pred.title': 'Bitcoin Price Predictions',
+    // Predictions tab (institutional)
+    'nav.predictions': 'Institutional',
+    'nav.market_predict': 'Market Predict',
+    'pred.title': 'BTC Institutional Forecasts',
     'pred.subtitle': 'Aggregated BTC forecasts from platforms & institutions (2025-2030)',
+    'overview.desc_market_predict': 'Real-time BTC price predictions from 12 ML models (4h/24h/7d), integrated with Polymarket signals and Fear & Greed Index.',
+
+    // Market predictions tab
+    'mp.title': 'BTC Market Predictions',
+    'mp.subtitle': 'Real-time ML models + Polymarket + Fear & Greed Index',
+    'mp.current_price': 'Current Price',
+    'mp.h4': '4-Hour Forecast',
+    'mp.h24': '24-Hour Forecast',
+    'mp.h168': '7-Day Forecast',
+    'mp.all_models': 'All Models',
+    'mp.polymarket': 'Polymarket Signals',
+    'mp.fear_greed': 'Fear & Greed Index',
+    'mp.model': 'Model',
+    'mp.direction': 'Direction',
+    'mp.confidence': 'Confidence',
+    'mp.return': 'Return',
+    'mp.target': 'Target',
+    'mp.combined': 'Combined',
+    'mp.model_only': 'Model Only',
+    'mp.poly_only': 'Polymarket',
     'pred.platform_tab': 'Platforms',
     'pred.institution_tab': 'Institutions',
     'pred.consensus_tab': 'Consensus',
@@ -485,6 +527,7 @@ function toggleLang() {
     if (page === 'sentiment') renderSentiment();
     if (page === 'analysis') renderAnalysis();
     if (page === 'predictions') renderPredictions();
+    if (page === 'market-predict' && typeof renderMarketPredict === 'function') renderMarketPredict();
   }
 }
 

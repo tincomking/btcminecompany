@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -37,7 +38,8 @@
     <button class="nav-tab" data-page="news" data-i18n="nav.news">新闻动态</button>
     <button class="nav-tab" data-page="sentiment" data-i18n="nav.sentiment">市场情绪</button>
     <button class="nav-tab" data-page="analysis" data-i18n="nav.analysis">财务分析</button>
-    <button class="nav-tab" data-page="predictions" data-i18n="nav.predictions">币价预测</button>
+    <button class="nav-tab" data-page="predictions" data-i18n="nav.predictions">币价机构预测</button>
+    <button class="nav-tab" data-page="market-predict" data-i18n="nav.market_predict">币价市场预测</button>
   </nav>
 
   <div class="header-right">
@@ -93,8 +95,12 @@
           <p class="intro-card-desc" data-i18n="overview.desc_analysis">六大量化模型：Monte Carlo 营收模拟、KMV 违约概率、Altman Z-score 破产预警、Beneish M-score 盈余操纵检测、Piotroski F-score 财务健康度、Jones 模型应计分析。</p>
         </div>
         <div class="intro-card" data-goto="predictions">
-          <div class="intro-card-header"><span class="intro-card-icon">🔮</span><span class="intro-card-title" data-i18n="nav.predictions">币价预测</span></div>
+          <div class="intro-card-header"><span class="intro-card-icon">🏛</span><span class="intro-card-title" data-i18n="nav.predictions">币价机构预测</span></div>
           <p class="intro-card-desc" data-i18n="overview.desc_predictions">汇集 8 个加密平台和 11 家华尔街/研究机构的 BTC 价格预测（2025-2030），附共识区间图表和五种高级数学拟合分析。</p>
+        </div>
+        <div class="intro-card" data-goto="market-predict">
+          <div class="intro-card-header"><span class="intro-card-icon">🤖</span><span class="intro-card-title" data-i18n="nav.market_predict">币价市场预测</span></div>
+          <p class="intro-card-desc" data-i18n="overview.desc_market_predict">基于 12 个 ML 模型的实时 BTC 价格预测（4h/24h/7d），集成 Polymarket 预测市场信号和恐惧贪婪指数。</p>
         </div>
       </div>
     </div>
@@ -425,10 +431,10 @@
     </div>
   </div>
 
-  <!-- ─────────────────────── PAGE: PREDICTIONS ─────────────────────── -->
+  <!-- ─────────────────────── PAGE: PREDICTIONS (Institutional) ─────────────────────── -->
   <div class="page" id="page-predictions">
     <div class="section-header">
-      <div class="section-title" data-i18n="pred.title">比特币价格预测</div>
+      <div class="section-title" data-i18n="pred.title">BTC 机构预测</div>
       <span class="data-badge" data-i18n="pred.subtitle">综合多平台与机构的 BTC 价格预测（2025-2030）</span>
     </div>
 
@@ -475,6 +481,81 @@
         <canvas id="fittingChart" height="120"></canvas>
       </div>
       <div class="fitting-stats" id="fittingStats"></div>
+    </div>
+  </div>
+
+  <!-- ─────────────────────── PAGE: MARKET PREDICT ─────────────────────── -->
+  <div class="page" id="page-market-predict">
+    <div class="section-header">
+      <div class="section-title" data-i18n="mp.title">BTC 市场预测</div>
+      <span class="data-badge" data-i18n="mp.subtitle">基于 ML 模型 + Polymarket + 恐惧贪婪指数的实时预测</span>
+    </div>
+
+    <!-- Hero: Price + Direction + Forecast Chart -->
+    <div class="mp-hero">
+      <div class="mp-hero-left">
+        <div class="mp-current-label" data-i18n="mp.current_price">当前价格</div>
+        <div class="mp-current-price" id="mp-price">--</div>
+        <div class="mp-direction" id="mp-direction">
+          <span class="mp-arrow" id="mp-arrow">--</span>
+          <span class="mp-conf-text" id="mp-conf-text">--</span>
+        </div>
+        <div class="mp-updated" id="mp-updated">--</div>
+      </div>
+      <div class="mp-hero-chart">
+        <canvas id="mp-forecast-chart" height="200"></canvas>
+      </div>
+    </div>
+
+    <!-- Prediction Cards: 4h / 24h / 7d -->
+    <div class="mp-cards-grid">
+      <div class="mp-card" id="mp-card-4h">
+        <div class="mp-card-horizon" data-i18n="mp.h4">4 小时预测</div>
+        <div class="mp-card-dir" id="mp-4h-dir">--</div>
+        <div class="mp-card-return" id="mp-4h-return">--</div>
+        <div class="mp-card-target" id="mp-4h-target">--</div>
+        <div class="mp-card-conf-bg"><div class="mp-card-conf-fill" id="mp-4h-conf"></div></div>
+      </div>
+      <div class="mp-card" id="mp-card-24h">
+        <div class="mp-card-horizon" data-i18n="mp.h24">24 小时预测</div>
+        <div class="mp-card-dir" id="mp-24h-dir">--</div>
+        <div class="mp-card-return" id="mp-24h-return">--</div>
+        <div class="mp-card-target" id="mp-24h-target">--</div>
+        <div class="mp-card-conf-bg"><div class="mp-card-conf-fill" id="mp-24h-conf"></div></div>
+      </div>
+      <div class="mp-card" id="mp-card-168h">
+        <div class="mp-card-horizon" data-i18n="mp.h168">7 天预测</div>
+        <div class="mp-card-dir" id="mp-168h-dir">--</div>
+        <div class="mp-card-return" id="mp-168h-return">--</div>
+        <div class="mp-card-target" id="mp-168h-target">--</div>
+        <div class="mp-card-conf-bg"><div class="mp-card-conf-fill" id="mp-168h-conf"></div></div>
+      </div>
+    </div>
+
+    <!-- All Models Grid + Polymarket -->
+    <div class="mp-bottom-grid">
+      <div>
+        <div class="section-header mb-16">
+          <div class="section-title" data-i18n="mp.all_models">全模型预测</div>
+        </div>
+        <div class="table-wrapper">
+          <table id="mp-models-table">
+            <thead id="mp-models-head"></thead>
+            <tbody id="mp-models-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="section-header mb-16">
+          <div class="section-title" data-i18n="mp.polymarket">Polymarket 信号</div>
+        </div>
+        <div id="mp-polymarket-panel"></div>
+
+        <div class="section-header mb-16 mt-16">
+          <div class="section-title" data-i18n="mp.fear_greed">恐惧贪婪指数</div>
+        </div>
+        <div class="mp-fg-panel" id="mp-fg-panel"></div>
+      </div>
     </div>
   </div>
 
