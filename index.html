@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3/dist/chartjs-plugin-annotation.min.js"></script>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -491,7 +492,7 @@
       <span class="data-badge" data-i18n="mp.subtitle">基于 ML 模型 + Polymarket + 恐惧贪婪指数的实时预测</span>
     </div>
 
-    <!-- Hero: Price + Direction + Forecast Chart -->
+    <!-- Hero: Price + Direction + Fear&Greed + Forecast Chart -->
     <div class="mp-hero">
       <div class="mp-hero-left">
         <div class="mp-current-label" data-i18n="mp.current_price">当前价格</div>
@@ -500,10 +501,21 @@
           <span class="mp-arrow" id="mp-arrow">--</span>
           <span class="mp-conf-text" id="mp-conf-text">--</span>
         </div>
+        <!-- 恐惧贪婪指数（在价格下方） -->
+        <div class="mp-fg-inline" id="mp-fg-inline"></div>
         <div class="mp-updated" id="mp-updated">--</div>
       </div>
       <div class="mp-hero-chart">
-        <canvas id="mp-forecast-chart" height="200"></canvas>
+        <div class="mp-chart-controls">
+          <div class="mp-range-btns" id="mp-range-btns">
+            <button class="mp-range-btn" data-range="7d">1周</button>
+            <button class="mp-range-btn active" data-range="30d">1月</button>
+            <button class="mp-range-btn" data-range="90d">3月</button>
+            <button class="mp-range-btn" data-range="180d">6月</button>
+            <button class="mp-range-btn" data-range="1y">1年</button>
+          </div>
+        </div>
+        <canvas id="mp-forecast-chart" height="220"></canvas>
       </div>
     </div>
 
@@ -532,30 +544,26 @@
       </div>
     </div>
 
-    <!-- All Models Grid + Polymarket -->
-    <div class="mp-bottom-grid">
-      <div>
-        <div class="section-header mb-16">
-          <div class="section-title" data-i18n="mp.all_models">全模型预测</div>
-        </div>
-        <div class="table-wrapper">
-          <table id="mp-models-table">
-            <thead id="mp-models-head"></thead>
-            <tbody id="mp-models-body"></tbody>
-          </table>
-        </div>
+    <!-- All Models Grid -->
+    <div class="mp-section-block">
+      <div class="section-header mb-16">
+        <div class="section-title" data-i18n="mp.all_models">全模型预测</div>
       </div>
-      <div>
-        <div class="section-header mb-16">
-          <div class="section-title" data-i18n="mp.polymarket">Polymarket 信号</div>
-        </div>
-        <div id="mp-polymarket-panel"></div>
+      <div class="table-wrapper">
+        <table id="mp-models-table">
+          <thead id="mp-models-head"></thead>
+          <tbody id="mp-models-body"></tbody>
+        </table>
+      </div>
+    </div>
 
-        <div class="section-header mb-16 mt-16">
-          <div class="section-title" data-i18n="mp.fear_greed">恐惧贪婪指数</div>
-        </div>
-        <div class="mp-fg-panel" id="mp-fg-panel"></div>
+    <!-- Polymarket 预测市场 -->
+    <div class="mp-section-block">
+      <div class="section-header mb-16">
+        <div class="section-title" data-i18n="mp.polymarket">Polymarket 预测市场</div>
+        <span class="data-badge">真金白银的市场共识</span>
       </div>
+      <div class="mp-pm-grid" id="mp-polymarket-panel"></div>
     </div>
   </div>
 

@@ -2497,7 +2497,7 @@ async function renderMarketPredict() {
     if (main) {
       const isUp = main.direction === 'UP';
       const arrowEl = document.getElementById('mp-arrow');
-      arrowEl.textContent = isUp ? 'LONG' : 'SHORT';
+      arrowEl.textContent = isUp ? '看涨 ▲' : '看跌 ▼';
       arrowEl.className = 'mp-arrow ' + (isUp ? 'mp-up' : 'mp-down');
       document.getElementById('mp-conf-text').textContent =
         `${t('mp.confidence')} ${main.confidence}% | ${t('mp.return')} ${main.expected_return >= 0 ? '+' : ''}${main.expected_return}%`;
@@ -2540,7 +2540,7 @@ function renderMPCard(key, pred) {
   if (!pred) { dirEl.textContent = '--'; return; }
 
   const isUp = pred.direction === 'UP';
-  dirEl.textContent = isUp ? 'LONG' : 'SHORT';
+  dirEl.textContent = isUp ? '看涨 ▲' : '看跌 ▼';
   dirEl.className = 'mp-card-dir ' + (isUp ? 'mp-up' : 'mp-down');
   retEl.textContent = `${pred.expected_return >= 0 ? '+' : ''}${pred.expected_return}%`;
   retEl.className = 'mp-card-return ' + (isUp ? 'mp-up' : 'mp-down');
@@ -2550,49 +2550,134 @@ function renderMPCard(key, pred) {
   card.classList.add(isUp ? 'mp-card-up' : 'mp-card-down');
 }
 
-function renderMPForecastChart(forecast) {
+let _mpCurrentRange = '30d';
+let _mpHistoryCache = {};
+let _mpForecastData = null;
+
+async function fetchBinanceHistory(range) {
+  if (_mpHistoryCache[range]) return _mpHistoryCache[range];
+  const cfg = {
+    '7d': { interval: '1h', limit: 168 },
+    '30d': { interval: '4h', limit: 180 },
+    '90d': { interval: '4h', limit: 540 },
+    '180d': { interval: '1d', limit: 180 },
+    '1y': { interval: '1d', limit: 365 },
+  };
+  const { interval, limit } = cfg[range] || cfg['30d'];
+  try {
+    const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=${interval}&limit=${limit}`);
+    const data = await res.json();
+    const result = data.map(k => ({ x: new Date(k[0]), y: parseFloat(k[4]) }));
+    _mpHistoryCache[range] = result;
+    return result;
+  } catch (e) {
+    console.error('Binance history fetch error:', e);
+    return [];
+  }
+}
+
+async function renderMPForecastChart(forecast) {
+  _mpForecastData = forecast;
+  const canvas = document.getElementById('mp-forecast-chart');
+  if (!canvas) return;
+
+  // 绑定时间范围按钮事件
+  const btns = document.querySelectorAll('.mp-range-btn');
+  btns.forEach(btn => {
+    btn.onclick = async () => {
+      btns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      _mpCurrentRange = btn.dataset.range;
+      await _renderMPChart();
+    };
+  });
+
+  await _renderMPChart();
+}
+
+async function _renderMPChart() {
   const canvas = document.getElementById('mp-forecast-chart');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   if (mpForecastChart) mpForecastChart.destroy();
 
+  const forecast = _mpForecastData;
   const cc = chartColors();
   const datasets = [];
 
-  if (forecast.hourly_forecast) {
+  // 1. 获取历史价格数据
+  const histData = await fetchBinanceHistory(_mpCurrentRange);
+  if (histData.length > 0) {
     datasets.push({
-      label: t('mp.combined'),
-      data: forecast.hourly_forecast.map(p => ({ x: new Date(p.timestamp), y: p.price })),
-      borderColor: '#f59e0b',
-      backgroundColor: 'rgba(245,158,11,0.05)',
+      label: '历史价格',
+      data: histData,
+      borderColor: '#58a6ff',
+      backgroundColor: 'rgba(88,166,255,0.04)',
       borderWidth: 2,
       pointRadius: 0,
       fill: true,
-      tension: 0.3,
+      tension: 0.2,
+      order: 3,
     });
   }
-  if (forecast.hourly_model_only) {
-    datasets.push({
-      label: t('mp.model_only'),
-      data: forecast.hourly_model_only.map(p => ({ x: new Date(p.timestamp), y: p.price })),
-      borderColor: '#3b82f6',
-      borderWidth: 1.5,
-      borderDash: [5, 5],
-      pointRadius: 0,
-      tension: 0.3,
-    });
+
+  // 2. 预测线（仅在可见范围时显示）
+  if (forecast) {
+    const nowTs = histData.length > 0 ? histData[histData.length - 1].x : new Date();
+
+    if (forecast.hourly_forecast) {
+      const combined = forecast.hourly_forecast.map(p => ({ x: new Date(p.timestamp), y: p.price }));
+      // 连接历史最后点
+      if (histData.length > 0) combined.unshift({ x: nowTs, y: histData[histData.length - 1].y });
+      datasets.push({
+        label: t('mp.combined'),
+        data: combined,
+        borderColor: '#f59e0b',
+        backgroundColor: 'rgba(245,158,11,0.04)',
+        borderWidth: 2,
+        borderDash: [6, 3],
+        pointRadius: 0,
+        fill: true,
+        tension: 0.3,
+        order: 0,
+      });
+    }
+    if (forecast.hourly_model_only) {
+      const modelData = forecast.hourly_model_only.map(p => ({ x: new Date(p.timestamp), y: p.price }));
+      if (histData.length > 0) modelData.unshift({ x: nowTs, y: histData[histData.length - 1].y });
+      datasets.push({
+        label: t('mp.model_only'),
+        data: modelData,
+        borderColor: '#a78bfa',
+        borderWidth: 1.5,
+        borderDash: [4, 4],
+        pointRadius: 0,
+        tension: 0.3,
+        order: 1,
+      });
+    }
+    if (forecast.hourly_poly_only) {
+      const polyData = forecast.hourly_poly_only.map(p => ({ x: new Date(p.timestamp), y: p.price }));
+      if (histData.length > 0) polyData.unshift({ x: nowTs, y: histData[histData.length - 1].y });
+      datasets.push({
+        label: 'Polymarket',
+        data: polyData,
+        borderColor: '#22c55e',
+        borderWidth: 1.5,
+        borderDash: [2, 3],
+        pointRadius: 0,
+        tension: 0.3,
+        order: 2,
+      });
+    }
   }
-  if (forecast.hourly_poly_only) {
-    datasets.push({
-      label: t('mp.poly_only'),
-      data: forecast.hourly_poly_only.map(p => ({ x: new Date(p.timestamp), y: p.price })),
-      borderColor: '#a78bfa',
-      borderWidth: 1.5,
-      borderDash: [3, 3],
-      pointRadius: 0,
-      tension: 0.3,
-    });
-  }
+
+  // 时间轴单位根据范围调整
+  const timeUnit = { '7d': 'hour', '30d': 'day', '90d': 'day', '180d': 'week', '1y': 'month' }[_mpCurrentRange] || 'day';
+  const timeFormat = { 'hour': 'MM/dd HH:mm', 'day': 'MM/dd', 'week': 'MM/dd', 'month': 'yy/MM' }[timeUnit];
+
+  // "现在"标注线
+  const nowLine = histData.length > 0 ? histData[histData.length - 1].x : null;
 
   mpForecastChart = new Chart(ctx, {
     type: 'line',
@@ -2611,13 +2696,22 @@ function renderMPForecastChart(forecast) {
           titleColor: cc.tooltip.title, bodyColor: cc.tooltip.body,
           callbacks: { label: ctx => `${ctx.dataset.label}: $${ctx.parsed.y.toLocaleString('en-US', { maximumFractionDigits: 0 })}` }
         },
+        annotation: nowLine ? {
+          annotations: {
+            nowLine: {
+              type: 'line', xMin: nowLine, xMax: nowLine,
+              borderColor: 'rgba(139,148,158,0.5)', borderWidth: 1, borderDash: [4, 4],
+              label: { content: '现在', display: true, position: 'start', color: cc.tick, font: { size: 10 }, backgroundColor: 'transparent' }
+            }
+          }
+        } : {},
       },
       scales: {
         x: {
           type: 'time',
-          time: { unit: 'hour', displayFormats: { hour: 'MM/dd HH:mm' } },
+          time: { unit: timeUnit, displayFormats: { hour: 'MM/dd HH:mm', day: 'MM/dd', week: 'MM/dd', month: 'yy/MM' } },
           grid: { color: cc.grid },
-          ticks: { color: cc.tick, font: { size: 10 }, maxTicksLimit: 8 },
+          ticks: { color: cc.tick, font: { size: 10 }, maxTicksLimit: 10 },
         },
         y: {
           grid: { color: cc.grid },
@@ -2654,12 +2748,70 @@ function renderMPModels(predictions) {
     const dirCls = isUp ? 'mp-up' : 'mp-down';
     return `<tr>
       <td><span style="font-size:12px;">${m.name}</span> <span class="mp-cat-badge">${catLabels[m.category] || ''}</span></td>
-      <td class="${dirCls}" style="font-weight:600;">${isUp ? 'LONG' : 'SHORT'}</td>
+      <td class="${dirCls}" style="font-weight:600;">${isUp ? '看涨 ▲' : '看跌 ▼'}</td>
       <td class="td-right td-mono">${m.confidence}%</td>
       <td class="td-right td-mono ${dirCls}">${m.expected_return >= 0 ? '+' : ''}${m.expected_return}%</td>
       <td class="td-right td-mono">$${(m.target_price || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}</td>
     </tr>`;
   }).join('');
+}
+
+function translatePMQuestion(q) {
+  let cn = q;
+  // "Will Bitcoin/BTC hit/reach $X by [date]?"
+  cn = cn.replace(/Will (?:Bitcoin|BTC) (?:hit|reach|exceed|surpass) \$?([\d,.]+[kKmM]?) (?:by|before) (.+)\??/i,
+    (_, price, date) => `比特币是否在${translatePMDate(date)}前达到 $${price}？`);
+  // "Will Bitcoin be above/below $X on/by [date]?"
+  cn = cn.replace(/Will (?:Bitcoin|BTC) be (above|below) \$?([\d,.]+[kKmM]?) (?:by|on|in) (.+)\??/i,
+    (_, dir, price, date) => `比特币在${translatePMDate(date)}是否${dir === 'above' ? '高于' : '低于'} $${price}？`);
+  // "Bitcoin $Xk+ by [date]"
+  cn = cn.replace(/(?:Bitcoin|BTC) \$?([\d,.]+[kKmM]?)\+? (?:by|before) (.+)\??/i,
+    (_, price, date) => `比特币在${translatePMDate(date)}前达到 $${price}？`);
+  // "Will Bitcoin close above/below"
+  cn = cn.replace(/Will (?:Bitcoin|BTC) close (above|below) \$?([\d,.]+[kKmM]?) (?:on|by) (.+)\??/i,
+    (_, dir, price, date) => `比特币在${translatePMDate(date)}收盘是否${dir === 'above' ? '高于' : '低于'} $${price}？`);
+  if (cn === q) return null;
+  return cn;
+}
+
+function translatePMDate(dateStr) {
+  const months = { 'january': '1月', 'february': '2月', 'march': '3月', 'april': '4月',
+    'may': '5月', 'june': '6月', 'july': '7月', 'august': '8月',
+    'september': '9月', 'october': '10月', 'november': '11月', 'december': '12月',
+    'jan': '1月', 'feb': '2月', 'mar': '3月', 'apr': '4月',
+    'jun': '6月', 'jul': '7月', 'aug': '8月', 'sep': '9月',
+    'oct': '10月', 'nov': '11月', 'dec': '12月' };
+  let s = dateStr.trim().replace(/[?.]/g, '');
+  for (const [en, zh] of Object.entries(months)) {
+    s = s.replace(new RegExp(en, 'gi'), zh);
+  }
+  // "March 31, 2026" → "2026年3月31日"
+  s = s.replace(/(\d+月)\s*(\d+),?\s*(\d{4})/g, '$3年$1$2日');
+  // "March 2026" → "2026年3月"
+  s = s.replace(/(\d+月)\s*(\d{4})/g, '$2年$1');
+  // "end of 2026" → "2026年底"
+  s = s.replace(/end of (\d{4})/gi, '$1年底');
+  return s;
+}
+
+function formatPMCountdown(endDate) {
+  if (!endDate) return '';
+  const end = new Date(endDate);
+  const now = new Date();
+  const diff = end - now;
+  if (diff <= 0) return '已结束';
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  if (days > 30) return `${Math.floor(days / 30)}个月${days % 30}天`;
+  if (days > 0) return `${days}天${hours}时`;
+  return `${hours}小时`;
+}
+
+function formatVolume(v) {
+  if (v >= 1e9) return `$${(v / 1e9).toFixed(1)}B`;
+  if (v >= 1e6) return `$${(v / 1e6).toFixed(1)}M`;
+  if (v >= 1e3) return `$${(v / 1e3).toFixed(0)}K`;
+  return `$${v || 0}`;
 }
 
 function renderMPPolymarket(data) {
@@ -2670,53 +2822,76 @@ function renderMPPolymarket(data) {
   }
   const markets = data.markets.slice(0, 8);
   el.innerHTML = markets.map(m => {
-    const yesPct = m.yes_price != null ? (m.yes_price * 100).toFixed(1) : '?';
-    const volStr = m.volume > 1000000 ? `$${(m.volume / 1000000).toFixed(1)}M` :
-                   m.volume > 1000 ? `$${(m.volume / 1000).toFixed(0)}K` : `$${m.volume || 0}`;
-    const q = m.question.length > 70 ? m.question.substring(0, 67) + '...' : m.question;
-    return `<div class="mp-pm-item">
-      <div class="mp-pm-question">${q}</div>
-      <div class="mp-pm-bar-bg"><div class="mp-pm-bar-fill" style="width:${yesPct}%"></div></div>
-      <div class="mp-pm-meta"><span>Yes ${yesPct}%</span><span>${volStr}</span></div>
+    const yesPct = m.yes_price != null ? (m.yes_price * 100) : 0;
+    const noPct = 100 - yesPct;
+    const vol = m.volume || 0;
+    const yesAmt = vol * (m.yes_price || 0);
+    const noAmt = vol * (1 - (m.yes_price || 0));
+    const cnQ = translatePMQuestion(m.question);
+    const countdown = formatPMCountdown(m.end_date);
+
+    return `<div class="mp-pm-card">
+      <div class="mp-pm-card-q">${cnQ || m.question}</div>
+      ${cnQ ? `<div class="mp-pm-card-q-en">${m.question}</div>` : ''}
+      <div class="mp-pm-votes">
+        <div class="mp-pm-vote mp-pm-vote-yes">
+          <div class="mp-pm-vote-icon">&#10003;</div>
+          <div class="mp-pm-vote-pct">${yesPct.toFixed(1)}%</div>
+          <div class="mp-pm-vote-amt">${formatVolume(yesAmt)}</div>
+          <div class="mp-pm-vote-label">是 (YES)</div>
+        </div>
+        <div class="mp-pm-vote mp-pm-vote-no">
+          <div class="mp-pm-vote-icon">&#10007;</div>
+          <div class="mp-pm-vote-pct">${noPct.toFixed(1)}%</div>
+          <div class="mp-pm-vote-amt">${formatVolume(noAmt)}</div>
+          <div class="mp-pm-vote-label">否 (NO)</div>
+        </div>
+      </div>
+      <div class="mp-pm-progress"><div class="mp-pm-progress-yes" style="width:${yesPct}%"></div></div>
+      <div class="mp-pm-footer">
+        <span>总额 ${formatVolume(vol)}</span>
+        ${countdown ? `<span class="mp-pm-countdown">&#9202; ${countdown}</span>` : ''}
+      </div>
     </div>`;
   }).join('');
 }
 
 function renderMPFearGreed(data) {
-  const el = document.getElementById('mp-fg-panel');
+  // 渲染到价格下方的内联区域
+  const el = document.getElementById('mp-fg-inline');
+  if (!el) return;
   if (!data || !data.data || data.data.length === 0) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-text">${t('js.no_data')}</div></div>`;
+    el.innerHTML = '';
     return;
   }
   const latest = data.data[0];
   const val = latest.value;
   let gaugeClass = 'mp-fg-neutral';
-  if (val <= 25) gaugeClass = 'mp-fg-extreme-fear';
-  else if (val <= 40) gaugeClass = 'mp-fg-fear';
-  else if (val <= 60) gaugeClass = 'mp-fg-neutral';
-  else if (val <= 75) gaugeClass = 'mp-fg-greed';
-  else gaugeClass = 'mp-fg-extreme-greed';
+  let label = '中性';
+  if (val <= 25) { gaugeClass = 'mp-fg-extreme-fear'; label = '极度恐惧'; }
+  else if (val <= 40) { gaugeClass = 'mp-fg-fear'; label = '恐惧'; }
+  else if (val <= 60) { gaugeClass = 'mp-fg-neutral'; label = '中性'; }
+  else if (val <= 75) { gaugeClass = 'mp-fg-greed'; label = '贪婪'; }
+  else { gaugeClass = 'mp-fg-extreme-greed'; label = '极度贪婪'; }
 
   const history = data.data.slice(0, 7).reverse();
   const sparkline = history.map(d => {
-    const h = Math.max(4, (d.value / 100) * 40);
-    let color = 'var(--orange, #f59e0b)';
-    if (d.value <= 25) color = 'var(--red, #ef4444)';
+    const h = Math.max(3, (d.value / 100) * 24);
+    let color = '#f59e0b';
+    if (d.value <= 25) color = '#ef4444';
     else if (d.value <= 40) color = '#f97316';
-    else if (d.value >= 75) color = 'var(--green, #22c55e)';
+    else if (d.value >= 75) color = '#22c55e';
     else if (d.value >= 60) color = '#84cc16';
-    return `<div style="width:8px;height:${h}px;background:${color};border-radius:2px;" title="${d.value}"></div>`;
+    return `<div style="width:5px;height:${h}px;background:${color};border-radius:1px;" title="${d.value}"></div>`;
   }).join('');
 
   el.innerHTML = `
-    <div class="mp-fg-row">
-      <div class="mp-fg-gauge ${gaugeClass}">${val}</div>
-      <div class="mp-fg-info">
-        <div class="mp-fg-label">${latest.class || ''}</div>
-        <div class="mp-fg-date">${latest.ts ? new Date(latest.ts).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) : ''}</div>
-        <div class="mp-fg-sparkline">${sparkline}</div>
-      </div>
-    </div>`;
+    <div class="mp-fg-inline-gauge ${gaugeClass}">${val}</div>
+    <div class="mp-fg-inline-info">
+      <div class="mp-fg-inline-label">恐惧贪婪指数</div>
+      <div class="mp-fg-inline-val">${label}</div>
+    </div>
+    <div class="mp-fg-inline-spark">${sparkline}</div>`;
 }
 
 // ── DIFFICULTY TICKER ────────────────────────────────────────────────────────
