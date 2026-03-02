@@ -536,7 +536,8 @@ function buildPeriodSelectors() {
 }
 
 function getFilteredFinancials() {
-  let data = FINANCIALS.filter(f => f.is_reported);
+  const qWeight = { Q1: 1, H1: 2, Q2: 3, H2: 4, Q3: 5, Q4: 6, FY: 6 };
+  let data = FINANCIALS.filter(f => f.is_reported && f.period_end_date);
 
   // Company filter
   if (finCurrentCompany !== 'ALL') data = data.filter(f => f.ticker === finCurrentCompany);
@@ -549,8 +550,52 @@ function getFilteredFinancials() {
 
   if (yearVal === 'latest') {
     if (finCurrentCompany !== 'ALL') {
-      // Single company selected → show ALL data for that company, sorted newest first
-      data.sort((a, b) => b.period_end_date.localeCompare(a.period_end_date));
+      // Single company: detect filing pattern and build complete timeline
+      const hasQ = data.some(r => r.fiscal_quarter.startsWith('Q') &&
+        (r.revenue_usd_m != null || r.net_income_usd_m != null));
+      let expectedPeriods;
+      if (hasQ) {
+        expectedPeriods = ['Q1', 'Q2', 'Q3', 'FY'];
+        data = data.filter(r => ['Q1','Q2','Q3','Q4','FY'].includes(r.fiscal_quarter));
+      } else {
+        const hasH = data.some(r => (r.fiscal_quarter === 'H1' || r.fiscal_quarter === 'H2') &&
+          (r.revenue_usd_m != null || r.net_income_usd_m != null));
+        if (hasH) {
+          expectedPeriods = ['H1', 'FY'];
+          data = data.filter(r => ['H1','H2','FY'].includes(r.fiscal_quarter));
+        } else {
+          expectedPeriods = ['FY'];
+          data = data.filter(r => r.fiscal_quarter === 'FY');
+        }
+      }
+
+      // Build data map and determine year range
+      const dataMap = {};
+      data.forEach(r => { dataMap[r.fiscal_year + '|' + r.fiscal_quarter] = r; });
+      const years = data.map(r => r.fiscal_year);
+      const minYear = Math.min(...years);
+      const maxYear = Math.max(...years);
+
+      // Generate complete timeline with placeholders for missing periods
+      const timeline = [];
+      const revPeriods = [...expectedPeriods].reverse(); // FY, Q3, Q2, Q1
+      for (let y = maxYear; y >= minYear; y--) {
+        for (const q of revPeriods) {
+          const key = y + '|' + q;
+          if (dataMap[key]) {
+            timeline.push(dataMap[key]);
+          } else {
+            timeline.push({
+              ticker: finCurrentCompany,
+              fiscal_year: y,
+              fiscal_quarter: q,
+              period_label: q + ' ' + y,
+              _placeholder: true,
+            });
+          }
+        }
+      }
+      data = timeline;
     } else {
       // All companies → show latest per company
       const map = {};
@@ -574,10 +619,10 @@ function getFilteredFinancials() {
 
   // Sort: single company by fiscal period, all companies by report_date desc
   if (finCurrentCompany !== 'ALL') {
-    const qOrd = { FY: 5, Q4: 4, Q3: 3, Q2: 2, Q1: 1 };
     data.sort((a, b) => {
-      if (a.fiscal_year !== b.fiscal_year) return b.fiscal_year - a.fiscal_year;
-      return (qOrd[b.fiscal_quarter] || 0) - (qOrd[a.fiscal_quarter] || 0);
+      const ka = a.fiscal_year * 10 + (qWeight[a.fiscal_quarter] || 0);
+      const kb = b.fiscal_year * 10 + (qWeight[b.fiscal_quarter] || 0);
+      return kb - ka;
     });
   } else {
     data.sort((a, b) => {
@@ -607,6 +652,16 @@ function renderFinancialsTable() {
   const data = allData.slice(start, start + FIN_PER_PAGE);
 
   body.innerHTML = data.map(f => {
+    // Placeholder row for missing periods
+    if (f._placeholder) {
+      return `<tr style="opacity:0.35;">
+        <td><span class="td-ticker">${f.ticker}</span></td>
+        <td class="td-mono">${f.period_label}</td>
+        <td class="td-right no-data" colspan="9" style="text-align:center;">—</td>
+        <td></td>
+      </tr>`;
+    }
+
     const co = COMPANIES.find(c => c.ticker === f.ticker);
     const niStr = f.net_income_usd_m == null ? '<span class="no-data">—</span>' :
       `<span class="${f.net_income_usd_m >= 0 ? 'text-green' : 'text-red'} text-mono">${f.net_income_usd_m >= 0 ? '' : ''}${fmt.usd(f.net_income_usd_m)}</span>`;
