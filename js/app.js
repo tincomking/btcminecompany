@@ -2059,8 +2059,8 @@ function renderInstitutionalConsensusCard() {
   const years = ['2025', '2026', '2027', '2028', '2029', '2030'];
   const btcPrice = _lastBtcPrice || 0;
 
-  // Collect all data points to determine scale
-  let globalMax = 0;
+  // Collect data
+  let globalMin = Infinity, globalMax = 0;
   const rowData = years.map(y => {
     const c = consensus[y];
     if (!c) return null;
@@ -2072,17 +2072,22 @@ function renderInstitutionalConsensusCard() {
       cLow = parseInt(parts[0]) || 0;
       cHigh = parseInt(parts[1] || parts[0]) || 0;
     }
+    if (low > 0 && low < globalMin) globalMin = low;
     if (high > globalMax) globalMax = high;
-    if (cHigh > globalMax) globalMax = cHigh;
     return { year: y, low, high, cLow, cHigh };
   }).filter(Boolean);
 
   if (rowData.length === 0) { container.innerHTML = ''; return; }
 
-  // Add 5% padding to max for visual breathing room
-  globalMax = globalMax * 1.05;
+  // Include current price in scale
+  if (btcPrice > 0 && btcPrice < globalMin) globalMin = btcPrice;
 
-  const pct = v => ((v / globalMax) * 100).toFixed(2);
+  // Log scale: maps value to 0-100% using logarithmic distribution
+  const logMin = Math.log10(globalMin * 0.8);
+  const logMax = Math.log10(globalMax * 1.15);
+  const logRange = logMax - logMin;
+  const pct = v => v <= 0 ? 0 : (((Math.log10(v) - logMin) / logRange) * 100).toFixed(2);
+
   const fmtK = v => {
     if (v >= 1000000) return '$' + (v / 1000000).toFixed(1) + 'M';
     if (v >= 1000) return '$' + (v / 1000).toFixed(0) + 'K';
@@ -2092,21 +2097,22 @@ function renderInstitutionalConsensusCard() {
   const priceLinePct = btcPrice > 0 ? pct(btcPrice) : null;
 
   const barsHtml = rowData.map(r => {
-    const rangeLeft = pct(r.low);
-    const rangeWidth = (pct(r.high) - pct(r.low)).toFixed(2);
-    const cLeft = pct(r.cLow);
-    const cWidth = (pct(r.cHigh) - pct(r.cLow)).toFixed(2);
+    const rangeL = parseFloat(pct(r.low));
+    const rangeR = parseFloat(pct(r.high));
+    const cL = parseFloat(pct(r.cLow));
+    const cR = parseFloat(pct(r.cHigh));
 
     return `<div class="inst-consensus-row">
       <div class="inst-consensus-year">${r.year}</div>
       <div class="inst-consensus-bar-area">
-        <div class="inst-consensus-range-bar" style="left:${rangeLeft}%;width:${rangeWidth}%;"></div>
-        <div class="inst-consensus-consensus-bar" style="left:${cLeft}%;width:${cWidth}%;"></div>
-        ${priceLinePct !== null ? `<div class="inst-consensus-price-line" style="left:${priceLinePct}%;"></div>` : ''}
-        <div class="inst-consensus-labels">
-          <span class="inst-consensus-label-range" style="position:absolute;left:${rangeLeft}%;">${fmtK(r.low)}</span>
-          <span class="inst-consensus-label-range" style="position:absolute;left:${pct(r.high)}%;transform:translateX(-100%);">${fmtK(r.high)}</span>
+        <div class="inst-consensus-range-bar" style="left:${rangeL}%;width:${(rangeR - rangeL).toFixed(2)}%;">
+          <span class="inst-cr-label-left">${fmtK(r.low)}</span>
+          <span class="inst-cr-label-right">${fmtK(r.high)}</span>
         </div>
+        <div class="inst-consensus-consensus-bar" style="left:${cL}%;width:${(cR - cL).toFixed(2)}%;">
+          <span class="inst-cc-label">${fmtK(r.cLow)} – ${fmtK(r.cHigh)}</span>
+        </div>
+        ${priceLinePct !== null ? `<div class="inst-consensus-price-line" style="left:${priceLinePct}%;"></div>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -2128,7 +2134,7 @@ function renderInstitutionalConsensusCard() {
     </div>
     <div class="inst-consensus-legend">
       <div class="inst-consensus-legend-item">
-        <div class="inst-consensus-legend-swatch" style="background:rgba(59,130,246,0.2);border:1px solid rgba(59,130,246,0.4);"></div>
+        <div class="inst-consensus-legend-swatch" style="background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.35);"></div>
         ${t('pred.range_all')}
       </div>
       <div class="inst-consensus-legend-item">
@@ -2136,7 +2142,7 @@ function renderInstitutionalConsensusCard() {
         ${t('pred.institutional_consensus')}
       </div>
       <div class="inst-consensus-legend-item">
-        <div class="inst-consensus-legend-swatch" style="width:3px;height:12px;background:var(--orange);border-radius:1px;"></div>
+        <div class="inst-consensus-legend-swatch" style="width:3px;height:14px;background:var(--orange);border-radius:1px;"></div>
         ${t('pred.current_price')}
       </div>
     </div>
