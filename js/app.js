@@ -2018,6 +2018,7 @@ function fmtPrice(v) {
 }
 
 function renderPlatformPredictions() {
+  renderPlatformConsensusCard();
   const data = BTC_PREDICTIONS.crypto_platform_predictions || [];
   const years = ['2025', '2026', '2027', '2028', '2029', '2030'];
   const thead = document.getElementById('platformPredHead');
@@ -2051,49 +2052,35 @@ function renderPlatformPredictions() {
   }).join('');
 }
 
-function renderInstitutionalConsensusCard() {
-  const container = document.getElementById('institutionConsensusCard');
+function buildConsensusCard(containerId, titleKey, subtitleKey, rangeLabel, consensusLabel, getRowData) {
+  const container = document.getElementById(containerId);
   if (!container) return;
 
-  const consensus = BTC_PREDICTIONS.summary_consensus || {};
   const years = ['2025', '2026', '2027', '2028', '2029', '2030'];
   const btcPrice = _lastBtcPrice || 0;
 
-  // Collect data
   let globalMin = Infinity, globalMax = 0;
   const rowData = years.map(y => {
-    const c = consensus[y];
-    if (!c) return null;
-    const low = c.range_low || 0;
-    const high = c.range_high || 0;
-    let cLow = 0, cHigh = 0;
-    if (c.institutional_consensus) {
-      const parts = c.institutional_consensus.split('-');
-      cLow = parseInt(parts[0]) || 0;
-      cHigh = parseInt(parts[1] || parts[0]) || 0;
-    }
-    if (low > 0 && low < globalMin) globalMin = low;
-    if (high > globalMax) globalMax = high;
-    return { year: y, low, high, cLow, cHigh };
+    const r = getRowData(y);
+    if (!r) return null;
+    if (r.low > 0 && r.low < globalMin) globalMin = r.low;
+    if (r.high > globalMax) globalMax = r.high;
+    if (r.cHigh > globalMax) globalMax = r.cHigh;
+    return { year: y, ...r };
   }).filter(Boolean);
 
   if (rowData.length === 0) { container.innerHTML = ''; return; }
-
-  // Include current price in scale
   if (btcPrice > 0 && btcPrice < globalMin) globalMin = btcPrice;
 
-  // Log scale: maps value to 0-100% using logarithmic distribution
   const logMin = Math.log10(globalMin * 0.8);
   const logMax = Math.log10(globalMax * 1.15);
   const logRange = logMax - logMin;
   const pct = v => v <= 0 ? 0 : (((Math.log10(v) - logMin) / logRange) * 100).toFixed(2);
-
   const fmtK = v => {
     if (v >= 1000000) return '$' + (v / 1000000).toFixed(1) + 'M';
     if (v >= 1000) return '$' + (v / 1000).toFixed(0) + 'K';
     return '$' + v.toLocaleString();
   };
-
   const priceLinePct = btcPrice > 0 ? pct(btcPrice) : null;
 
   const barsHtml = rowData.map(r => {
@@ -2101,7 +2088,6 @@ function renderInstitutionalConsensusCard() {
     const rangeR = parseFloat(pct(r.high));
     const cL = parseFloat(pct(r.cLow));
     const cR = parseFloat(pct(r.cHigh));
-
     return `<div class="inst-consensus-row">
       <div class="inst-consensus-year">${r.year}</div>
       <div class="inst-consensus-bar-area">
@@ -2118,28 +2104,25 @@ function renderInstitutionalConsensusCard() {
   }).join('');
 
   const dataDate = BTC_PREDICTIONS.data_collection_date || '2026-02-26';
-
   container.innerHTML = `<div class="inst-consensus-card">
     <div class="inst-consensus-header">
-      <span class="inst-consensus-title">${t('pred.inst_consensus_title')}</span>
-      <span class="inst-consensus-subtitle">${t('pred.inst_consensus_subtitle')}</span>
+      <span class="inst-consensus-title">${t(titleKey)}</span>
+      <span class="inst-consensus-subtitle">${t(subtitleKey)}</span>
     </div>
     <div class="inst-consensus-meta">${t('pred.data_date')}: ${dataDate} | ${t('pred.inst_consensus_note')}</div>
     <div class="inst-consensus-price-row">
       <span class="inst-consensus-price-label">${t('pred.current_price')}</span>
       <span class="inst-consensus-price-value">${btcPrice > 0 ? '$' + btcPrice.toLocaleString() : '$—'}</span>
     </div>
-    <div class="inst-consensus-chart">
-      ${barsHtml}
-    </div>
+    <div class="inst-consensus-chart">${barsHtml}</div>
     <div class="inst-consensus-legend">
       <div class="inst-consensus-legend-item">
         <div class="inst-consensus-legend-swatch" style="background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.35);"></div>
-        ${t('pred.range_all')}
+        ${rangeLabel}
       </div>
       <div class="inst-consensus-legend-item">
         <div class="inst-consensus-legend-swatch" style="background:rgba(16,185,129,0.3);border:1px solid rgba(16,185,129,0.6);"></div>
-        ${t('pred.institutional_consensus')}
+        ${consensusLabel}
       </div>
       <div class="inst-consensus-legend-item">
         <div class="inst-consensus-legend-swatch" style="width:3px;height:14px;background:var(--orange);border-radius:1px;"></div>
@@ -2147,6 +2130,48 @@ function renderInstitutionalConsensusCard() {
       </div>
     </div>
   </div>`;
+}
+
+function renderPlatformConsensusCard() {
+  const platforms = BTC_PREDICTIONS.crypto_platform_predictions || [];
+  buildConsensusCard('platformConsensusCard', 'pred.plat_consensus_title', 'pred.inst_consensus_subtitle',
+    t('pred.range_all'), t('pred.plat_consensus'),
+    y => {
+      const lows = [], highs = [];
+      platforms.forEach(p => {
+        const yp = p.predictions[y] || {};
+        if (yp.low) { lows.push(yp.low); highs.push(yp.low); }
+        if (yp.high) { lows.push(yp.high); highs.push(yp.high); }
+        if (yp.average) { lows.push(yp.average); highs.push(yp.average); }
+      });
+      if (lows.length === 0) return null;
+      const low = Math.min(...lows), high = Math.max(...highs);
+      // Platform consensus: middle 50% range (exclude extreme outliers)
+      const allVals = lows.concat(highs).sort((a, b) => a - b);
+      const q1 = allVals[Math.floor(allVals.length * 0.25)];
+      const q3 = allVals[Math.floor(allVals.length * 0.75)];
+      return { low, high, cLow: q1, cHigh: q3 };
+    }
+  );
+}
+
+function renderInstitutionalConsensusCard() {
+  const consensus = BTC_PREDICTIONS.summary_consensus || {};
+  buildConsensusCard('institutionConsensusCard', 'pred.inst_consensus_title', 'pred.inst_consensus_subtitle',
+    t('pred.range_all'), t('pred.institutional_consensus'),
+    y => {
+      const c = consensus[y];
+      if (!c) return null;
+      const low = c.range_low || 0, high = c.range_high || 0;
+      let cLow = 0, cHigh = 0;
+      if (c.institutional_consensus) {
+        const parts = c.institutional_consensus.split('-');
+        cLow = parseInt(parts[0]) || 0;
+        cHigh = parseInt(parts[1] || parts[0]) || 0;
+      }
+      return { low, high, cLow, cHigh };
+    }
+  );
 }
 
 function renderInstitutionalPredictions() {
