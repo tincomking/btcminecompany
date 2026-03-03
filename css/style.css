@@ -2130,14 +2130,61 @@ canvas { max-width: 100%; }
   margin-bottom: 16px;
 }
 
-/* Polymarket cards grid */
+/* Betting market platform badge */
+.mp-pm-badge {
+  display: inline-block;
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+.mp-pm-badge-polymarket { background: rgba(34,197,94,0.15); color: #22c55e; }
+.mp-pm-badge-kalshi { background: rgba(59,130,246,0.15); color: #3b82f6; }
+.mp-pm-badge-gemini { background: rgba(6,182,212,0.15); color: #06b6d4; }
+
+/* Betting market summary bar */
+.mp-pm-summary {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  align-items: center;
+}
+.mp-pm-summary-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mp-pm-summary-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.mp-pm-summary-total {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--orange, #f59e0b);
+  margin-left: auto;
+}
+
+/* Prediction market cards grid */
 .mp-pm-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
 }
 .mp-pm-card {
-  padding: 16px;
+  padding: 12px;
   background: var(--bg-card);
   border-radius: 10px;
   border: 1px solid var(--border);
@@ -2183,7 +2230,7 @@ canvas { max-width: 100%; }
   margin-bottom: 2px;
 }
 .mp-pm-vote-pct {
-  font-size: 20px;
+  font-size: 14px;
   font-weight: 700;
   font-family: 'JetBrains Mono', monospace;
 }
@@ -2217,9 +2264,15 @@ canvas { max-width: 100%; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
-  color: var(--text-muted);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--orange, #f59e0b);
   font-family: 'JetBrains Mono', monospace;
+}
+.mp-pm-footer .mp-pm-countdown {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-muted);
 }
 .mp-pm-countdown {
   display: flex;
@@ -2227,14 +2280,28 @@ canvas { max-width: 100%; }
   gap: 4px;
 }
 
+/* Sankey diagram */
+.mp-sankey-wrap {
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--bg-card);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+.mp-sankey-wrap canvas {
+  width: 100% !important;
+  max-height: 360px;
+}
+
 /* Responsive: Market Predict */
 @media (max-width: 900px) {
   .mp-hero { flex-direction: column; }
   .mp-hero-left { min-width: unset; }
   .mp-cards-grid { grid-template-columns: 1fr; }
-  .mp-pm-grid { grid-template-columns: 1fr; }
+  .mp-pm-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 600px) {
+  .mp-pm-grid { grid-template-columns: 1fr; }
   .mp-pm-votes { flex-direction: row; gap: 8px; }
 }
 

@@ -128,6 +128,13 @@ async function loadMarketPredictions() {
       polymarket: pmRes,
       fearGreed: fgRes,
     };
+    // Try fetching multi-platform betting data; fallback to polymarket only
+    try {
+      const bettingRes = await fetchAPI('/api/predict/betting-markets');
+      if (bettingRes && bettingRes.markets) {
+        MARKET_PREDICT.bettingMarkets = bettingRes;
+      }
+    } catch (_) { /* new API not available yet, use polymarket only */ }
     marketPredictLoaded = true;
   } catch (err) {
     console.error('Failed to load market predictions:', err);

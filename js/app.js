@@ -2648,8 +2648,16 @@ async function renderMarketPredict() {
     renderMPModels(models.predictions);
   }
 
-  // Polymarket
-  renderMPPolymarket(polymarket);
+  // Betting Markets (multi-platform or polymarket fallback)
+  const bettingData = MARKET_PREDICT.bettingMarkets;
+  if (bettingData && bettingData.markets) {
+    renderBettingMarkets(bettingData);
+  } else {
+    renderBettingMarkets(polymarket);
+  }
+
+  // Sankey diagram
+  renderSankeyDiagram(bettingData || polymarket);
 
   // Fear & Greed
   renderMPFearGreed(fearGreed);
@@ -2880,23 +2888,42 @@ function renderMPModels(predictions) {
   }).join('');
 }
 
-function translatePMQuestion(q) {
+function translateBettingQuestion(q, source) {
   let cn = q;
-  // "Will Bitcoin/BTC hit/reach $X by [date]?"
+  // Polymarket / general patterns
   cn = cn.replace(/Will (?:Bitcoin|BTC) (?:hit|reach|exceed|surpass) \$?([\d,.]+[kKmM]?) (?:by|before) (.+)\??/i,
     (_, price, date) => `比特币是否在${translatePMDate(date)}前达到 $${price}？`);
-  // "Will Bitcoin be above/below $X on/by [date]?"
   cn = cn.replace(/Will (?:Bitcoin|BTC) be (above|below) \$?([\d,.]+[kKmM]?) (?:by|on|in) (.+)\??/i,
     (_, dir, price, date) => `比特币在${translatePMDate(date)}是否${dir === 'above' ? '高于' : '低于'} $${price}？`);
-  // "Bitcoin $Xk+ by [date]"
   cn = cn.replace(/(?:Bitcoin|BTC) \$?([\d,.]+[kKmM]?)\+? (?:by|before) (.+)\??/i,
     (_, price, date) => `比特币在${translatePMDate(date)}前达到 $${price}？`);
-  // "Will Bitcoin close above/below"
   cn = cn.replace(/Will (?:Bitcoin|BTC) close (above|below) \$?([\d,.]+[kKmM]?) (?:on|by) (.+)\??/i,
     (_, dir, price, date) => `比特币在${translatePMDate(date)}收盘是否${dir === 'above' ? '高于' : '低于'} $${price}？`);
-  if (cn === q) return null;
+  // Kalshi range format: "Bitcoin price range on Mar 3?" or "Bitcoin between $X and $Y"
+  cn = cn.replace(/(?:Bitcoin|BTC) (?:price )?(?:range|between) (?:on |by )?(.+?)(?:\?|$)/i,
+    (_, rest) => `比特币${translatePMDate(rest)}价格区间？`);
+  cn = cn.replace(/(?:Bitcoin|BTC) (?:price )?(above|below|over|under|at or above|at or below) \$?([\d,.]+[kKmM]?)(?: on| by| at)? ?(.+?)(?:\?|$)/i,
+    (_, dir, price, date) => {
+      const d = dir.match(/above|over/i) ? '高于' : '低于';
+      return `比特币${date ? translatePMDate(date) : ''}是否${d} $${price}？`;
+    });
+  // "Will BTC end 2026 above/below"
+  cn = cn.replace(/Will (?:Bitcoin|BTC) end (\d{4}) (above|below) \$?([\d,.]+[kKmM]?)\??/i,
+    (_, year, dir, price) => `比特币${year}年底是否${dir === 'above' ? '高于' : '低于'} $${price}？`);
+  // Fallback: keyword translation for unmatched questions
+  if (cn === q) {
+    cn = q.replace(/\bBitcoin\b/gi, '比特币').replace(/\bBTC\b/gi, 'BTC')
+          .replace(/\babove\b/gi, '高于').replace(/\bbelow\b/gi, '低于')
+          .replace(/\bhit\b/gi, '达到').replace(/\breach\b/gi, '达到')
+          .replace(/\bby\b/gi, '前').replace(/\bbefore\b/gi, '前')
+          .replace(/\bWill\b/gi, '是否').replace(/\bprice\b/gi, '价格');
+    if (cn !== q) return cn;
+    return null;
+  }
   return cn;
 }
+// Backward compat alias
+function translatePMQuestion(q) { return translateBettingQuestion(q, 'polymarket'); }
 
 function translatePMDate(dateStr) {
   const months = { 'january': '1月', 'february': '2月', 'march': '3月', 'april': '4月',
@@ -2938,23 +2965,65 @@ function formatVolume(v) {
   return `$${v || 0}`;
 }
 
-function renderMPPolymarket(data) {
+function renderBettingMarkets(data) {
   const el = document.getElementById('mp-polymarket-panel');
+  const summaryEl = document.getElementById('mp-betting-summary');
   if (!data || !data.markets || data.markets.length === 0) {
     el.innerHTML = `<div class="empty-state"><div class="empty-text">${t('js.no_data')}</div></div>`;
+    if (summaryEl) summaryEl.style.display = 'none';
     return;
   }
-  const markets = data.markets.slice(0, 8);
+
+  // Sort all markets by volume descending, take top 12 for 4-column layout
+  const allMarkets = data.markets.slice().sort((a, b) => (b.volume || 0) - (a.volume || 0));
+  const markets = allMarkets.slice(0, 12);
+
+  // Platform summary bar
+  const sources = data.sources || {};
+  const platformConfigs = {
+    polymarket: { label: 'Polymarket', color: '#22c55e' },
+    kalshi: { label: 'Kalshi', color: '#3b82f6' },
+    gemini: { label: 'Gemini', color: '#06b6d4' },
+  };
+  if (summaryEl) {
+    const totalVol = data.total_volume || allMarkets.reduce((s, m) => s + (m.volume || 0), 0);
+    let summaryHTML = '';
+    for (const [key, cfg] of Object.entries(platformConfigs)) {
+      const src = sources[key];
+      if (src && src.market_count > 0) {
+        summaryHTML += `<span class="mp-pm-summary-item">
+          <span class="mp-pm-summary-dot" style="background:${cfg.color}"></span>
+          ${cfg.label}: ${src.market_count} 个合约 / ${formatVolume(src.total_volume || 0)}
+        </span>`;
+      }
+    }
+    // If no sources info (fallback to polymarket only), just show polymarket
+    if (!summaryHTML && allMarkets.length > 0) {
+      summaryHTML = `<span class="mp-pm-summary-item">
+        <span class="mp-pm-summary-dot" style="background:#22c55e"></span>
+        Polymarket: ${allMarkets.length} 个合约
+      </span>`;
+    }
+    summaryHTML += `<span class="mp-pm-summary-total">总押注额 ${formatVolume(totalVol)}</span>`;
+    summaryEl.innerHTML = summaryHTML;
+    summaryEl.style.display = 'flex';
+  }
+
+  // Render cards
   el.innerHTML = markets.map(m => {
     const yesPct = m.yes_price != null ? (m.yes_price * 100) : 0;
     const noPct = 100 - yesPct;
     const vol = m.volume || 0;
     const yesAmt = vol * (m.yes_price || 0);
     const noAmt = vol * (1 - (m.yes_price || 0));
-    const cnQ = translatePMQuestion(m.question);
+    const source = m.source || 'polymarket';
+    const cnQ = translateBettingQuestion(m.question, source);
     const countdown = formatPMCountdown(m.end_date);
+    const badgeClass = `mp-pm-badge mp-pm-badge-${source}`;
+    const badgeLabel = { polymarket: 'Polymarket', kalshi: 'Kalshi', gemini: 'Gemini' }[source] || source;
 
     return `<div class="mp-pm-card">
+      <span class="${badgeClass}">${badgeLabel}</span>
       <div class="mp-pm-card-q">${cnQ || m.question}</div>
       ${cnQ ? `<div class="mp-pm-card-q-en">${m.question}</div>` : ''}
       <div class="mp-pm-votes">
@@ -2962,22 +3031,122 @@ function renderMPPolymarket(data) {
           <div class="mp-pm-vote-icon">&#10003;</div>
           <div class="mp-pm-vote-pct">${yesPct.toFixed(1)}%</div>
           <div class="mp-pm-vote-amt">${formatVolume(yesAmt)}</div>
-          <div class="mp-pm-vote-label">是 (YES)</div>
+          <div class="mp-pm-vote-label">是 YES</div>
         </div>
         <div class="mp-pm-vote mp-pm-vote-no">
           <div class="mp-pm-vote-icon">&#10007;</div>
           <div class="mp-pm-vote-pct">${noPct.toFixed(1)}%</div>
           <div class="mp-pm-vote-amt">${formatVolume(noAmt)}</div>
-          <div class="mp-pm-vote-label">否 (NO)</div>
+          <div class="mp-pm-vote-label">否 NO</div>
         </div>
       </div>
       <div class="mp-pm-progress"><div class="mp-pm-progress-yes" style="width:${yesPct}%"></div></div>
       <div class="mp-pm-footer">
-        <span>总额 ${formatVolume(vol)}</span>
+        <span>${formatVolume(vol)}</span>
         ${countdown ? `<span class="mp-pm-countdown">&#9202; ${countdown}</span>` : ''}
       </div>
     </div>`;
   }).join('');
+}
+// Backward compat
+function renderMPPolymarket(data) { renderBettingMarkets(data); }
+
+/* ================================================================
+   Sankey Diagram — 预测数据流
+   ================================================================ */
+let _sankeyChart = null;
+function renderSankeyDiagram(bettingData) {
+  const canvas = document.getElementById('mp-sankey-chart');
+  if (!canvas) return;
+  if (_sankeyChart) { _sankeyChart.destroy(); _sankeyChart = null; }
+
+  // Compute betting volumes per platform
+  const sources = bettingData?.sources || {};
+  const pmVol = sources.polymarket?.total_volume || bettingData?.total_volume || 0;
+  const kalVol = sources.kalshi?.total_volume || 0;
+  const gemVol = sources.gemini?.total_volume || 0;
+  const bettingTotal = Math.max(pmVol + kalVol + gemVol, 1);
+
+  // Normalize volumes to 1-10 scale for flow width
+  const norm = v => Math.max(1, Math.round(v / bettingTotal * 10));
+
+  const dataFlows = [
+    // Data sources → Processing
+    { from: 'Binance K线', to: '技术特征 (30+)', flow: 8 },
+    { from: '恐惧贪婪指数', to: '技术特征 (30+)', flow: 3 },
+    // Processing → Models
+    { from: '技术特征 (30+)', to: '机器学习 (5)', flow: 6 },
+    { from: '技术特征 (30+)', to: '神经网络 (1)', flow: 2 },
+    { from: '技术特征 (30+)', to: '时间序列 ARIMA', flow: 2 },
+    { from: '技术特征 (30+)', to: '技术分析策略 (4)', flow: 4 },
+    // Models → Voting
+    { from: '机器学习 (5)', to: '模型投票 (11)', flow: 6 },
+    { from: '神经网络 (1)', to: '模型投票 (11)', flow: 2 },
+    { from: '时间序列 ARIMA', to: '模型投票 (11)', flow: 2 },
+    { from: '技术分析策略 (4)', to: '模型投票 (11)', flow: 4 },
+    // Betting platforms → Betting signal
+    { from: `Polymarket`, to: '押注信号', flow: Math.max(norm(pmVol), 1) },
+  ];
+  if (kalVol > 0) dataFlows.push({ from: 'Kalshi', to: '押注信号', flow: norm(kalVol) });
+  if (gemVol > 0) dataFlows.push({ from: 'Gemini', to: '押注信号', flow: norm(gemVol) });
+  // If no multi-platform data yet, show betting signal with smaller weight
+  if (kalVol === 0 && gemVol === 0) {
+    dataFlows[dataFlows.length - 1].flow = 4;
+  }
+  // Final merge
+  dataFlows.push({ from: '模型投票 (11)', to: '综合预测', flow: 10 });
+  dataFlows.push({ from: '押注信号', to: '综合预测', flow: 4 });
+
+  const nodeColors = {
+    'Binance K线': '#3b82f6',
+    '恐惧贪婪指数': '#3b82f6',
+    '技术特征 (30+)': '#a855f7',
+    '机器学习 (5)': '#f59e0b',
+    '神经网络 (1)': '#f59e0b',
+    '时间序列 ARIMA': '#f59e0b',
+    '技术分析策略 (4)': '#f59e0b',
+    '模型投票 (11)': '#f59e0b',
+    'Polymarket': '#22c55e',
+    'Kalshi': '#3b82f6',
+    'Gemini': '#06b6d4',
+    '押注信号': '#a855f7',
+    '综合预测': '#f59e0b',
+  };
+
+  try {
+    _sankeyChart = new Chart(canvas, {
+      type: 'sankey',
+      data: {
+        datasets: [{
+          data: dataFlows,
+          colorFrom: c => nodeColors[c.dataset.data[c.dataIndex].from] || '#666',
+          colorTo: c => nodeColors[c.dataset.data[c.dataIndex].to] || '#666',
+          colorMode: 'gradient',
+          labels: Object.fromEntries(Object.keys(nodeColors).map(k => [k, k])),
+          size: 'max',
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const d = ctx.dataset.data[ctx.dataIndex];
+                return `${d.from} → ${d.to}`;
+              }
+            }
+          }
+        },
+        layout: { padding: { left: 10, right: 10 } },
+      }
+    });
+  } catch (e) {
+    console.warn('Sankey chart not available:', e);
+    canvas.parentElement.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;">桑基图加载失败（需要 Chart.js Sankey 插件）</p>';
+  }
 }
 
 function renderMPFearGreed(data) {
