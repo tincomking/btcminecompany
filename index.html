@@ -570,6 +570,87 @@
       </div>
       <div class="mp-pm-grid" id="mp-polymarket-panel"></div>
     </div>
+
+    <!-- 预测机制说明 -->
+    <div class="mp-section-block">
+      <div class="section-header mb-16">
+        <div class="section-title">预测机制说明</div>
+        <span class="data-badge">了解每个预测是怎么来的</span>
+      </div>
+      <div class="mp-explain-grid">
+
+        <div class="mp-explain-card">
+          <div class="mp-explain-title">综合预测（页面顶部的看涨/看跌）</div>
+          <div class="mp-explain-body">
+            <p>综合预测是本页最核心的结果，它<strong>不是某一个模型的判断</strong>，而是把下方所有 11 个模型的预测汇总后"投票"得出的。</p>
+            <p><strong>工作原理：</strong></p>
+            <ul>
+              <li>每个模型独立给出"看涨"或"看跌"的判断，以及一个置信度（比如 70% 把握看涨）</li>
+              <li>综合预测把所有模型的投票加权汇总 —— 置信度越高的模型，投票权重越大</li>
+              <li>如果大多数模型都看涨，综合结果就是看涨；反之则看跌</li>
+              <li><strong>预期收益</strong>是所有模型预测涨跌幅的平均值</li>
+              <li><strong>目标价格</strong> = 当前价格 ×（1 + 预期收益）</li>
+            </ul>
+            <p>简单理解：就像请了 11 位"分析师"同时看盘，然后综合他们的意见给出一个最终结论。</p>
+            <p class="mp-explain-note">数据每 2 小时自动更新一次。顶部的"当前价格"为实时行情（每分钟刷新），但预测方向和置信度按 2 小时周期更新。</p>
+          </div>
+        </div>
+
+        <div class="mp-explain-card">
+          <div class="mp-explain-title">全模型预测（11 个独立模型）</div>
+          <div class="mp-explain-body">
+            <p>我们同时运行 11 个不同类型的预测模型，分为 4 大类：</p>
+            <div class="mp-explain-models">
+              <div class="mp-explain-model-group">
+                <span class="mp-cat-badge" style="background:rgba(59,130,246,0.15);color:#3b82f6;">ML</span>
+                <strong>机器学习（5 个）</strong>
+                <p>XGBoost、LightGBM、随机森林、SVR、岭回归 —— 这些模型通过学习历史价格走势中的规律来预测未来。它们会分析过去数千个小时的价格数据，找出"当价格呈现某种形态时，接下来通常会涨还是跌"。</p>
+              </div>
+              <div class="mp-explain-model-group">
+                <span class="mp-cat-badge" style="background:rgba(168,85,247,0.15);color:#a855f7;">NN</span>
+                <strong>神经网络（1 个）</strong>
+                <p>MLP 多层感知器 —— 模拟人脑神经元的工作方式，通过多层网络结构捕捉数据中更复杂的非线性关系。</p>
+              </div>
+              <div class="mp-explain-model-group">
+                <span class="mp-cat-badge" style="background:rgba(34,197,94,0.15);color:#22c55e;">TS</span>
+                <strong>时间序列（1 个）</strong>
+                <p>ARIMA —— 专门分析时间序列数据的经典统计模型，通过识别价格的趋势和周期性波动来预测下一步走向。</p>
+              </div>
+              <div class="mp-explain-model-group">
+                <span class="mp-cat-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b;">TA</span>
+                <strong>技术分析（4 个）</strong>
+                <p>EMA 均线交叉、RSI 超买超卖、MACD 动量策略、布林带策略 —— 这些是交易员常用的传统技术指标。例如 RSI 低于 30 通常意味着"超卖"（价格可能反弹），高于 70 意味着"超买"（价格可能回调）。</p>
+              </div>
+            </div>
+            <p><strong>输入数据：</strong>每个模型使用从 Binance 获取的 BTC/USDT K线数据（包括开盘价、最高价、最低价、收盘价、成交量），并计算 30+ 个技术指标作为特征，同时纳入恐惧贪婪指数。</p>
+          </div>
+        </div>
+
+        <div class="mp-explain-card">
+          <div class="mp-explain-title">Polymarket 预测市场</div>
+          <div class="mp-explain-body">
+            <p><a href="https://polymarket.com" target="_blank" style="color:var(--accent-blue);">Polymarket</a> 是全球最大的预测市场平台，用户可以用真金白银对未来事件下注。</p>
+            <p><strong>工作原理：</strong></p>
+            <ul>
+              <li>每张卡片是一个真实的预测市场合约，例如"比特币是否在 3 月底前达到 $100K？"</li>
+              <li><strong>"是" 的概率</strong>代表市场参与者用真金白银投票后形成的共识 —— 概率越高，市场越认为这件事会发生</li>
+              <li><strong>交易量</strong>越大，说明参与的资金越多，结果越可信</li>
+              <li>它反映的不是模型计算，而是<strong>市场上真实投资者的集体判断</strong></li>
+            </ul>
+            <p><strong>与模型预测的关系：</strong>我们的价格预测图表中的虚线会参考 Polymarket 数据做微调。如果 Polymarket 整体偏看涨，预测价格会略微上调；反之下调。这让预测不仅依赖技术分析，还融入了市场情绪。</p>
+          </div>
+        </div>
+
+        <div class="mp-explain-card mp-explain-disclaimer">
+          <div class="mp-explain-title">免责声明</div>
+          <div class="mp-explain-body">
+            <p>所有预测仅供参考，不构成投资建议。加密货币市场波动剧烈，任何模型都无法准确预测未来价格。请根据自身风险承受能力做出投资决策。</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
   </div>
 
 </div><!-- /#app -->
