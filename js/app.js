@@ -3069,6 +3069,12 @@ async function fetchBtcPrice() {
 
     priceEl.textContent = '$' + price.toLocaleString();
 
+    // Also update market-predict hero price with real-time data
+    const mpPriceEl = document.getElementById('mp-price');
+    if (mpPriceEl) {
+      mpPriceEl.textContent = '$' + price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
     if (_lastBtcPrice != null) {
       const pct = ((price - _lastBtcPrice) / _lastBtcPrice * 100).toFixed(2);
       const isUp = price >= _lastBtcPrice;
