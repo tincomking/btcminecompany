@@ -12,7 +12,7 @@ let NEWS = [];
 let SENTIMENT = { analyst_ratings: [], social_sentiment: [] };
 let ANALYSIS_DATA = {};
 let BTC_PREDICTIONS = {};
-let MARKET_PREDICT = { latest: null, forecast: null, models: null, polymarket: null, fearGreed: null };
+let MARKET_PREDICT = { latest: null, forecast: null, models: null, polymarket: null, fearGreed: null, predictionHistory: null, signalHistory: null };
 
 let dataReady = false;
 let marketPredictLoaded = false;
@@ -135,6 +135,15 @@ async function loadMarketPredictions() {
         MARKET_PREDICT.bettingMarkets = bettingRes;
       }
     } catch (_) { /* new API not available yet, use polymarket only */ }
+    // Fetch historical data (non-blocking)
+    try {
+      const [predHist, sigHist] = await Promise.all([
+        fetchAPI('/api/predict/prediction-history').catch(() => null),
+        fetchAPI('/api/predict/signal-history').catch(() => null),
+      ]);
+      if (predHist) MARKET_PREDICT.predictionHistory = predHist;
+      if (sigHist) MARKET_PREDICT.signalHistory = sigHist;
+    } catch (_) { /* historical data not available yet */ }
     marketPredictLoaded = true;
   } catch (err) {
     console.error('Failed to load market predictions:', err);

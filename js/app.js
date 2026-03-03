@@ -2638,10 +2638,8 @@ async function renderMarketPredict() {
     renderMPCard('168h', latest['168h']);
   }
 
-  // Forecast chart
-  if (forecast && !forecast.error && forecast.hourly_forecast) {
-    renderMPForecastChart(forecast);
-  }
+  // Forecast chart (always render — historical data + prediction/signal overlays even if no forecast)
+  renderMPForecastChart(forecast && !forecast.error ? forecast : null);
 
   // Models
   if (models && models.predictions) {
@@ -2655,6 +2653,10 @@ async function renderMarketPredict() {
   } else {
     renderBettingMarkets(polymarket);
   }
+  // Bind sort buttons
+  document.querySelectorAll('.mp-pm-sort-btn').forEach(btn => {
+    btn.onclick = () => sortBettingMarkets(btn.dataset.sort);
+  });
 
   // Sankey diagram
   renderSankeyDiagram(bettingData || polymarket);
@@ -2753,13 +2755,53 @@ async function _renderMPChart() {
     });
   }
 
-  // 2. 预测线（仅在可见范围时显示）
+  // 2. 历史预测线（金色虚线：过去每次预测的目标价格 vs 实际价格）
+  const predHistory = MARKET_PREDICT.predictionHistory;
+  if (predHistory && predHistory.predictions && predHistory.predictions.length > 0) {
+    const predData = predHistory.predictions
+      .filter(p => p.predicted_price && p.predicted_price > 0)
+      .map(p => ({ x: new Date(p.timestamp), y: p.predicted_price }));
+    if (predData.length > 0) {
+      datasets.push({
+        label: '历史预测',
+        data: predData,
+        borderColor: '#d4a017',
+        borderWidth: 1.5,
+        borderDash: [5, 3],
+        pointRadius: 2,
+        pointBackgroundColor: '#d4a017',
+        tension: 0.2,
+        order: 4,
+      });
+    }
+  }
+
+  // 3. 综合押注共识曲线（绿色虚线）
+  const sigHistory = MARKET_PREDICT.signalHistory;
+  if (sigHistory && sigHistory.history && sigHistory.history.length > 0) {
+    const sigData = sigHistory.history
+      .filter(s => s.consensus_price && s.consensus_price > 0)
+      .map(s => ({ x: new Date(s.timestamp), y: s.consensus_price }));
+    if (sigData.length > 0) {
+      datasets.push({
+        label: '押注共识',
+        data: sigData,
+        borderColor: '#22c55e',
+        borderWidth: 1.5,
+        borderDash: [3, 3],
+        pointRadius: 0,
+        tension: 0.3,
+        order: 5,
+      });
+    }
+  }
+
+  // 4. 预测线（仅在可见范围时显示）
   if (forecast) {
     const nowTs = histData.length > 0 ? histData[histData.length - 1].x : new Date();
 
     if (forecast.hourly_forecast) {
       const combined = forecast.hourly_forecast.map(p => ({ x: new Date(p.timestamp), y: p.price }));
-      // 连接历史最后点
       if (histData.length > 0) combined.unshift({ x: nowTs, y: histData[histData.length - 1].y });
       datasets.push({
         label: t('mp.combined'),
@@ -2965,7 +3007,60 @@ function formatVolume(v) {
   return `$${v || 0}`;
 }
 
+let _bettingData = null;
+let _bettingSortMode = 'volume';
+
+function _parseBettingDeadline(market) {
+  const q = market.question || '';
+  const months = {
+    'january': 1, 'february': 2, 'march': 3, 'april': 4, 'may': 5, 'june': 6,
+    'july': 7, 'august': 8, 'september': 9, 'october': 10, 'november': 11, 'december': 12,
+    'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'jun': 6, 'jul': 7, 'aug': 8,
+    'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12,
+  };
+  const ql = q.toLowerCase();
+  const patterns = [
+    /(?:by|on)\s+(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2})(?:,?\s*(\d{4}))?/i,
+    /(?:by|on)\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\s+(\d{1,2})(?:,?\s*(\d{4}))?/i,
+  ];
+  for (const p of patterns) {
+    const m = ql.match(p);
+    if (m) {
+      const month = months[m[1]];
+      const day = parseInt(m[2]);
+      const year = m[3] ? parseInt(m[3]) : new Date().getFullYear();
+      if (month) return new Date(Date.UTC(year, month - 1, day));
+    }
+  }
+  const ym = ql.match(/in\s+(\d{4})/);
+  if (ym) return new Date(Date.UTC(parseInt(ym[1]), 11, 31));
+  if (market.end_date) {
+    try { return new Date(market.end_date); } catch (_) {}
+  }
+  return null;
+}
+
+function _parseBettingTarget(q) {
+  const ql = (q || '').toLowerCase();
+  let m = ql.match(/\$(\d+(?:\.\d+)?)\s*k/);
+  if (m) return parseFloat(m[1]) * 1000;
+  m = ql.match(/\$(\d+(?:\.\d+)?)\s*m/);
+  if (m) return parseFloat(m[1]) * 1000000;
+  m = ql.match(/\$([\d,]+)/);
+  if (m) return parseFloat(m[1].replace(/,/g, ''));
+  return null;
+}
+
+function sortBettingMarkets(sortMode) {
+  _bettingSortMode = sortMode;
+  document.querySelectorAll('.mp-pm-sort-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.sort === sortMode);
+  });
+  if (_bettingData) renderBettingMarkets(_bettingData);
+}
+
 function renderBettingMarkets(data) {
+  _bettingData = data;
   const el = document.getElementById('mp-polymarket-panel');
   const summaryEl = document.getElementById('mp-betting-summary');
   if (!data || !data.markets || data.markets.length === 0) {
@@ -2974,9 +3069,39 @@ function renderBettingMarkets(data) {
     return;
   }
 
-  // Sort all markets by volume descending, take top 12 for 4-column layout
-  const allMarkets = data.markets.slice().sort((a, b) => (b.volume || 0) - (a.volume || 0));
-  const markets = allMarkets.slice(0, 12);
+  const now = new Date();
+  const currentPrice = MARKET_PREDICT.latest?.current_price || 0;
+
+  // Parse deadlines and filter expired
+  const enriched = data.markets.map(m => {
+    const deadline = _parseBettingDeadline(m);
+    const target = _parseBettingTarget(m.question);
+    const expired = deadline && deadline < now;
+    return { ...m, _deadline: deadline, _target: target, _expired: expired };
+  });
+  const active = enriched.filter(m => !m._expired);
+
+  // Sort based on mode
+  let sorted;
+  if (_bettingSortMode === 'deadline') {
+    sorted = active.slice().sort((a, b) => {
+      if (!a._deadline && !b._deadline) return (b.volume || 0) - (a.volume || 0);
+      if (!a._deadline) return 1;
+      if (!b._deadline) return -1;
+      return a._deadline - b._deadline;
+    });
+  } else if (_bettingSortMode === 'proximity') {
+    sorted = active.slice().sort((a, b) => {
+      if (!a._target && !b._target) return (b.volume || 0) - (a.volume || 0);
+      if (!a._target) return 1;
+      if (!b._target) return -1;
+      return Math.abs(a._target - currentPrice) - Math.abs(b._target - currentPrice);
+    });
+  } else {
+    sorted = active.slice().sort((a, b) => (b.volume || 0) - (a.volume || 0));
+  }
+  const markets = sorted.slice(0, 12);
+  const allMarkets = active;
 
   // Platform summary bar
   const sources = data.sources || {};
@@ -3018,7 +3143,8 @@ function renderBettingMarkets(data) {
     const noAmt = vol * (1 - (m.yes_price || 0));
     const source = m.source || 'polymarket';
     const cnQ = translateBettingQuestion(m.question, source);
-    const countdown = formatPMCountdown(m.end_date);
+    const deadlineStr = m._deadline ? m._deadline.toISOString() : m.end_date;
+    const countdown = formatPMCountdown(deadlineStr);
     const badgeClass = `mp-pm-badge mp-pm-badge-${source}`;
     const badgeLabel = { polymarket: 'Polymarket', kalshi: 'Kalshi', gemini: 'Gemini' }[source] || source;
 

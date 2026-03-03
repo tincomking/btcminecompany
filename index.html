@@ -521,7 +521,7 @@
             <button class="mp-range-btn" data-range="1y">1年</button>
           </div>
         </div>
-        <div style="position:relative;height:200px;"><canvas id="mp-forecast-chart"></canvas></div>
+        <div style="position:relative;height:400px;"><canvas id="mp-forecast-chart"></canvas></div>
       </div>
     </div>
 
@@ -570,6 +570,12 @@
         <span class="data-badge">真金白银的市场共识</span>
       </div>
       <div id="mp-betting-summary" class="mp-pm-summary" style="display:none;"></div>
+      <div class="mp-pm-sort-bar" id="mp-pm-sort-bar">
+        <span class="mp-pm-sort-label">排序：</span>
+        <button class="mp-pm-sort-btn active" data-sort="volume">押注额</button>
+        <button class="mp-pm-sort-btn" data-sort="deadline">到期时间</button>
+        <button class="mp-pm-sort-btn" data-sort="proximity">价格临近</button>
+      </div>
       <div class="mp-pm-grid" id="mp-polymarket-panel"></div>
     </div>
 
