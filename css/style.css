@@ -1857,7 +1857,7 @@ canvas { max-width: 100%; }
 }
 .mp-hero-chart {
   flex: 1;
-  height: 240px;
+  height: 340px;
   min-width: 0;
   position: relative;
 }

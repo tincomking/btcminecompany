@@ -2830,20 +2830,7 @@ async function _renderMPChart() {
         order: 1,
       });
     }
-    if (forecast.hourly_poly_only) {
-      const polyData = forecast.hourly_poly_only.map(p => ({ x: new Date(p.timestamp), y: p.price }));
-      if (histData.length > 0) polyData.unshift({ x: nowTs, y: histData[histData.length - 1].y });
-      datasets.push({
-        label: 'Polymarket',
-        data: polyData,
-        borderColor: '#22c55e',
-        borderWidth: 1.5,
-        borderDash: [2, 3],
-        pointRadius: 0,
-        tension: 0.3,
-        order: 2,
-      });
-    }
+    // Polymarket 单独预测线已移除，改用综合押注共识曲线
   }
 
   // 时间轴单位根据范围调整
@@ -2879,6 +2866,17 @@ async function _renderMPChart() {
             }
           }
         } : {},
+        zoom: {
+          pan: { enabled: true, mode: 'x' },
+          zoom: {
+            wheel: { enabled: true },
+            pinch: { enabled: true },
+            mode: 'x',
+          },
+          limits: {
+            x: { minRange: 3600000 },  // 最小缩放 1 小时
+          },
+        },
       },
       scales: {
         x: {

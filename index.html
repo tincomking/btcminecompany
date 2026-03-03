@@ -12,6 +12,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3/dist/chartjs-plugin-annotation.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-sankey@0.12.1/dist/chartjs-chart-sankey.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -521,7 +523,7 @@
             <button class="mp-range-btn" data-range="1y">1年</button>
           </div>
         </div>
-        <div style="position:relative;height:400px;"><canvas id="mp-forecast-chart"></canvas></div>
+        <div style="position:relative;height:100%;"><canvas id="mp-forecast-chart"></canvas></div>
       </div>
     </div>
 
