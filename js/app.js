@@ -2614,7 +2614,7 @@ async function renderMarketPredict() {
   await loadMarketPredictions();
   const { latest, forecast, models, polymarket, fearGreed } = MARKET_PREDICT;
 
-  // Hero section
+  // Ticker Strip
   if (latest && !latest.error) {
     document.getElementById('mp-price').textContent = '$' + (latest.current_price || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const main = latest['24h'] || latest['4h'];
@@ -2624,7 +2624,7 @@ async function renderMarketPredict() {
       arrowEl.textContent = isUp ? '看涨 ▲' : '看跌 ▼';
       arrowEl.className = 'mp-arrow ' + (isUp ? 'mp-up' : 'mp-down');
       document.getElementById('mp-conf-text').textContent =
-        `${t('mp.confidence')} ${main.confidence}% | ${t('mp.return')} ${main.expected_return >= 0 ? '+' : ''}${main.expected_return}%`;
+        `${main.confidence}% | ${main.expected_return >= 0 ? '+' : ''}${main.expected_return}%`;
     }
     const genAt = latest.generated_at;
     if (genAt) {
@@ -2632,13 +2632,13 @@ async function renderMarketPredict() {
       document.getElementById('mp-updated').textContent =
         d.toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Singapore' });
     }
-    // Cards
+    // Mini Cards
     renderMPCard('4h', latest['4h']);
     renderMPCard('24h', latest['24h']);
     renderMPCard('168h', latest['168h']);
   }
 
-  // Forecast chart (always render — historical data + prediction/signal overlays even if no forecast)
+  // Forecast chart
   renderMPForecastChart(forecast && !forecast.error ? forecast : null);
 
   // Derivatives Dashboard
@@ -2646,50 +2646,50 @@ async function renderMarketPredict() {
     renderMPDerivatives(MARKET_PREDICT.derivatives);
   }
 
-  // Orderbook Depth
+  // Orderbook (compact)
   if (MARKET_PREDICT.orderbook) {
-    renderMPOrderbook(MARKET_PREDICT.orderbook);
+    renderMPOrderbookCompact(MARKET_PREDICT.orderbook);
   }
 
-  // Options Data (Deribit)
-  if (MARKET_PREDICT.options) {
-    renderMPOptions(MARKET_PREDICT.options);
-  }
+  // Micro Widgets (options + onchain merged)
+  renderMPMicroWidgets(MARKET_PREDICT.options, MARKET_PREDICT.onchain);
 
-  // On-chain Data
-  if (MARKET_PREDICT.onchain) {
-    renderMPOnchain(MARKET_PREDICT.onchain);
-  }
-
-  // Backtest Performance
-  if (MARKET_PREDICT.backtest) {
-    renderMPBacktest(MARKET_PREDICT.backtest);
-  }
-
-  // Models
+  // Models (accordion)
   if (models && models.predictions) {
-    renderMPModels(models.predictions);
-    // Consensus panel (uses same models data)
-    renderMPConsensus(models.predictions);
+    renderMPModelsAccordion(models.predictions);
+    renderMPConsensusCompact(models.predictions);
   }
 
-  // Betting Markets (multi-platform or polymarket fallback)
+  // Betting Markets (table)
   const bettingData = MARKET_PREDICT.bettingMarkets;
   if (bettingData && bettingData.markets) {
-    renderBettingMarkets(bettingData);
+    renderMPBettingTable(bettingData);
   } else {
-    renderBettingMarkets(polymarket);
+    renderMPBettingTable(polymarket);
   }
   // Bind sort buttons
   document.querySelectorAll('.mp-pm-sort-btn').forEach(btn => {
     btn.onclick = () => sortBettingMarkets(btn.dataset.sort);
   });
 
-  // Sankey diagram
-  renderSankeyDiagram(bettingData || polymarket);
+  // Fear & Greed (ticker inline)
+  renderMPFearGreedInline(fearGreed);
 
-  // Fear & Greed
-  renderMPFearGreed(fearGreed);
+  // Accordion toggle
+  const toggle = document.getElementById('mp-accordion-toggle');
+  if (toggle) {
+    toggle.onclick = () => {
+      const body = document.getElementById('mp-accordion-body');
+      if (body) {
+        const open = body.style.display !== 'none';
+        body.style.display = open ? 'none' : '';
+        const summary = document.getElementById('mp-accordion-summary');
+        if (summary) {
+          summary.textContent = summary.textContent.replace(/[▼▲]/, open ? '▼' : '▲');
+        }
+      }
+    };
+  }
 }
 
 function renderMPCard(key, pred) {
@@ -2698,14 +2698,14 @@ function renderMPCard(key, pred) {
   const targetEl = document.getElementById(`mp-${key}-target`);
   const confEl = document.getElementById(`mp-${key}-conf`);
   const card = document.getElementById(`mp-card-${key}`);
-  if (!pred) { dirEl.textContent = '--'; return; }
+  if (!pred) { if (dirEl) dirEl.textContent = '--'; return; }
 
   const isUp = pred.direction === 'UP';
-  dirEl.textContent = isUp ? '看涨 ▲' : '看跌 ▼';
-  dirEl.className = 'mp-card-dir ' + (isUp ? 'mp-up' : 'mp-down');
+  dirEl.textContent = isUp ? '▲' : '▼';
+  dirEl.className = 'mp-mini-dir ' + (isUp ? 'mp-up' : 'mp-down');
   retEl.textContent = `${pred.expected_return >= 0 ? '+' : ''}${pred.expected_return}%`;
-  retEl.className = 'mp-card-return ' + (isUp ? 'mp-up' : 'mp-down');
-  targetEl.textContent = `${t('mp.target')}: $${(pred.target_price || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })} | ${t('mp.confidence')}: ${pred.confidence}%`;
+  retEl.className = 'mp-mini-return ' + (isUp ? 'mp-up' : 'mp-down');
+  targetEl.textContent = `$${(pred.target_price || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })} | ${pred.confidence}%`;
   confEl.style.width = pred.confidence + '%';
   card.classList.remove('mp-card-up', 'mp-card-down');
   card.classList.add(isUp ? 'mp-card-up' : 'mp-card-down');
@@ -2742,7 +2742,6 @@ async function renderMPForecastChart(forecast) {
   const canvas = document.getElementById('mp-forecast-chart');
   if (!canvas) return;
 
-  // 绑定时间范围按钮事件
   const btns = document.querySelectorAll('.mp-range-btn');
   btns.forEach(btn => {
     btn.onclick = async () => {
@@ -2766,7 +2765,6 @@ async function _renderMPChart() {
   const cc = chartColors();
   const datasets = [];
 
-  // 1. 获取历史价格数据
   const histData = await fetchBinanceHistory(_mpCurrentRange);
   if (histData.length > 0) {
     datasets.push({
@@ -2782,7 +2780,6 @@ async function _renderMPChart() {
     });
   }
 
-  // 2. 历史预测线（金色虚线：过去每次预测的目标价格 vs 实际价格）
   const predHistory = MARKET_PREDICT.predictionHistory;
   if (predHistory && predHistory.predictions && predHistory.predictions.length > 0) {
     const predData = predHistory.predictions
@@ -2803,7 +2800,6 @@ async function _renderMPChart() {
     }
   }
 
-  // 3. 综合押注共识曲线（绿色虚线）
   const sigHistory = MARKET_PREDICT.signalHistory;
   if (sigHistory && sigHistory.history && sigHistory.history.length > 0) {
     const sigData = sigHistory.history
@@ -2823,10 +2819,8 @@ async function _renderMPChart() {
     }
   }
 
-  // 4. 预测线（仅在可见范围时显示）
   if (forecast) {
     const nowTs = histData.length > 0 ? histData[histData.length - 1].x : new Date();
-
     if (forecast.hourly_forecast) {
       const combined = forecast.hourly_forecast.map(p => ({ x: new Date(p.timestamp), y: p.price }));
       if (histData.length > 0) combined.unshift({ x: nowTs, y: histData[histData.length - 1].y });
@@ -2857,14 +2851,9 @@ async function _renderMPChart() {
         order: 1,
       });
     }
-    // Polymarket 单独预测线已移除，改用综合押注共识曲线
   }
 
-  // 时间轴单位根据范围调整
   const timeUnit = { '7d': 'hour', '30d': 'day', '90d': 'day', '180d': 'week', '1y': 'month' }[_mpCurrentRange] || 'day';
-  const timeFormat = { 'hour': 'MM/dd HH:mm', 'day': 'MM/dd', 'week': 'MM/dd', 'month': 'yy/MM' }[timeUnit];
-
-  // "现在"标注线
   const nowLine = histData.length > 0 ? histData[histData.length - 1].x : null;
 
   mpForecastChart = new Chart(ctx, {
@@ -2877,7 +2866,7 @@ async function _renderMPChart() {
         legend: {
           display: true,
           position: 'top',
-          labels: { color: cc.legend, font: { size: 11, family: 'Inter' }, usePointStyle: true, boxWidth: 20 },
+          labels: { color: cc.legend, font: { size: 10, family: 'Inter' }, usePointStyle: true, boxWidth: 16 },
         },
         tooltip: {
           backgroundColor: cc.tooltip.bg, borderColor: cc.tooltip.border, borderWidth: 1,
@@ -2889,20 +2878,14 @@ async function _renderMPChart() {
             nowLine: {
               type: 'line', xMin: nowLine, xMax: nowLine,
               borderColor: 'rgba(139,148,158,0.5)', borderWidth: 1, borderDash: [4, 4],
-              label: { content: '现在', display: true, position: 'start', color: cc.tick, font: { size: 10 }, backgroundColor: 'transparent' }
+              label: { content: 'Now', display: true, position: 'start', color: cc.tick, font: { size: 9 }, backgroundColor: 'transparent' }
             }
           }
         } : {},
         zoom: {
           pan: { enabled: true, mode: 'x' },
-          zoom: {
-            wheel: { enabled: true },
-            pinch: { enabled: true },
-            mode: 'x',
-          },
-          limits: {
-            x: { minRange: 3600000 },  // 最小缩放 1 小时
-          },
+          zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
+          limits: { x: { minRange: 3600000 } },
         },
       },
       scales: {
@@ -2910,11 +2893,11 @@ async function _renderMPChart() {
           type: 'time',
           time: { unit: timeUnit, displayFormats: { hour: 'MM/dd HH:mm', day: 'MM/dd', week: 'MM/dd', month: 'yy/MM' } },
           grid: { color: cc.grid },
-          ticks: { color: cc.tick, font: { size: 10 }, maxTicksLimit: 10 },
+          ticks: { color: cc.tick, font: { size: 9 }, maxTicksLimit: 8 },
         },
         y: {
           grid: { color: cc.grid },
-          ticks: { color: cc.tick, font: { size: 10, family: 'JetBrains Mono' }, callback: v => '$' + v.toLocaleString() },
+          ticks: { color: cc.tick, font: { size: 9, family: 'JetBrains Mono' }, callback: v => '$' + v.toLocaleString() },
         }
       },
       interaction: { intersect: false, mode: 'index' },
@@ -2922,74 +2905,157 @@ async function _renderMPChart() {
   });
 }
 
-function renderMPModels(predictions) {
+/* ── MODELS ACCORDION ────────────────────────────────────────────────────── */
+
+function renderMPModelsAccordion(predictions) {
   const thead = document.getElementById('mp-models-head');
   const tbody = document.getElementById('mp-models-body');
-  if (!predictions) { tbody.innerHTML = '<tr><td colspan="5" class="no-data">--</td></tr>'; return; }
+  const summaryEl = document.getElementById('mp-accordion-summary');
+  if (!predictions) return;
 
   const horizon = predictions['24h'] || predictions['4h'] || predictions['168h'];
-  if (!horizon) { tbody.innerHTML = '<tr><td colspan="5" class="no-data">--</td></tr>'; return; }
+  if (!horizon) return;
+
+  // Summary line
+  const entries = Object.entries(horizon);
+  const bullCount = entries.filter(([k, m]) => k !== 'ensemble' && m.direction === 'UP').length;
+  const totalCount = entries.filter(([k]) => k !== 'ensemble').length;
+  const topModel = entries
+    .filter(([k]) => k !== 'ensemble')
+    .sort((a, b) => b[1].confidence - a[1].confidence)[0];
+  const topName = topModel ? topModel[1].name : '--';
+  const topConf = topModel ? topModel[1].confidence : 0;
+  const topDir = topModel ? (topModel[1].direction === 'UP' ? '▲' : '▼') : '';
+
+  if (summaryEl) {
+    summaryEl.innerHTML = `${t('mp.all_models')} (${totalCount}) ▼ | <span style="color:${bullCount > totalCount / 2 ? '#22c55e' : '#ef4444'}">${bullCount}/${totalCount} ${currentLang === 'zh' ? '看涨' : 'Bull'}</span> | Top: ${topName} ${topConf}%${topDir}`;
+  }
+
+  // Table with backtest data merged
+  const backtest = MARKET_PREDICT.backtest;
+  const btData = backtest?.backtest?.['24h'] || backtest?.backtest?.['168h'] || {};
+
+  const catLabels = { ml: 'ML', nn: 'NN', ts: 'TS', ta: 'TA', ensemble: 'ENS' };
+  const catOrder = { ensemble: 0, ml: 1, nn: 2, ts: 3, ta: 4 };
 
   thead.innerHTML = `<tr>
     <th>${t('mp.model')}</th>
     <th>${t('mp.direction')}</th>
     <th class="td-right">${t('mp.confidence')}</th>
     <th class="td-right">${t('mp.return')}</th>
-    <th class="td-right">${t('mp.target')}</th>
+    <th class="td-right">${t('mp.bt_accuracy')}</th>
+    <th class="td-right">${t('mp.bt_sharpe')}</th>
   </tr>`;
 
-  const catOrder = { ensemble: 0, ml: 1, nn: 2, ts: 3, ta: 4 };
-  const catLabels = { ml: 'ML', nn: 'NN', ts: 'TS', ta: 'TA', ensemble: 'ENS' };
-  const sorted = Object.entries(horizon).sort((a, b) => (catOrder[a[1].category] ?? 5) - (catOrder[b[1].category] ?? 5));
+  const sorted = entries.sort((a, b) => (catOrder[a[1].category] ?? 5) - (catOrder[b[1].category] ?? 5));
 
   tbody.innerHTML = sorted.map(([key, m]) => {
     const isUp = m.direction === 'UP';
     const dirCls = isUp ? 'mp-up' : 'mp-down';
+    const bt = btData[key] || {};
+    const accCls = bt.accuracy > 55 ? 'mp-up' : bt.accuracy < 45 ? 'mp-down' : '';
+    const sharpeCls = bt.sharpe > 0.5 ? 'mp-up' : bt.sharpe < 0 ? 'mp-down' : '';
     return `<tr>
-      <td><span style="font-size:12px;">${m.name}</span> <span class="mp-cat-badge">${catLabels[m.category] || ''}</span></td>
-      <td class="${dirCls}" style="font-weight:600;">${isUp ? '看涨 ▲' : '看跌 ▼'}</td>
+      <td><span style="font-size:11px;">${m.name}</span> <span class="mp-cat-badge">${catLabels[m.category] || ''}</span></td>
+      <td class="${dirCls}" style="font-weight:600;">${isUp ? '▲' : '▼'}</td>
       <td class="td-right td-mono">${m.confidence}%</td>
       <td class="td-right td-mono ${dirCls}">${m.expected_return >= 0 ? '+' : ''}${m.expected_return}%</td>
-      <td class="td-right td-mono">$${(m.target_price || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}</td>
+      <td class="td-right td-mono ${accCls}">${bt.accuracy != null ? bt.accuracy + '%' : '--'}</td>
+      <td class="td-right td-mono ${sharpeCls}">${bt.sharpe != null ? bt.sharpe : '--'}</td>
     </tr>`;
   }).join('');
 }
 
+/* ── CONSENSUS COMPACT ───────────────────────────────────────────────────── */
+
+function renderMPConsensusCompact(predictions) {
+  const section = document.getElementById('mp-consensus-section');
+  if (!section) return;
+  if (!predictions) { section.style.display = 'none'; return; }
+
+  const horizons = ['4h', '24h', '168h'];
+  const available = horizons.filter(h => predictions[h]);
+  if (available.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = '';
+
+  const horizonLabels = { '4h': '4H', '24h': '24H', '168h': '7D' };
+  const rowsEl = document.getElementById('mp-consensus-rows');
+  if (rowsEl) {
+    rowsEl.innerHTML = available.map(hz => {
+      const models = predictions[hz];
+      if (!models) return '';
+      const entries = Object.entries(models).filter(([k]) => k !== 'ensemble');
+      const bullCount = entries.filter(([, m]) => m.direction === 'UP').length;
+      const total = entries.length || 1;
+      const bullPct = Math.round(bullCount / total * 100);
+      const isUp = bullPct >= 50;
+
+      return `<div class="mp-cc-row">
+        <span class="mp-cc-hz">${horizonLabels[hz]}</span>
+        <span class="mp-cc-dir ${isUp ? 'mp-up' : 'mp-down'}">${isUp ? '▲' : '▼'}</span>
+        <span class="mp-cc-ratio">${bullCount}/${total} (${bullPct}%)</span>
+        <div class="mp-cc-bar-bg"><div class="mp-cc-bar-fill" style="width:${bullPct}%"></div></div>
+      </div>`;
+    }).join('');
+  }
+
+  // Alignment
+  const alignEl = document.getElementById('mp-consensus-alignment');
+  if (alignEl) {
+    const directions = available.map(hz => {
+      const ens = predictions[hz]?.ensemble;
+      return ens ? ens.direction : null;
+    }).filter(Boolean);
+    const allUp = directions.every(d => d === 'UP');
+    const allDown = directions.every(d => d === 'DOWN');
+
+    if (allUp) {
+      alignEl.innerHTML = `<div class="mp-cc-align" style="color:#22c55e;">▲▲▲ ${t('mp.consensus_strong')}</div>`;
+    } else if (allDown) {
+      alignEl.innerHTML = `<div class="mp-cc-align" style="color:#ef4444;">▼▼▼ ${t('mp.consensus_strong')}</div>`;
+    } else {
+      const detail = available.map(hz => {
+        const ens = predictions[hz]?.ensemble;
+        if (!ens) return '';
+        const up = ens.direction === 'UP';
+        return `<span style="color:${up ? '#22c55e' : '#ef4444'}">${up ? '▲' : '▼'}</span>`;
+      }).join('');
+      alignEl.innerHTML = `<div class="mp-cc-align" style="color:#f59e0b;">[${detail}] ${t('mp.consensus_divergent')}</div>`;
+    }
+  }
+}
+
+/* ── BETTING TABLE ───────────────────────────────────────────────────────── */
+
 function translateBettingQuestion(q, source) {
   let cn = q;
-  // Polymarket / general patterns
   cn = cn.replace(/Will (?:Bitcoin|BTC) (?:hit|reach|exceed|surpass) \$?([\d,.]+[kKmM]?) (?:by|before) (.+)\??/i,
-    (_, price, date) => `比特币是否在${translatePMDate(date)}前达到 $${price}？`);
+    (_, price, date) => `BTC ${translatePMDate(date)}前达到 $${price}？`);
   cn = cn.replace(/Will (?:Bitcoin|BTC) be (above|below) \$?([\d,.]+[kKmM]?) (?:by|on|in) (.+)\??/i,
-    (_, dir, price, date) => `比特币在${translatePMDate(date)}是否${dir === 'above' ? '高于' : '低于'} $${price}？`);
+    (_, dir, price, date) => `BTC ${translatePMDate(date)}${dir === 'above' ? '>' : '<'} $${price}？`);
   cn = cn.replace(/(?:Bitcoin|BTC) \$?([\d,.]+[kKmM]?)\+? (?:by|before) (.+)\??/i,
-    (_, price, date) => `比特币在${translatePMDate(date)}前达到 $${price}？`);
+    (_, price, date) => `BTC ${translatePMDate(date)}前达到 $${price}？`);
   cn = cn.replace(/Will (?:Bitcoin|BTC) close (above|below) \$?([\d,.]+[kKmM]?) (?:on|by) (.+)\??/i,
-    (_, dir, price, date) => `比特币在${translatePMDate(date)}收盘是否${dir === 'above' ? '高于' : '低于'} $${price}？`);
-  // Kalshi range format: "Bitcoin price range on Mar 3?" or "Bitcoin between $X and $Y"
+    (_, dir, price, date) => `BTC ${translatePMDate(date)}收盘${dir === 'above' ? '>' : '<'} $${price}？`);
   cn = cn.replace(/(?:Bitcoin|BTC) (?:price )?(?:range|between) (?:on |by )?(.+?)(?:\?|$)/i,
-    (_, rest) => `比特币${translatePMDate(rest)}价格区间？`);
+    (_, rest) => `BTC ${translatePMDate(rest)}价格区间？`);
   cn = cn.replace(/(?:Bitcoin|BTC) (?:price )?(above|below|over|under|at or above|at or below) \$?([\d,.]+[kKmM]?)(?: on| by| at)? ?(.+?)(?:\?|$)/i,
     (_, dir, price, date) => {
-      const d = dir.match(/above|over/i) ? '高于' : '低于';
-      return `比特币${date ? translatePMDate(date) : ''}是否${d} $${price}？`;
+      const d = dir.match(/above|over/i) ? '>' : '<';
+      return `BTC${date ? ' ' + translatePMDate(date) : ''} ${d} $${price}？`;
     });
-  // "Will BTC end 2026 above/below"
   cn = cn.replace(/Will (?:Bitcoin|BTC) end (\d{4}) (above|below) \$?([\d,.]+[kKmM]?)\??/i,
-    (_, year, dir, price) => `比特币${year}年底是否${dir === 'above' ? '高于' : '低于'} $${price}？`);
-  // Fallback: keyword translation for unmatched questions
+    (_, year, dir, price) => `BTC ${year}年底${dir === 'above' ? '>' : '<'} $${price}？`);
   if (cn === q) {
-    cn = q.replace(/\bBitcoin\b/gi, '比特币').replace(/\bBTC\b/gi, 'BTC')
-          .replace(/\babove\b/gi, '高于').replace(/\bbelow\b/gi, '低于')
+    cn = q.replace(/\bBitcoin\b/gi, 'BTC').replace(/\babove\b/gi, '>').replace(/\bbelow\b/gi, '<')
           .replace(/\bhit\b/gi, '达到').replace(/\breach\b/gi, '达到')
           .replace(/\bby\b/gi, '前').replace(/\bbefore\b/gi, '前')
-          .replace(/\bWill\b/gi, '是否').replace(/\bprice\b/gi, '价格');
-    if (cn !== q) return cn;
+          .replace(/\bWill\b/gi, '').replace(/\bprice\b/gi, '');
+    if (cn !== q) return cn.trim();
     return null;
   }
   return cn;
 }
-// Backward compat alias
 function translatePMQuestion(q) { return translateBettingQuestion(q, 'polymarket'); }
 
 function translatePMDate(dateStr) {
@@ -3003,11 +3069,8 @@ function translatePMDate(dateStr) {
   for (const [en, zh] of Object.entries(months)) {
     s = s.replace(new RegExp(en, 'gi'), zh);
   }
-  // "March 31, 2026" → "2026年3月31日"
   s = s.replace(/(\d+月)\s*(\d+),?\s*(\d{4})/g, '$3年$1$2日');
-  // "March 2026" → "2026年3月"
   s = s.replace(/(\d+月)\s*(\d{4})/g, '$2年$1');
-  // "end of 2026" → "2026年底"
   s = s.replace(/end of (\d{4})/gi, '$1年底');
   return s;
 }
@@ -3020,9 +3083,9 @@ function formatPMCountdown(endDate) {
   if (diff <= 0) return '已结束';
   const days = Math.floor(diff / 86400000);
   const hours = Math.floor((diff % 86400000) / 3600000);
-  if (days > 30) return `${Math.floor(days / 30)}个月${days % 30}天`;
-  if (days > 0) return `${days}天${hours}时`;
-  return `${hours}小时`;
+  if (days > 30) return `${Math.floor(days / 30)}m${days % 30}d`;
+  if (days > 0) return `${days}d${hours}h`;
+  return `${hours}h`;
 }
 
 function formatVolume(v) {
@@ -3081,23 +3144,26 @@ function sortBettingMarkets(sortMode) {
   document.querySelectorAll('.mp-pm-sort-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.sort === sortMode);
   });
-  if (_bettingData) renderBettingMarkets(_bettingData);
+  if (_bettingData) renderMPBettingTable(_bettingData);
 }
 
-function renderBettingMarkets(data) {
+let _bettingShowAll = false;
+
+function renderMPBettingTable(data) {
   _bettingData = data;
-  const el = document.getElementById('mp-polymarket-panel');
+  const headEl = document.getElementById('mp-betting-head');
+  const bodyEl = document.getElementById('mp-betting-body');
   const summaryEl = document.getElementById('mp-betting-summary');
+  const moreEl = document.getElementById('mp-betting-more');
+
   if (!data || !data.markets || data.markets.length === 0) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-text">${t('js.no_data')}</div></div>`;
-    if (summaryEl) summaryEl.style.display = 'none';
+    if (bodyEl) bodyEl.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px;">${t('js.no_data')}</td></tr>`;
     return;
   }
 
   const now = new Date();
   const currentPrice = MARKET_PREDICT.latest?.current_price || 0;
 
-  // Parse deadlines and filter expired
   const enriched = data.markets.map(m => {
     const deadline = _parseBettingDeadline(m);
     const target = _parseBettingTarget(m.question);
@@ -3106,7 +3172,6 @@ function renderBettingMarkets(data) {
   });
   const active = enriched.filter(m => !m._expired);
 
-  // Sort based on mode
   let sorted;
   if (_bettingSortMode === 'deadline') {
     sorted = active.slice().sort((a, b) => {
@@ -3125,793 +3190,235 @@ function renderBettingMarkets(data) {
   } else {
     sorted = active.slice().sort((a, b) => (b.volume || 0) - (a.volume || 0));
   }
-  const markets = sorted.slice(0, 12);
-  const allMarkets = active;
 
-  // Platform summary bar
-  const sources = data.sources || {};
-  const platformConfigs = {
-    polymarket: { label: 'Polymarket', color: '#22c55e' },
-    kalshi: { label: 'Kalshi', color: '#3b82f6' },
-    gemini: { label: 'Gemini', color: '#06b6d4' },
-  };
+  const displayLimit = _bettingShowAll ? sorted.length : 6;
+  const markets = sorted.slice(0, displayLimit);
+
+  // Summary
   if (summaryEl) {
-    const totalVol = data.total_volume || allMarkets.reduce((s, m) => s + (m.volume || 0), 0);
-    let summaryHTML = '';
-    for (const [key, cfg] of Object.entries(platformConfigs)) {
+    const sources = data.sources || {};
+    const parts = [];
+    for (const [key, cfg] of Object.entries({ polymarket: 'PM', kalshi: 'KA', gemini: 'GE' })) {
       const src = sources[key];
       if (src && src.market_count > 0) {
-        summaryHTML += `<span class="mp-pm-summary-item">
-          <span class="mp-pm-summary-dot" style="background:${cfg.color}"></span>
-          ${cfg.label}: ${src.market_count} 个合约 / ${formatVolume(src.total_volume || 0)}
-        </span>`;
+        parts.push(`${cfg}:${src.market_count}`);
       }
     }
-    // If no sources info (fallback to polymarket only), just show polymarket
-    if (!summaryHTML && allMarkets.length > 0) {
-      summaryHTML = `<span class="mp-pm-summary-item">
-        <span class="mp-pm-summary-dot" style="background:#22c55e"></span>
-        Polymarket: ${allMarkets.length} 个合约
-      </span>`;
-    }
-    summaryHTML += `<span class="mp-pm-summary-total">总押注额 ${formatVolume(totalVol)}</span>`;
-    summaryEl.innerHTML = summaryHTML;
-    summaryEl.style.display = 'flex';
+    const totalVol = data.total_volume || active.reduce((s, m) => s + (m.volume || 0), 0);
+    summaryEl.textContent = parts.join(' ') + (parts.length ? ' | ' : '') + formatVolume(totalVol);
   }
 
-  // Render cards
-  el.innerHTML = markets.map(m => {
-    const yesPct = m.yes_price != null ? (m.yes_price * 100) : 0;
-    const noPct = 100 - yesPct;
-    const vol = m.volume || 0;
-    const yesAmt = vol * (m.yes_price || 0);
-    const noAmt = vol * (1 - (m.yes_price || 0));
-    const source = m.source || 'polymarket';
-    const cnQ = translateBettingQuestion(m.question, source);
-    const deadlineStr = m._deadline ? m._deadline.toISOString() : m.end_date;
-    const countdown = formatPMCountdown(deadlineStr);
-    const badgeClass = `mp-pm-badge mp-pm-badge-${source}`;
-    const badgeLabel = { polymarket: 'Polymarket', kalshi: 'Kalshi', gemini: 'Gemini' }[source] || source;
+  // Table header
+  if (headEl) {
+    headEl.innerHTML = `<tr>
+      <th class="mp-bt-q">${t('mp.betting_question')}</th>
+      <th class="td-right">Yes</th>
+      <th class="td-right">No</th>
+      <th class="td-right">Vol</th>
+      <th class="td-right">${t('mp.betting_expire')}</th>
+    </tr>`;
+  }
 
-    return `<div class="mp-pm-card">
-      <span class="${badgeClass}">${badgeLabel}</span>
-      <div class="mp-pm-card-q">${cnQ || m.question}</div>
-      ${cnQ ? `<div class="mp-pm-card-q-en">${m.question}</div>` : ''}
-      <div class="mp-pm-votes">
-        <div class="mp-pm-vote mp-pm-vote-yes">
-          <div class="mp-pm-vote-icon">&#10003;</div>
-          <div class="mp-pm-vote-pct">${yesPct.toFixed(1)}%</div>
-          <div class="mp-pm-vote-amt">${formatVolume(yesAmt)}</div>
-          <div class="mp-pm-vote-label">是 YES</div>
-        </div>
-        <div class="mp-pm-vote mp-pm-vote-no">
-          <div class="mp-pm-vote-icon">&#10007;</div>
-          <div class="mp-pm-vote-pct">${noPct.toFixed(1)}%</div>
-          <div class="mp-pm-vote-amt">${formatVolume(noAmt)}</div>
-          <div class="mp-pm-vote-label">否 NO</div>
-        </div>
-      </div>
-      <div class="mp-pm-progress"><div class="mp-pm-progress-yes" style="width:${yesPct}%"></div></div>
-      <div class="mp-pm-footer">
-        <span>${formatVolume(vol)}</span>
-        ${countdown ? `<span class="mp-pm-countdown">&#9202; ${countdown}</span>` : ''}
-      </div>
-    </div>`;
-  }).join('');
+  // Table body
+  if (bodyEl) {
+    bodyEl.innerHTML = markets.map(m => {
+      const yesPct = m.yes_price != null ? (m.yes_price * 100).toFixed(0) : '--';
+      const noPct = m.yes_price != null ? (100 - m.yes_price * 100).toFixed(0) : '--';
+      const source = m.source || 'polymarket';
+      const cnQ = translateBettingQuestion(m.question, source);
+      const deadlineStr = m._deadline ? m._deadline.toISOString() : m.end_date;
+      const countdown = formatPMCountdown(deadlineStr);
+      const badgeClass = `mp-pm-badge mp-pm-badge-${source}`;
+      const badgeLabel = { polymarket: 'PM', kalshi: 'KA', gemini: 'GE' }[source] || source;
+
+      return `<tr>
+        <td class="mp-bt-q"><span class="${badgeClass}">${badgeLabel}</span>${cnQ || m.question}</td>
+        <td class="td-right mp-bt-yes">${yesPct}%</td>
+        <td class="td-right mp-bt-no">${noPct}%</td>
+        <td class="td-right">${formatVolume(m.volume || 0)}</td>
+        <td class="td-right" style="color:var(--text-muted);font-size:10px;">${countdown}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Show more / less
+  if (moreEl) {
+    if (sorted.length > 6) {
+      moreEl.style.display = '';
+      moreEl.textContent = _bettingShowAll
+        ? `${t('mp.betting_collapse')} (${sorted.length})`
+        : `${t('mp.betting_show_all')} ${sorted.length} ${t('mp.betting_markets')}`;
+      moreEl.onclick = () => {
+        _bettingShowAll = !_bettingShowAll;
+        renderMPBettingTable(data);
+      };
+    } else {
+      moreEl.style.display = 'none';
+    }
+  }
 }
 // Backward compat
-function renderMPPolymarket(data) { renderBettingMarkets(data); }
+function renderBettingMarkets(data) { renderMPBettingTable(data); }
+function renderMPPolymarket(data) { renderMPBettingTable(data); }
 
-/* ================================================================
-   Sankey Diagram — 预测数据流
-   ================================================================ */
-let _sankeyChart = null;
-function renderSankeyDiagram(bettingData) {
-  const canvas = document.getElementById('mp-sankey-chart');
-  if (!canvas) return;
-  if (_sankeyChart) { _sankeyChart.destroy(); _sankeyChart = null; }
+/* ── FEAR & GREED (TICKER INLINE) ────────────────────────────────────────── */
 
-  // Compute betting volumes per platform
-  const sources = bettingData?.sources || {};
-  const pmVol = sources.polymarket?.total_volume || bettingData?.total_volume || 0;
-  const kalVol = sources.kalshi?.total_volume || 0;
-  const gemVol = sources.gemini?.total_volume || 0;
-  const bettingTotal = Math.max(pmVol + kalVol + gemVol, 1);
-
-  // Normalize volumes to 1-10 scale for flow width
-  const norm = v => Math.max(1, Math.round(v / bettingTotal * 10));
-
-  const dataFlows = [
-    // Data sources → Processing
-    { from: 'Binance K线', to: '技术特征 (30+)', flow: 8 },
-    { from: '恐惧贪婪指数', to: '技术特征 (30+)', flow: 3 },
-    // Processing → Models
-    { from: '技术特征 (30+)', to: '机器学习 (5)', flow: 6 },
-    { from: '技术特征 (30+)', to: '神经网络 (1)', flow: 2 },
-    { from: '技术特征 (30+)', to: '时间序列 ARIMA', flow: 2 },
-    { from: '技术特征 (30+)', to: '技术分析策略 (4)', flow: 4 },
-    // Models → Voting
-    { from: '机器学习 (5)', to: '模型投票 (11)', flow: 6 },
-    { from: '神经网络 (1)', to: '模型投票 (11)', flow: 2 },
-    { from: '时间序列 ARIMA', to: '模型投票 (11)', flow: 2 },
-    { from: '技术分析策略 (4)', to: '模型投票 (11)', flow: 4 },
-    // Betting platforms → Betting signal
-    { from: `Polymarket`, to: '押注信号', flow: Math.max(norm(pmVol), 1) },
-  ];
-  if (kalVol > 0) dataFlows.push({ from: 'Kalshi', to: '押注信号', flow: norm(kalVol) });
-  if (gemVol > 0) dataFlows.push({ from: 'Gemini', to: '押注信号', flow: norm(gemVol) });
-  // If no multi-platform data yet, show betting signal with smaller weight
-  if (kalVol === 0 && gemVol === 0) {
-    dataFlows[dataFlows.length - 1].flow = 4;
-  }
-  // Final merge
-  dataFlows.push({ from: '模型投票 (11)', to: '综合预测', flow: 10 });
-  dataFlows.push({ from: '押注信号', to: '综合预测', flow: 4 });
-
-  const nodeColors = {
-    'Binance K线': '#3b82f6',
-    '恐惧贪婪指数': '#3b82f6',
-    '技术特征 (30+)': '#a855f7',
-    '机器学习 (5)': '#f59e0b',
-    '神经网络 (1)': '#f59e0b',
-    '时间序列 ARIMA': '#f59e0b',
-    '技术分析策略 (4)': '#f59e0b',
-    '模型投票 (11)': '#f59e0b',
-    'Polymarket': '#22c55e',
-    'Kalshi': '#3b82f6',
-    'Gemini': '#06b6d4',
-    '押注信号': '#a855f7',
-    '综合预测': '#f59e0b',
-  };
-
-  try {
-    _sankeyChart = new Chart(canvas, {
-      type: 'sankey',
-      data: {
-        datasets: [{
-          data: dataFlows,
-          colorFrom: c => nodeColors[c.dataset.data[c.dataIndex].from] || '#666',
-          colorTo: c => nodeColors[c.dataset.data[c.dataIndex].to] || '#666',
-          colorMode: 'gradient',
-          labels: Object.fromEntries(Object.keys(nodeColors).map(k => [k, k])),
-          size: 'max',
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: ctx => {
-                const d = ctx.dataset.data[ctx.dataIndex];
-                return `${d.from} → ${d.to}`;
-              }
-            }
-          }
-        },
-        layout: { padding: { left: 10, right: 10 } },
-      }
-    });
-  } catch (e) {
-    console.warn('Sankey chart not available:', e);
-    canvas.parentElement.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;">桑基图加载失败（需要 Chart.js Sankey 插件）</p>';
-  }
-}
-
-function renderMPFearGreed(data) {
-  // 渲染到价格下方的内联区域
+function renderMPFearGreedInline(data) {
   const el = document.getElementById('mp-fg-inline');
   if (!el) return;
-  if (!data || !data.data || data.data.length === 0) {
-    el.innerHTML = '';
-    return;
-  }
+  if (!data || !data.data || data.data.length === 0) { el.innerHTML = ''; return; }
+
   const latest = data.data[0];
   const val = latest.value;
-  let gaugeClass = 'mp-fg-neutral';
-  let label = '中性';
-  if (val <= 25) { gaugeClass = 'mp-fg-extreme-fear'; label = '极度恐惧'; }
-  else if (val <= 40) { gaugeClass = 'mp-fg-fear'; label = '恐惧'; }
-  else if (val <= 60) { gaugeClass = 'mp-fg-neutral'; label = '中性'; }
-  else if (val <= 75) { gaugeClass = 'mp-fg-greed'; label = '贪婪'; }
-  else { gaugeClass = 'mp-fg-extreme-greed'; label = '极度贪婪'; }
+  let cls = 'mp-fg-neutral', label = '中性';
+  if (val <= 25) { cls = 'mp-fg-extreme-fear'; label = '极恐'; }
+  else if (val <= 40) { cls = 'mp-fg-fear'; label = '恐惧'; }
+  else if (val <= 60) { cls = 'mp-fg-neutral'; label = '中性'; }
+  else if (val <= 75) { cls = 'mp-fg-greed'; label = '贪婪'; }
+  else { cls = 'mp-fg-extreme-greed'; label = '极贪'; }
 
   const history = data.data.slice(0, 7).reverse();
-  const sparkline = history.map(d => {
-    const h = Math.max(3, (d.value / 100) * 24);
+  const spark = history.map(d => {
+    const h = Math.max(2, (d.value / 100) * 16);
     let color = '#f59e0b';
     if (d.value <= 25) color = '#ef4444';
     else if (d.value <= 40) color = '#f97316';
     else if (d.value >= 75) color = '#22c55e';
     else if (d.value >= 60) color = '#84cc16';
-    return `<div style="width:5px;height:${h}px;background:${color};border-radius:1px;" title="${d.value}"></div>`;
+    return `<div style="width:3px;height:${h}px;background:${color};border-radius:1px;"></div>`;
   }).join('');
 
-  el.innerHTML = `
-    <div class="mp-fg-inline-gauge ${gaugeClass}">${val}</div>
-    <div class="mp-fg-inline-info">
-      <div class="mp-fg-inline-label">恐惧贪婪指数</div>
-      <div class="mp-fg-inline-val">${label}</div>
-    </div>
-    <div class="mp-fg-inline-spark">${sparkline}</div>`;
+  // F&G color mapping for badge
+  const bgColor = val <= 25 ? 'rgba(239,68,68,0.15)' : val <= 40 ? 'rgba(249,115,22,0.15)' : val <= 60 ? 'rgba(234,179,8,0.15)' : val <= 75 ? 'rgba(132,204,22,0.15)' : 'rgba(34,197,94,0.15)';
+  const fgColor = val <= 25 ? '#ef4444' : val <= 40 ? '#f97316' : val <= 60 ? '#eab308' : val <= 75 ? '#84cc16' : '#22c55e';
+
+  el.innerHTML = `<span class="mp-fg-inline-mini">
+    <span class="mp-fg-mini-badge" style="background:${bgColor};color:${fgColor};border:1px solid ${fgColor};">${val}</span>
+    <span class="mp-fg-mini-label">${label}</span>
+    <span class="mp-fg-mini-spark">${spark}</span>
+  </span>`;
 }
+// Backward compat
+function renderMPFearGreed(data) { renderMPFearGreedInline(data); }
 
-// ── ORDERBOOK DEPTH ─────────────────────────────────────────────────────────
+/* ── ORDERBOOK COMPACT ───────────────────────────────────────────────────── */
 
-let _obChart = null;
-
-function renderMPOrderbook(data) {
+function renderMPOrderbookCompact(data) {
   const section = document.getElementById('mp-orderbook-section');
   if (!section) return;
   if (!data || !data.bids || !data.asks) { section.style.display = 'none'; return; }
   section.style.display = '';
 
-  // Stats
+  // Also show deriv section if it's visible (orderbook is inside deriv row)
+  const derivSection = document.getElementById('mp-deriv-section');
+  if (derivSection) derivSection.style.display = '';
+
   const statsEl = document.getElementById('mp-ob-stats');
-  if (statsEl) {
-    const imbColor = data.imbalance > 0.1 ? '#22c55e' : data.imbalance < -0.1 ? '#ef4444' : '#9ca3af';
-    const imbLabel = data.imbalance > 0.1 ? (currentLang === 'zh' ? '买盘主导' : 'Bid dominant')
-                   : data.imbalance < -0.1 ? (currentLang === 'zh' ? '卖盘主导' : 'Ask dominant')
-                   : (currentLang === 'zh' ? '均衡' : 'Balanced');
-    statsEl.innerHTML = `
-      <div class="mp-ob-stat">
-        <div class="mp-ob-stat-label">${t('mp.ob_spread')}</div>
-        <div class="mp-ob-stat-value">$${data.spread}</div>
-      </div>
-      <div class="mp-ob-stat">
-        <div class="mp-ob-stat-label">${t('mp.ob_imbalance')}</div>
-        <div class="mp-ob-stat-value" style="color:${imbColor};">${(data.imbalance * 100).toFixed(1)}%</div>
-        <div style="font-size:10px;color:${imbColor};">${imbLabel}</div>
-      </div>
-      <div class="mp-ob-stat">
-        <div class="mp-ob-stat-label">${t('mp.ob_bid_depth')}</div>
-        <div class="mp-ob-stat-value" style="color:#22c55e;">${data.total_bid_qty?.toFixed(2)} BTC</div>
-      </div>
-      <div class="mp-ob-stat">
-        <div class="mp-ob-stat-label">${t('mp.ob_ask_depth')}</div>
-        <div class="mp-ob-stat-value" style="color:#ef4444;">${data.total_ask_qty?.toFixed(2)} BTC</div>
-      </div>
-    `;
-  }
+  if (!statsEl) return;
 
-  // Depth chart: horizontal bars (bids left green, asks right red)
-  const canvas = document.getElementById('mp-ob-chart');
-  if (!canvas) return;
-  if (_obChart) { _obChart.destroy(); _obChart = null; }
+  const imbColor = data.imbalance > 0.1 ? '#22c55e' : data.imbalance < -0.1 ? '#ef4444' : '#9ca3af';
+  const imbLabel = data.imbalance > 0.1 ? (currentLang === 'zh' ? '买盘主导' : 'Bid')
+                 : data.imbalance < -0.1 ? (currentLang === 'zh' ? '卖盘主导' : 'Ask')
+                 : (currentLang === 'zh' ? '均衡' : 'Bal');
 
-  // Merge bids and asks into a single view centered around best bid/ask
-  const bids = (data.bids || []).slice(0, 15).reverse(); // lowest to highest
-  const asks = (data.asks || []).slice(0, 15); // lowest to highest
+  const totalBid = data.total_bid_qty || 0;
+  const totalAsk = data.total_ask_qty || 0;
+  const bidPct = totalBid + totalAsk > 0 ? (totalBid / (totalBid + totalAsk) * 100).toFixed(0) : 50;
 
-  const allPrices = [...bids.map(b => b[0]), ...asks.map(a => a[0])];
-  const labels = allPrices.map(p => '$' + p.toLocaleString('en-US', { maximumFractionDigits: 0 }));
-
-  const bidData = bids.map(b => -b[1]); // negative for left side
-  const askData = asks.map(a => a[1]);
-  const values = [...bidData, ...askData];
-  const colors = values.map(v => v < 0 ? 'rgba(34,197,94,0.7)' : 'rgba(239,68,68,0.7)');
-
-  // Highlight walls
-  const wallThreshold = data.wall_threshold || 0;
-  const borderColors = values.map(v => Math.abs(v) > wallThreshold ? (v < 0 ? '#16a34a' : '#dc2626') : 'transparent');
-  const borderWidths = values.map(v => Math.abs(v) > wallThreshold ? 2 : 0);
-
-  const cs = getComputedStyle(document.documentElement);
-  const gridColor = cs.getPropertyValue('--border').trim() || 'rgba(255,255,255,0.06)';
-  const tickColor = cs.getPropertyValue('--text-muted').trim() || '#666';
-
-  _obChart = new Chart(canvas, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{
-        data: values,
-        backgroundColor: colors,
-        borderColor: borderColors,
-        borderWidth: borderWidths,
-        borderRadius: 2,
-      }],
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: ctx => {
-              const v = Math.abs(ctx.parsed.x);
-              return `${v.toFixed(4)} BTC`;
-            },
-          },
-        },
-      },
-      scales: {
-        x: {
-          grid: { color: gridColor },
-          ticks: {
-            color: tickColor,
-            font: { size: 10, family: 'JetBrains Mono' },
-            callback: v => Math.abs(v).toFixed(2),
-          },
-        },
-        y: {
-          grid: { display: false },
-          ticks: { color: tickColor, font: { size: 9, family: 'JetBrains Mono' } },
-        },
-      },
-    },
-  });
-}
-
-// ── OPTIONS DATA (DERIBIT) ───────────────────────────────────────────────────
-
-let _optionsIVChart = null;
-
-function renderMPOptions(data) {
-  const section = document.getElementById('mp-options-section');
-  if (!section) return;
-  if (!data || !data.index_price) { section.style.display = 'none'; return; }
-  section.style.display = '';
-
-  const cards = document.getElementById('mp-options-cards');
-  if (!cards) return;
-
-  const pcrColor = data.pcr_oi > 0.7 ? '#ef4444' : data.pcr_oi < 0.5 ? '#22c55e' : '#f59e0b';
-  const pcrLabel = data.pcr_oi > 0.7 ? (currentLang === 'zh' ? '看跌倾向' : 'Bearish bias')
-                 : data.pcr_oi < 0.5 ? (currentLang === 'zh' ? '看涨倾向' : 'Bullish bias')
-                 : (currentLang === 'zh' ? '中性' : 'Neutral');
-
-  const mpDist = data.max_pain && data.index_price
-    ? ((data.max_pain - data.index_price) / data.index_price * 100).toFixed(1)
-    : 0;
-  const mpColor = mpDist > 0 ? '#22c55e' : '#ef4444';
-
-  cards.innerHTML = `
-    <div class="mp-deriv-card">
-      <div class="mp-deriv-label">${t('mp.implied_vol')}</div>
-      <div class="mp-deriv-value" style="color:#a855f7;">${data.avg_iv?.toFixed(1) || '--'}%</div>
-      <div class="mp-deriv-sub">${t('mp.hist_vol')}: ${data.historical_volatility?.toFixed(1) || '--'}%</div>
+  statsEl.innerHTML = `
+    <div class="mp-ob-stat-row">
+      <span class="mp-ob-stat-label">${t('mp.ob_spread')}</span>
+      <span class="mp-ob-stat-value">$${data.spread}</span>
     </div>
-    <div class="mp-deriv-card">
-      <div class="mp-deriv-label">${t('mp.put_call_ratio')} (OI)</div>
-      <div class="mp-deriv-value" style="color:${pcrColor};">${data.pcr_oi?.toFixed(3) || '--'}</div>
-      <div class="mp-deriv-sub" style="color:${pcrColor};">${pcrLabel}</div>
+    <div class="mp-ob-stat-row">
+      <span class="mp-ob-stat-label">${t('mp.ob_imbalance')}</span>
+      <span class="mp-ob-stat-value" style="color:${imbColor};">${(data.imbalance * 100).toFixed(1)}% ${imbLabel}</span>
     </div>
-    <div class="mp-deriv-card">
-      <div class="mp-deriv-label">${t('mp.max_pain')}</div>
-      <div class="mp-deriv-value">$${data.max_pain?.toLocaleString() || '--'}</div>
-      <div class="mp-deriv-sub" style="color:${mpColor};">${mpDist > 0 ? '+' : ''}${mpDist}% ${currentLang === 'zh' ? '距现价' : 'from spot'}</div>
+    <div class="mp-ob-stat-row">
+      <span style="color:#22c55e;font-size:10px;">${totalBid.toFixed(1)} BTC</span>
+      <span style="color:#ef4444;font-size:10px;">${totalAsk.toFixed(1)} BTC</span>
     </div>
-    <div class="mp-deriv-card">
-      <div class="mp-deriv-label">${currentLang === 'zh' ? '期权合约数' : 'Instruments'}</div>
-      <div class="mp-deriv-value">${data.instruments_count?.toLocaleString() || '--'}</div>
-      <div class="mp-deriv-sub">Call OI: ${(data.total_call_oi || 0).toLocaleString('en-US', {maximumFractionDigits: 0})} BTC</div>
-    </div>
-  `;
-
-  // HV history chart
-  if (data.hv_history && data.hv_history.length > 0) {
-    renderOptionsIVChart(data);
-  }
+    <div class="mp-ob-depth-bar">
+      <div style="width:${bidPct}%;background:#22c55e;height:100%;border-radius:4px 0 0 4px;"></div>
+      <div style="width:${100 - bidPct}%;background:#ef4444;height:100%;border-radius:0 4px 4px 0;"></div>
+    </div>`;
 }
 
-function renderOptionsIVChart(data) {
-  const canvas = document.getElementById('mp-options-iv-chart');
-  if (!canvas) return;
-  if (_optionsIVChart) { _optionsIVChart.destroy(); _optionsIVChart = null; }
+/* ── MICRO WIDGETS (OPTIONS + ONCHAIN MERGED) ────────────────────────────── */
 
-  const hv = data.hv_history || [];
-  const labels = hv.map(h => {
-    const d = new Date(h[0]);
-    return d.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' });
-  });
-  const hvValues = hv.map(h => h[1]);
-
-  const cs = getComputedStyle(document.documentElement);
-  const gridColor = cs.getPropertyValue('--border').trim() || 'rgba(255,255,255,0.06)';
-  const tickColor = cs.getPropertyValue('--text-muted').trim() || '#666';
-
-  const datasets = [
-    {
-      label: t('mp.hist_vol'),
-      data: hvValues,
-      borderColor: '#f59e0b',
-      backgroundColor: 'rgba(245,158,11,0.1)',
-      fill: true,
-      pointRadius: 0,
-      borderWidth: 2,
-      tension: 0.3,
-    },
-  ];
-
-  // Add IV as horizontal line
-  if (data.avg_iv) {
-    datasets.push({
-      label: t('mp.implied_vol'),
-      data: Array(hvValues.length).fill(data.avg_iv),
-      borderColor: '#a855f7',
-      borderDash: [6, 3],
-      pointRadius: 0,
-      borderWidth: 2,
-    });
-  }
-
-  _optionsIVChart = new Chart(canvas, {
-    type: 'line',
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: true, labels: { color: tickColor, font: { size: 10 }, boxWidth: 12 } },
-        tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(1) + '%' } },
-      },
-      scales: {
-        x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 9 }, maxTicksLimit: 10 } },
-        y: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 10, family: 'JetBrains Mono' }, callback: v => v + '%' } },
-      },
-    },
-  });
-}
-
-// ── ON-CHAIN DATA ───────────────────────────────────────────────────────────
-
-function renderMPOnchain(data) {
-  const section = document.getElementById('mp-onchain-section');
-  if (!section) return;
-  if (!data || !data.metrics || Object.keys(data.metrics).length === 0) {
-    section.style.display = 'none';
-    return;
-  }
-  section.style.display = '';
-
-  const m = data.metrics;
-  const cards = document.getElementById('mp-onchain-cards');
-  if (!cards) return;
-
-  const get = (key) => m[key]?.value ?? '--';
-
-  const hrVal = get('hashrate_eh');
-  const diffVal = get('difficulty_t');
-  const mpCount = get('mempool_count');
-  const mpSize = get('mempool_vsize_mb');
-  const feeFast = get('fee_fastest');
-  const feeHour = get('fee_hour');
-  const totalBTC = get('total_btc');
-
-  cards.innerHTML = `
-    <div class="mp-deriv-card">
-      <div class="mp-deriv-label">${currentLang === 'zh' ? '全网算力' : 'Hashrate'}</div>
-      <div class="mp-deriv-value">${typeof hrVal === 'number' ? hrVal.toLocaleString() : hrVal}</div>
-      <div class="mp-deriv-sub">EH/s</div>
-    </div>
-    <div class="mp-deriv-card">
-      <div class="mp-deriv-label">${currentLang === 'zh' ? '挖矿难度' : 'Difficulty'}</div>
-      <div class="mp-deriv-value">${typeof diffVal === 'number' ? diffVal.toFixed(2) : diffVal}</div>
-      <div class="mp-deriv-sub">T</div>
-    </div>
-    <div class="mp-deriv-card">
-      <div class="mp-deriv-label">Mempool</div>
-      <div class="mp-deriv-value">${typeof mpCount === 'number' ? mpCount.toLocaleString() : mpCount}</div>
-      <div class="mp-deriv-sub">${currentLang === 'zh' ? '笔交易' : 'txns'} (${typeof mpSize === 'number' ? mpSize.toFixed(1) : mpSize} MB)</div>
-    </div>
-    <div class="mp-deriv-card">
-      <div class="mp-deriv-label">${currentLang === 'zh' ? '手续费' : 'Fees'}</div>
-      <div class="mp-deriv-value">${typeof feeFast === 'number' ? feeFast : '--'}</div>
-      <div class="mp-deriv-sub">sat/vB (${currentLang === 'zh' ? '最快' : 'fast'}) | ${typeof feeHour === 'number' ? feeHour : '--'} (1h)</div>
-    </div>
-  `;
-}
-
-// ── BACKTEST PERFORMANCE ─────────────────────────────────────────────────────
-
-let _backtestChart = null;
-let _backtestData = null;
-let _backtestHorizon = '24h';
-
-function renderMPBacktest(data) {
-  const section = document.getElementById('mp-backtest-section');
-  if (!section) return;
-  if (!data || !data.backtest || Object.keys(data.backtest).length === 0) {
-    section.style.display = 'none';
-    return;
-  }
-  section.style.display = '';
-  _backtestData = data;
-
-  // Bind tab clicks
-  document.querySelectorAll('.mp-backtest-tab').forEach(tab => {
-    tab.onclick = () => {
-      _backtestHorizon = tab.dataset.horizon;
-      document.querySelectorAll('.mp-backtest-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      _renderBacktestContent();
-    };
-  });
-
-  _renderBacktestContent();
-
-  // Note
-  const noteEl = document.getElementById('mp-backtest-note');
-  if (noteEl && data.generated_at) {
-    const d = new Date(data.generated_at);
-    noteEl.textContent = (currentLang === 'zh' ? '回测时间: ' : 'Backtest: ')
-      + d.toLocaleString('zh-CN', { timeZone: 'Asia/Singapore' })
-      + ` | ${data.data_points || 0} ${currentLang === 'zh' ? '个数据点' : 'data points'}`;
-  }
-}
-
-function _renderBacktestContent() {
-  if (!_backtestData) return;
-  const horizonData = _backtestData.backtest[_backtestHorizon];
-  if (!horizonData) return;
-
-  _renderBacktestTable(horizonData);
-  _renderBacktestChart(horizonData);
-}
-
-function _renderBacktestTable(horizonData) {
-  const thead = document.getElementById('mp-backtest-head');
-  const tbody = document.getElementById('mp-backtest-body');
-  if (!thead || !tbody) return;
-
-  thead.innerHTML = `<tr>
-    <th>${t('mp.model')}</th>
-    <th class="td-right">${t('mp.bt_accuracy')}</th>
-    <th class="td-right">${t('mp.bt_sharpe')}</th>
-    <th class="td-right">${t('mp.bt_cum_return')}</th>
-    <th class="td-right">${t('mp.bt_trades')}</th>
-  </tr>`;
-
-  const sorted = Object.entries(horizonData).sort((a, b) => b[1].accuracy - a[1].accuracy);
-  const catLabels = { ml: 'ML', nn: 'NN', ts: 'TS', ta: 'TA', ensemble: 'ENS' };
-
-  tbody.innerHTML = sorted.map(([key, m]) => {
-    const accCls = m.accuracy > 55 ? 'mp-up' : m.accuracy < 45 ? 'mp-down' : '';
-    const retCls = m.cum_return > 0 ? 'mp-up' : m.cum_return < 0 ? 'mp-down' : '';
-    const sharpeCls = m.sharpe > 0.5 ? 'mp-up' : m.sharpe < 0 ? 'mp-down' : '';
-    return `<tr>
-      <td><span style="font-size:12px;">${m.name}</span> <span class="mp-cat-badge">${catLabels[m.category] || ''}</span></td>
-      <td class="td-right td-mono ${accCls}">${m.accuracy}%</td>
-      <td class="td-right td-mono ${sharpeCls}">${m.sharpe}</td>
-      <td class="td-right td-mono ${retCls}">${m.cum_return >= 0 ? '+' : ''}${m.cum_return}%</td>
-      <td class="td-right td-mono">${m.total_trades}</td>
-    </tr>`;
-  }).join('');
-}
-
-function _renderBacktestChart(horizonData) {
-  const canvas = document.getElementById('mp-backtest-chart');
-  if (!canvas) return;
-
-  if (_backtestChart) { _backtestChart.destroy(); _backtestChart = null; }
-
-  const sorted = Object.entries(horizonData).sort((a, b) => b[1].accuracy - a[1].accuracy);
-  const labels = sorted.map(([, m]) => m.name);
-  const accuracies = sorted.map(([, m]) => m.accuracy);
-  const colors = accuracies.map(a => a > 55 ? 'rgba(34,197,94,0.7)' : a < 45 ? 'rgba(239,68,68,0.7)' : 'rgba(107,114,128,0.5)');
-
-  const cs = getComputedStyle(document.documentElement);
-  const gridColor = cs.getPropertyValue('--border').trim() || 'rgba(255,255,255,0.06)';
-  const tickColor = cs.getPropertyValue('--text-muted').trim() || '#666';
-
-  _backtestChart = new Chart(canvas, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{
-        label: t('mp.bt_accuracy'),
-        data: accuracies,
-        backgroundColor: colors,
-        borderRadius: 4,
-      }],
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ctx.parsed.x.toFixed(1) + '%' } },
-        annotation: {
-          annotations: {
-            refLine: {
-              type: 'line',
-              xMin: 50, xMax: 50,
-              borderColor: 'rgba(245,158,11,0.6)',
-              borderDash: [6, 3],
-              borderWidth: 2,
-              label: { display: true, content: '50%', position: 'start', color: '#f59e0b', font: { size: 10 } },
-            },
-          },
-        },
-      },
-      scales: {
-        x: {
-          grid: { color: gridColor },
-          ticks: { color: tickColor, font: { size: 10, family: 'JetBrains Mono' }, callback: v => v + '%' },
-          min: 30,
-          max: 80,
-        },
-        y: {
-          grid: { display: false },
-          ticks: { color: tickColor, font: { size: 10 } },
-        },
-      },
-    },
-  });
-}
-
-// ── SIGNAL CONSENSUS PANEL ───────────────────────────────────────────────────
-
-function renderMPConsensus(predictions) {
-  const section = document.getElementById('mp-consensus-section');
-  if (!section) return;
-  if (!predictions) { section.style.display = 'none'; return; }
-
-  const horizons = ['4h', '24h', '168h'];
-  const available = horizons.filter(h => predictions[h]);
-  if (available.length === 0) { section.style.display = 'none'; return; }
-  section.style.display = '';
-
-  renderConsensusHeatmap(predictions, available);
-  renderConsensusMeter(predictions, available);
-  renderConsensusAlignment(predictions, available);
-}
-
-function renderConsensusHeatmap(predictions, horizons) {
-  const canvas = document.getElementById('mp-consensus-heatmap');
-  if (!canvas) return;
-
-  // Collect all models across horizons
-  const modelSet = new Set();
-  horizons.forEach(h => {
-    Object.entries(predictions[h] || {}).forEach(([key, m]) => {
-      if (key !== 'ensemble') modelSet.add(key);
-    });
-  });
-  const models = Array.from(modelSet);
-  // Add ensemble at top
-  models.unshift('ensemble');
-
-  const horizonLabels = { '4h': '4H', '24h': '24H', '168h': '7D' };
-  const cellW = 80, cellH = 32, labelW = 140, headerH = 30, pad = 10;
-  const w = labelW + horizons.length * cellW + pad * 2;
-  const h = headerH + models.length * cellH + pad * 2;
-  canvas.width = w;
-  canvas.height = h;
-  canvas.style.minHeight = h + 'px';
-
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, w, h);
-
-  const cs = getComputedStyle(document.documentElement);
-  const textPrimary = cs.getPropertyValue('--text-primary').trim() || '#e5e7eb';
-  const textMuted = cs.getPropertyValue('--text-muted').trim() || '#6b7280';
-
-  // Header row
-  ctx.font = '11px JetBrains Mono, monospace';
-  ctx.fillStyle = textMuted;
-  ctx.textAlign = 'center';
-  horizons.forEach((hz, i) => {
-    ctx.fillText(horizonLabels[hz] || hz, labelW + i * cellW + cellW / 2 + pad, pad + headerH - 8);
-  });
-
-  // Rows
-  models.forEach((modelKey, row) => {
-    const y = pad + headerH + row * cellH;
-    // Model label
-    const modelData = predictions[horizons[0]]?.[modelKey] || predictions[horizons[1]]?.[modelKey] || {};
-    const name = modelData.name || modelKey;
-    ctx.font = modelKey === 'ensemble' ? 'bold 11px sans-serif' : '11px sans-serif';
-    ctx.fillStyle = textPrimary;
-    ctx.textAlign = 'right';
-    ctx.fillText(name.length > 18 ? name.slice(0, 16) + '..' : name, labelW + pad - 6, y + cellH / 2 + 4);
-
-    // Cells
-    horizons.forEach((hz, col) => {
-      const m = predictions[hz]?.[modelKey];
-      const x = labelW + col * cellW + pad;
-      const cx = x + cellW / 2;
-
-      if (!m) {
-        // No data
-        ctx.fillStyle = 'rgba(107,114,128,0.1)';
-        ctx.fillRect(x + 2, y + 2, cellW - 4, cellH - 4);
-        return;
-      }
-
-      const isUp = m.direction === 'UP';
-      const conf = (m.confidence || 50) / 100;
-      const alpha = 0.15 + conf * 0.6;
-
-      // Cell background
-      ctx.fillStyle = isUp
-        ? `rgba(34,197,94,${alpha})`
-        : `rgba(239,68,68,${alpha})`;
-      ctx.beginPath();
-      ctx.roundRect(x + 2, y + 2, cellW - 4, cellH - 4, 4);
-      ctx.fill();
-
-      // Text: confidence %
-      ctx.font = 'bold 11px JetBrains Mono, monospace';
-      ctx.fillStyle = isUp ? '#22c55e' : '#ef4444';
-      ctx.textAlign = 'center';
-      ctx.fillText(`${isUp ? '▲' : '▼'} ${m.confidence}%`, cx, y + cellH / 2 + 4);
-    });
-  });
-}
-
-function renderConsensusMeter(predictions, horizons) {
-  const container = document.getElementById('mp-consensus-meters');
+function renderMPMicroWidgets(optionsData, onchainData) {
+  const container = document.getElementById('mp-micro-widgets');
+  const chartsRow = document.getElementById('mp-charts-row');
   if (!container) return;
 
-  const horizonLabels = { '4h': '4H', '24h': '24H', '168h': '7D' };
+  const widgets = [];
 
-  container.innerHTML = horizons.map(hz => {
-    const models = predictions[hz];
-    if (!models) return '';
-    const entries = Object.entries(models).filter(([k]) => k !== 'ensemble');
-    const bullCount = entries.filter(([, m]) => m.direction === 'UP').length;
-    const total = entries.length || 1;
-    const bullPct = (bullCount / total * 100).toFixed(0);
-    const bearPct = (100 - bullPct).toFixed(0);
-
-    return `<div class="mp-consensus-meter">
-      <div class="mp-consensus-meter-label">${horizonLabels[hz] || hz} ${t('mp.consensus_bull_pct')}</div>
-      <div class="mp-consensus-meter-bar-wrap">
-        <div class="mp-consensus-meter-bar" style="width:${bullPct}%"></div>
-      </div>
-      <div class="mp-consensus-meter-info">
-        <span class="mp-consensus-meter-bull">${bullCount}/${total} ${currentLang === 'zh' ? '看涨' : 'Bull'} (${bullPct}%)</span>
-        <span class="mp-consensus-meter-bear">${total - bullCount}/${total} ${currentLang === 'zh' ? '看跌' : 'Bear'} (${bearPct}%)</span>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function renderConsensusAlignment(predictions, horizons) {
-  const el = document.getElementById('mp-consensus-alignment');
-  if (!el) return;
-
-  // Check if all horizons agree on direction (using ensemble)
-  const directions = horizons.map(hz => {
-    const ens = predictions[hz]?.ensemble;
-    return ens ? ens.direction : null;
-  }).filter(Boolean);
-
-  const allUp = directions.every(d => d === 'UP');
-  const allDown = directions.every(d => d === 'DOWN');
-  const aligned = allUp || allDown;
-
-  el.className = 'mp-consensus-alignment ' + (aligned ? 'align-strong' : 'align-divergent');
-
-  if (allUp) {
-    el.innerHTML = `<div class="mp-consensus-align-icon" style="color:#22c55e;">▲▲▲</div>
-      <div class="mp-consensus-align-text" style="color:#22c55e;">${t('mp.consensus_strong')}</div>
-      <div class="mp-consensus-align-detail">${t('mp.consensus_all_bull')}</div>`;
-  } else if (allDown) {
-    el.innerHTML = `<div class="mp-consensus-align-icon" style="color:#ef4444;">▼▼▼</div>
-      <div class="mp-consensus-align-text" style="color:#ef4444;">${t('mp.consensus_strong')}</div>
-      <div class="mp-consensus-align-detail">${t('mp.consensus_all_bear')}</div>`;
-  } else {
-    const detail = horizons.map(hz => {
-      const ens = predictions[hz]?.ensemble;
-      if (!ens) return '';
-      const isUp = ens.direction === 'UP';
-      return `<span style="color:${isUp ? '#22c55e' : '#ef4444'};font-weight:600;">${hz.replace('h', 'H')}: ${isUp ? '▲' : '▼'}</span>`;
-    }).filter(Boolean).join('  ');
-    el.innerHTML = `<div class="mp-consensus-align-icon" style="color:#f59e0b;">◆</div>
-      <div class="mp-consensus-align-text" style="color:#f59e0b;">${t('mp.consensus_divergent')}</div>
-      <div class="mp-consensus-align-detail">${t('mp.consensus_mixed')}<br>${detail}</div>`;
+  // Options data
+  if (optionsData && optionsData.index_price) {
+    widgets.push({
+      label: 'IV',
+      value: optionsData.avg_iv ? optionsData.avg_iv.toFixed(1) + '%' : '--',
+      sub: t('mp.implied_vol'),
+      color: '#a855f7',
+    });
+    widgets.push({
+      label: 'PCR',
+      value: optionsData.pcr_oi ? optionsData.pcr_oi.toFixed(3) : '--',
+      sub: optionsData.pcr_oi > 0.7 ? '看跌' : optionsData.pcr_oi < 0.5 ? '看涨' : '中性',
+      color: optionsData.pcr_oi > 0.7 ? '#ef4444' : optionsData.pcr_oi < 0.5 ? '#22c55e' : '#f59e0b',
+    });
+    widgets.push({
+      label: 'MaxPain',
+      value: '$' + (optionsData.max_pain || 0).toLocaleString('en-US', { maximumFractionDigits: 0 }),
+      sub: optionsData.max_pain && optionsData.index_price ?
+        ((optionsData.max_pain - optionsData.index_price) / optionsData.index_price * 100).toFixed(1) + '%' : '',
+      color: '#f59e0b',
+    });
   }
+
+  // Onchain data
+  if (onchainData && onchainData.metrics) {
+    const m = onchainData.metrics;
+    const get = (key) => m[key]?.value ?? '--';
+
+    widgets.push({
+      label: 'HR',
+      value: typeof get('hashrate_eh') === 'number' ? get('hashrate_eh').toLocaleString() : get('hashrate_eh'),
+      sub: 'EH/s',
+      color: '#3b82f6',
+    });
+    widgets.push({
+      label: 'Mempool',
+      value: typeof get('mempool_count') === 'number' ? (get('mempool_count') / 1000).toFixed(0) + 'K' : get('mempool_count'),
+      sub: typeof get('mempool_vsize_mb') === 'number' ? get('mempool_vsize_mb').toFixed(0) + 'MB' : '',
+      color: '#06b6d4',
+    });
+    widgets.push({
+      label: 'Fee',
+      value: typeof get('fee_fastest') === 'number' ? get('fee_fastest') : '--',
+      sub: 'sat/vB',
+      color: '#f97316',
+    });
+  }
+
+  if (widgets.length === 0) {
+    container.innerHTML = '';
+    if (chartsRow) chartsRow.style.display = 'none';
+    return;
+  }
+
+  if (chartsRow) chartsRow.style.display = '';
+
+  container.innerHTML = widgets.map(w => `
+    <div class="mp-micro-widget">
+      <div class="mp-micro-label">${w.label}</div>
+      <div class="mp-micro-value" style="color:${w.color};">${w.value}</div>
+      ${w.sub ? `<div class="mp-micro-sub">${w.sub}</div>` : ''}
+    </div>
+  `).join('');
 }
 
-// ── DERIVATIVES DASHBOARD ────────────────────────────────────────────────────
+/* ── DERIVATIVES DASHBOARD ────────────────────────────────────────────────── */
 
 let _derivFRChart = null;
 let _derivOIChart = null;
@@ -3922,9 +3429,12 @@ function renderMPDerivatives(data) {
   if (!data || !data.snapshot) { section.style.display = 'none'; return; }
   section.style.display = '';
 
+  const chartsRow = document.getElementById('mp-charts-row');
+  if (chartsRow) chartsRow.style.display = '';
+
   const { snapshot, history, signals } = data;
   renderDerivFRGauge(snapshot, signals);
-  renderDerivLSGauge(snapshot, signals);
+  renderDerivLSBar(snapshot, signals);
   renderDerivTakerBar(snapshot);
   renderDerivOISummary(snapshot, signals);
   if (history) {
@@ -3956,8 +3466,7 @@ function renderDerivFRGauge(snap, sig) {
   zoneEl.className = 'mp-deriv-zone ' + z.cls;
   zoneEl.textContent = z.label;
 
-  // Bar: center = 0, extend left (negative) or right (positive)
-  const maxFR = 0.0005; // ±0.05% as full width
+  const maxFR = 0.0005;
   const pct = Math.min(Math.abs(fr) / maxFR, 1) * 50;
   if (fr >= 0) {
     barEl.style.left = '50%';
@@ -3970,67 +3479,24 @@ function renderDerivFRGauge(snap, sig) {
   }
 }
 
-function renderDerivLSGauge(snap, sig) {
+function renderDerivLSBar(snap, sig) {
   const valEl = document.getElementById('mp-deriv-ls-val');
   const pctEl = document.getElementById('mp-deriv-ls-pct');
-  const canvas = document.getElementById('mp-deriv-ls-gauge');
+  const longEl = document.getElementById('mp-deriv-ls-long');
+  const shortEl = document.getElementById('mp-deriv-ls-short');
   if (!valEl) return;
 
   const ls = snap.long_short_ratio || 0;
   valEl.textContent = ls.toFixed(2);
 
-  const longPct = snap.long_account_pct ? (snap.long_account_pct * 100).toFixed(1) : '--';
-  const shortPct = snap.short_account_pct ? (snap.short_account_pct * 100).toFixed(1) : '--';
+  const longPct = snap.long_account_pct ? (snap.long_account_pct * 100).toFixed(1) : 50;
+  const shortPct = snap.short_account_pct ? (snap.short_account_pct * 100).toFixed(1) : 50;
   const bias = sig.ls_bias || 'balanced';
   const biasLabel = t('mp.bias_' + bias);
-  pctEl.innerHTML = `<span class="mp-deriv-bias bias-${bias}">${biasLabel}</span> (${t('mp.buy')} ${longPct}% / ${t('mp.sell')} ${shortPct}%)`;
+  pctEl.innerHTML = `<span class="mp-deriv-bias bias-${bias}">${biasLabel}</span>`;
 
-  // Draw semicircle gauge
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const w = canvas.width, h = canvas.height;
-  ctx.clearRect(0, 0, w, h);
-  const cx = w / 2, cy = h - 5, r = 50;
-
-  // Background arc
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, Math.PI, 0, false);
-  ctx.lineWidth = 8;
-  ctx.strokeStyle = 'rgba(107,114,128,0.2)';
-  ctx.stroke();
-
-  // Value arc: ls = 0..2 mapped to PI..0 (left=short, right=long)
-  const ratio = Math.min(Math.max(ls, 0), 3) / 3; // 0-3 range
-  const angle = Math.PI - ratio * Math.PI;
-
-  // Green (long) portion
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, angle, 0, false);
-  ctx.lineWidth = 8;
-  ctx.strokeStyle = '#22c55e';
-  ctx.stroke();
-
-  // Red (short) portion
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, Math.PI, angle, false);
-  ctx.lineWidth = 8;
-  ctx.strokeStyle = '#ef4444';
-  ctx.stroke();
-
-  // Needle
-  const needleAngle = Math.PI - ratio * Math.PI;
-  const nx = cx + Math.cos(needleAngle) * (r - 15);
-  const ny = cy + Math.sin(needleAngle) * (r - 15);
-  ctx.beginPath();
-  ctx.moveTo(cx, cy);
-  ctx.lineTo(nx, ny);
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = 'var(--text-primary)';
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.arc(cx, cy, 3, 0, Math.PI * 2);
-  ctx.fillStyle = 'var(--text-primary)';
-  ctx.fill();
+  if (longEl) longEl.style.width = longPct + '%';
+  if (shortEl) shortEl.style.width = shortPct + '%';
 }
 
 function renderDerivTakerBar(snap) {
@@ -4063,8 +3529,7 @@ function renderDerivOISummary(snap, sig) {
   if (!valEl) return;
 
   const oi = snap.open_interest || 0;
-  // Format OI: e.g. 79,136 BTC
-  valEl.textContent = oi.toLocaleString('en-US', { maximumFractionDigits: 0 }) + ' BTC';
+  valEl.textContent = (oi / 1000).toFixed(1) + 'K BTC';
 
   const trend = sig.oi_trend || 'flat';
   const trendMap = {
@@ -4075,13 +3540,10 @@ function renderDerivOISummary(snap, sig) {
   const tr = trendMap[trend] || trendMap.flat;
   trendEl.innerHTML = `<span class="${tr.cls}">${tr.arrow} ${tr.label}</span>`;
 
-  // Show divergence signal if present
   const div = sig.oi_price_divergence || 0;
   if (div !== 0) {
-    const divLabel = div > 0 ? (currentLang === 'zh' ? 'OI背离: 看涨' : 'OI Divergence: Bullish')
-                             : (currentLang === 'zh' ? 'OI背离: 看跌' : 'OI Divergence: Bearish');
     const divCls = div > 0 ? 'mp-deriv-trend-up' : 'mp-deriv-trend-down';
-    trendEl.innerHTML += ` <span class="${divCls}" style="font-size:10px;margin-left:4px;">${divLabel}</span>`;
+    trendEl.innerHTML += ` <span class="${divCls}" style="font-size:9px;">DIV</span>`;
   }
 }
 
@@ -4096,7 +3558,7 @@ function renderDerivFRChart(frHistory) {
     return dt.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) + ' '
          + dt.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
   });
-  const values = frHistory.map(d => d.value * 100); // to percentage
+  const values = frHistory.map(d => d.value * 100);
   const colors = values.map(v => v >= 0 ? 'rgba(34,197,94,0.8)' : 'rgba(239,68,68,0.8)');
 
   const cs = getComputedStyle(document.documentElement);
@@ -4105,24 +3567,13 @@ function renderDerivFRChart(frHistory) {
 
   _derivFRChart = new Chart(canvas, {
     type: 'bar',
-    data: {
-      labels,
-      datasets: [{
-        data: values,
-        backgroundColor: colors,
-        borderRadius: 2,
-      }],
-    },
+    data: { labels, datasets: [{ data: values, backgroundColor: colors, borderRadius: 2 }] },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: ctx => `${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y.toFixed(4)}%`,
-          },
-        },
+        tooltip: { callbacks: { label: ctx => `${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y.toFixed(4)}%` } },
         annotation: {
           annotations: {
             posLine: { type: 'line', yMin: 0.03, yMax: 0.03, borderColor: 'rgba(34,197,94,0.4)', borderDash: [4,4], borderWidth: 1 },
@@ -4132,14 +3583,8 @@ function renderDerivFRChart(frHistory) {
         },
       },
       scales: {
-        x: {
-          grid: { color: gridColor },
-          ticks: { color: tickColor, font: { size: 9 }, maxRotation: 45, maxTicksLimit: 10 },
-        },
-        y: {
-          grid: { color: gridColor },
-          ticks: { color: tickColor, font: { size: 10, family: 'JetBrains Mono' }, callback: v => v.toFixed(3) + '%' },
-        },
+        x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 8 }, maxRotation: 45, maxTicksLimit: 8 } },
+        y: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 9, family: 'JetBrains Mono' }, callback: v => v.toFixed(3) + '%' } },
       },
     },
   });
@@ -4151,7 +3596,6 @@ function renderDerivOIChart(oiHistory, priceHistory) {
 
   if (_derivOIChart) { _derivOIChart.destroy(); _derivOIChart = null; }
 
-  // Use price history timestamps as primary labels (more uniform)
   const primary = priceHistory.length ? priceHistory : oiHistory;
   const labels = primary.map(d => {
     const dt = new Date(d.timestamp);
@@ -4166,27 +3610,20 @@ function renderDerivOIChart(oiHistory, priceHistory) {
   const datasets = [];
   if (oiHistory.length) {
     datasets.push({
-      label: 'Open Interest (BTC)',
+      label: 'OI (BTC)',
       data: oiHistory.map(d => d.value),
       borderColor: '#f59e0b',
       backgroundColor: 'rgba(245,158,11,0.1)',
-      fill: true,
-      yAxisID: 'y',
-      pointRadius: 0,
-      borderWidth: 2,
-      tension: 0.3,
+      fill: true, yAxisID: 'y', pointRadius: 0, borderWidth: 1.5, tension: 0.3,
     });
   }
   if (priceHistory.length) {
     datasets.push({
-      label: 'Price (USD)',
+      label: 'Price',
       data: priceHistory.map(d => d.value),
       borderColor: '#3b82f6',
       backgroundColor: 'transparent',
-      yAxisID: 'y1',
-      pointRadius: 0,
-      borderWidth: 2,
-      tension: 0.3,
+      yAxisID: 'y1', pointRadius: 0, borderWidth: 1.5, tension: 0.3,
     });
   }
 
@@ -4197,43 +3634,31 @@ function renderDerivOIChart(oiHistory, priceHistory) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: {
-          display: true,
-          labels: { color: tickColor, font: { size: 10 }, boxWidth: 12 },
-        },
+        legend: { display: true, labels: { color: tickColor, font: { size: 9 }, boxWidth: 10 } },
         tooltip: {
           callbacks: {
-            label: ctx => {
-              const v = ctx.parsed.y;
-              return ctx.dataset.yAxisID === 'y1'
-                ? `$${v.toLocaleString('en-US', { maximumFractionDigits: 0 })}`
-                : v.toLocaleString('en-US', { maximumFractionDigits: 0 }) + ' BTC';
-            },
+            label: ctx => ctx.dataset.yAxisID === 'y1'
+              ? `$${ctx.parsed.y.toLocaleString('en-US', { maximumFractionDigits: 0 })}`
+              : ctx.parsed.y.toLocaleString('en-US', { maximumFractionDigits: 0 }) + ' BTC',
           },
         },
       },
       scales: {
-        x: {
-          grid: { color: gridColor },
-          ticks: { color: tickColor, font: { size: 9 }, maxRotation: 45, maxTicksLimit: 12 },
-        },
+        x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 8 }, maxRotation: 45, maxTicksLimit: 8 } },
         y: {
-          position: 'left',
-          grid: { color: gridColor },
-          ticks: { color: '#f59e0b', font: { size: 10, family: 'JetBrains Mono' }, callback: v => (v / 1000).toFixed(0) + 'K' },
-          title: { display: true, text: 'OI (BTC)', color: '#f59e0b', font: { size: 10 } },
+          position: 'left', grid: { color: gridColor },
+          ticks: { color: '#f59e0b', font: { size: 9, family: 'JetBrains Mono' }, callback: v => (v / 1000).toFixed(0) + 'K' },
         },
         y1: {
-          position: 'right',
-          grid: { drawOnChartArea: false },
-          ticks: { color: '#3b82f6', font: { size: 10, family: 'JetBrains Mono' }, callback: v => '$' + (v / 1000).toFixed(1) + 'K' },
-          title: { display: true, text: 'Price', color: '#3b82f6', font: { size: 10 } },
+          position: 'right', grid: { drawOnChartArea: false },
+          ticks: { color: '#3b82f6', font: { size: 9, family: 'JetBrains Mono' }, callback: v => '$' + (v / 1000).toFixed(1) + 'K' },
         },
       },
       interaction: { intersect: false, mode: 'index' },
     },
   });
 }
+
 
 // ── DIFFICULTY TICKER ────────────────────────────────────────────────────────
 

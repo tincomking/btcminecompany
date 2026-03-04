@@ -326,6 +326,14 @@ const I18N = {
     'mp.consensus_all_bear': '所有时间框架一致看跌',
     'mp.consensus_mixed': '不同时间框架信号不一致，谨慎操作',
     'mp.consensus_bull_pct': '看涨比例',
+
+    // Betting table
+    'mp.betting_title': '预测市场',
+    'mp.betting_question': '合约',
+    'mp.betting_expire': '到期',
+    'mp.betting_show_all': '显示全部',
+    'mp.betting_collapse': '收起',
+    'mp.betting_markets': '个市场',
   },
 
   en: {
@@ -638,6 +646,14 @@ const I18N = {
     'mp.consensus_all_bear': 'All timeframes unanimously bearish',
     'mp.consensus_mixed': 'Mixed signals across timeframes — exercise caution',
     'mp.consensus_bull_pct': 'Bull %',
+
+    // Betting table
+    'mp.betting_title': 'Prediction Markets',
+    'mp.betting_question': 'Contract',
+    'mp.betting_expire': 'Expires',
+    'mp.betting_show_all': 'Show all',
+    'mp.betting_collapse': 'Collapse',
+    'mp.betting_markets': 'markets',
   }
 };
 

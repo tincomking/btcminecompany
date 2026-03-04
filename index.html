@@ -11,7 +11,6 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3/dist/chartjs-plugin-annotation.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-sankey@0.12.1/dist/chartjs-chart-sankey.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
   <link rel="stylesheet" href="css/style.css">
@@ -495,85 +494,112 @@
 
   <!-- ─────────────────────── PAGE: MARKET PREDICT ─────────────────────── -->
   <div class="page" id="page-market-predict">
-    <div class="section-header">
-      <div class="section-title" data-i18n="mp.title">BTC 市场预测</div>
-      <span class="data-badge" data-i18n="mp.subtitle">基于 ML 模型 + Polymarket + 恐惧贪婪指数的实时预测</span>
-    </div>
 
-    <!-- Hero: Price + Direction + Fear&Greed + Forecast Chart -->
-    <div class="mp-hero">
-      <div class="mp-hero-left">
-        <div class="mp-current-label" data-i18n="mp.current_price">当前价格</div>
-        <div class="mp-current-price" id="mp-price">--</div>
-        <div class="mp-direction" id="mp-direction">
-          <span class="mp-arrow" id="mp-arrow">--</span>
-          <span class="mp-conf-text" id="mp-conf-text">--</span>
-        </div>
-        <!-- 恐惧贪婪指数（在价格下方） -->
-        <div class="mp-fg-inline" id="mp-fg-inline"></div>
-        <div class="mp-updated" id="mp-updated">--</div>
-      </div>
-      <div class="mp-hero-chart">
-        <div class="mp-chart-controls">
-          <div class="mp-range-btns" id="mp-range-btns">
-            <button class="mp-range-btn" data-range="7d">1周</button>
-            <button class="mp-range-btn active" data-range="30d">1月</button>
-            <button class="mp-range-btn" data-range="90d">3月</button>
-            <button class="mp-range-btn" data-range="180d">6月</button>
-            <button class="mp-range-btn" data-range="1y">1年</button>
+    <!-- Help Modal (overlay) -->
+    <div class="mp-help-overlay" id="mp-help-overlay" style="display:none;" onclick="if(event.target===this)this.style.display='none';">
+      <div class="mp-help-modal">
+        <button class="mp-help-close" onclick="document.getElementById('mp-help-overlay').style.display='none';">&times;</button>
+        <h3 style="margin:0 0 16px;color:var(--text-primary);">预测机制说明</h3>
+        <div class="mp-help-content">
+          <div class="mp-help-item">
+            <strong>综合预测</strong>
+            <p>融合模型投票（70%权重）+ 押注市场信号（30%权重）。11个AI模型各自投票，再与Polymarket/Kalshi/Gemini真金白银共识结合。</p>
+          </div>
+          <div class="mp-help-item">
+            <strong>全模型（11个）</strong>
+            <p>ML(5): XGBoost/LightGBM/RF/SVR/Ridge | NN(1): MLP | TS(1): ARIMA | TA(4): EMA/RSI/MACD/Bollinger。输入：Binance K线 + 30指标 + F&G。</p>
+          </div>
+          <div class="mp-help-item">
+            <strong>预测市场（3平台）</strong>
+            <p>Polymarket（最大预测市场）、Kalshi（CFTC监管）、Gemini。按交易量加权。</p>
+          </div>
+          <div class="mp-help-item mp-help-disclaimer">
+            <strong>免责声明</strong>
+            <p>所有预测仅供参考，不构成投资建议。加密货币市场波动剧烈，任何模型都无法准确预测未来价格。</p>
           </div>
         </div>
-        <div style="position:relative;height:100%;"><canvas id="mp-forecast-chart"></canvas></div>
       </div>
     </div>
 
-    <!-- Prediction Cards: 4h / 24h / 7d -->
-    <div class="mp-cards-grid">
-      <div class="mp-card" id="mp-card-4h">
-        <div class="mp-card-horizon" data-i18n="mp.h4">4 小时预测</div>
-        <div class="mp-card-dir" id="mp-4h-dir">--</div>
-        <div class="mp-card-return" id="mp-4h-return">--</div>
-        <div class="mp-card-target" id="mp-4h-target">--</div>
-        <div class="mp-card-conf-bg"><div class="mp-card-conf-fill" id="mp-4h-conf"></div></div>
+    <!-- Ticker Strip -->
+    <div class="mp-ticker-strip" id="mp-ticker-strip">
+      <span class="mp-ticker-price" id="mp-price">$--</span>
+      <span class="mp-ticker-sep">|</span>
+      <span class="mp-ticker-dir">
+        <span class="mp-arrow" id="mp-arrow">--</span>
+        <span class="mp-conf-text" id="mp-conf-text"></span>
+      </span>
+      <span class="mp-ticker-sep">|</span>
+      <span class="mp-ticker-fg" id="mp-fg-inline"></span>
+      <span class="mp-ticker-sep">|</span>
+      <span class="mp-ticker-time" id="mp-updated">--</span>
+      <button class="mp-ticker-help" id="mp-help-btn" title="预测机制说明" onclick="document.getElementById('mp-help-overlay').style.display='flex';">?</button>
+    </div>
+
+    <!-- Row 1: Chart + Side Panel (Cards + Consensus) -->
+    <div class="mp-main-row">
+      <div class="mp-chart-area">
+        <div class="mp-chart-controls">
+          <div class="mp-range-btns" id="mp-range-btns">
+            <button class="mp-range-btn" data-range="7d">1W</button>
+            <button class="mp-range-btn active" data-range="30d">1M</button>
+            <button class="mp-range-btn" data-range="90d">3M</button>
+            <button class="mp-range-btn" data-range="180d">6M</button>
+            <button class="mp-range-btn" data-range="1y">1Y</button>
+          </div>
+        </div>
+        <div style="position:relative;flex:1;min-height:0;"><canvas id="mp-forecast-chart"></canvas></div>
       </div>
-      <div class="mp-card" id="mp-card-24h">
-        <div class="mp-card-horizon" data-i18n="mp.h24">24 小时预测</div>
-        <div class="mp-card-dir" id="mp-24h-dir">--</div>
-        <div class="mp-card-return" id="mp-24h-return">--</div>
-        <div class="mp-card-target" id="mp-24h-target">--</div>
-        <div class="mp-card-conf-bg"><div class="mp-card-conf-fill" id="mp-24h-conf"></div></div>
-      </div>
-      <div class="mp-card" id="mp-card-168h">
-        <div class="mp-card-horizon" data-i18n="mp.h168">7 天预测</div>
-        <div class="mp-card-dir" id="mp-168h-dir">--</div>
-        <div class="mp-card-return" id="mp-168h-return">--</div>
-        <div class="mp-card-target" id="mp-168h-target">--</div>
-        <div class="mp-card-conf-bg"><div class="mp-card-conf-fill" id="mp-168h-conf"></div></div>
+      <div class="mp-side-col">
+        <div class="mp-mini-card" id="mp-card-4h">
+          <div class="mp-mini-horizon">4H</div>
+          <div class="mp-mini-dir" id="mp-4h-dir">--</div>
+          <div class="mp-mini-return" id="mp-4h-return">--</div>
+          <div class="mp-mini-target" id="mp-4h-target">--</div>
+          <div class="mp-mini-conf-bg"><div class="mp-mini-conf-fill" id="mp-4h-conf"></div></div>
+        </div>
+        <div class="mp-mini-card" id="mp-card-24h">
+          <div class="mp-mini-horizon">24H</div>
+          <div class="mp-mini-dir" id="mp-24h-dir">--</div>
+          <div class="mp-mini-return" id="mp-24h-return">--</div>
+          <div class="mp-mini-target" id="mp-24h-target">--</div>
+          <div class="mp-mini-conf-bg"><div class="mp-mini-conf-fill" id="mp-24h-conf"></div></div>
+        </div>
+        <div class="mp-mini-card" id="mp-card-168h">
+          <div class="mp-mini-horizon">7D</div>
+          <div class="mp-mini-dir" id="mp-168h-dir">--</div>
+          <div class="mp-mini-return" id="mp-168h-return">--</div>
+          <div class="mp-mini-target" id="mp-168h-target">--</div>
+          <div class="mp-mini-conf-bg"><div class="mp-mini-conf-fill" id="mp-168h-conf"></div></div>
+        </div>
+        <div class="mp-consensus-compact" id="mp-consensus-section" style="display:none;">
+          <div class="mp-cc-title" data-i18n="mp.consensus_title">信号共识</div>
+          <div id="mp-consensus-rows"></div>
+          <div id="mp-consensus-alignment"></div>
+        </div>
       </div>
     </div>
 
-    <!-- Derivatives Dashboard -->
-    <div class="mp-section-block" id="mp-deriv-section" style="display:none;">
-      <div class="section-header mb-16">
-        <div class="section-title" data-i18n="mp.derivatives">衍生品仪表盘</div>
-        <span class="data-badge" data-i18n="mp.derivatives_sub">资金费率 · 持仓量 · 多空比 · 买卖比</span>
-      </div>
-      <!-- 4-column gauge cards -->
-      <div class="mp-deriv-gauges">
-        <div class="mp-deriv-card" id="mp-deriv-fr">
+    <!-- Row 2: Derivatives + Orderbook -->
+    <div class="mp-deriv-row" id="mp-deriv-section" style="display:none;">
+      <div class="mp-deriv-compact">
+        <div class="mp-deriv-mini" id="mp-deriv-fr">
           <div class="mp-deriv-label" data-i18n="mp.funding_rate">资金费率</div>
           <div class="mp-deriv-value" id="mp-deriv-fr-val">--</div>
           <div class="mp-deriv-zone" id="mp-deriv-fr-zone"></div>
           <div class="mp-deriv-bar-wrap"><div class="mp-deriv-bar" id="mp-deriv-fr-bar"></div></div>
         </div>
-        <div class="mp-deriv-card" id="mp-deriv-ls">
+        <div class="mp-deriv-mini" id="mp-deriv-ls">
           <div class="mp-deriv-label" data-i18n="mp.long_short">多空比</div>
           <div class="mp-deriv-value" id="mp-deriv-ls-val">--</div>
           <div class="mp-deriv-sub" id="mp-deriv-ls-pct"></div>
-          <canvas id="mp-deriv-ls-gauge" width="120" height="70"></canvas>
+          <div class="mp-deriv-ls-bar">
+            <div class="mp-deriv-ls-long" id="mp-deriv-ls-long"></div>
+            <div class="mp-deriv-ls-short" id="mp-deriv-ls-short"></div>
+          </div>
         </div>
-        <div class="mp-deriv-card" id="mp-deriv-taker">
-          <div class="mp-deriv-label" data-i18n="mp.taker_ratio">主动买卖比</div>
+        <div class="mp-deriv-mini" id="mp-deriv-taker">
+          <div class="mp-deriv-label" data-i18n="mp.taker_ratio">买卖比</div>
           <div class="mp-deriv-value" id="mp-deriv-taker-val">--</div>
           <div class="mp-deriv-taker-bar">
             <div class="mp-deriv-taker-buy" id="mp-deriv-taker-buy"></div>
@@ -584,212 +610,63 @@
             <span class="mp-deriv-taker-sell-label" id="mp-deriv-sell-label"></span>
           </div>
         </div>
-        <div class="mp-deriv-card" id="mp-deriv-oi">
-          <div class="mp-deriv-label" data-i18n="mp.open_interest">持仓量 (OI)</div>
+        <div class="mp-deriv-mini" id="mp-deriv-oi">
+          <div class="mp-deriv-label" data-i18n="mp.open_interest">持仓量</div>
           <div class="mp-deriv-value" id="mp-deriv-oi-val">--</div>
           <div class="mp-deriv-sub" id="mp-deriv-oi-trend"></div>
         </div>
       </div>
-      <!-- 2 charts -->
-      <div class="mp-deriv-charts">
-        <div class="mp-deriv-chart-wrap">
-          <div class="mp-deriv-chart-title" data-i18n="mp.fr_history">资金费率历史 (7天)</div>
-          <canvas id="mp-deriv-fr-chart"></canvas>
-        </div>
-        <div class="mp-deriv-chart-wrap">
-          <div class="mp-deriv-chart-title" data-i18n="mp.oi_vs_price">持仓量 vs 价格 (7天)</div>
-          <canvas id="mp-deriv-oi-chart"></canvas>
-        </div>
+      <div class="mp-ob-compact" id="mp-orderbook-section" style="display:none;">
+        <div class="mp-deriv-label" data-i18n="mp.orderbook_title">订单簿</div>
+        <div id="mp-ob-stats"></div>
       </div>
     </div>
 
-    <!-- All Models Grid -->
-    <div class="mp-section-block">
-      <div class="section-header mb-16">
-        <div class="section-title" data-i18n="mp.all_models">全模型预测</div>
+    <!-- Row 3: FR Chart + OI Chart + Micro Widgets -->
+    <div class="mp-charts-row" id="mp-charts-row" style="display:none;">
+      <div class="mp-chart-cell">
+        <div class="mp-chart-cell-title" data-i18n="mp.fr_history">FR History (7d)</div>
+        <canvas id="mp-deriv-fr-chart"></canvas>
       </div>
-      <div class="table-wrapper">
-        <table id="mp-models-table">
-          <thead id="mp-models-head"></thead>
-          <tbody id="mp-models-body"></tbody>
-        </table>
+      <div class="mp-chart-cell">
+        <div class="mp-chart-cell-title" data-i18n="mp.oi_vs_price">OI vs Price (7d)</div>
+        <canvas id="mp-deriv-oi-chart"></canvas>
       </div>
+      <div class="mp-micro-widgets" id="mp-micro-widgets"></div>
     </div>
 
-    <!-- Orderbook Depth -->
-    <div class="mp-section-block" id="mp-orderbook-section" style="display:none;">
-      <div class="section-header mb-16">
-        <div class="section-title" data-i18n="mp.orderbook_title">订单簿深度</div>
-        <span class="data-badge">BTC/USDT · Binance</span>
-      </div>
-      <div class="mp-ob-stats" id="mp-ob-stats"></div>
-      <div class="mp-ob-chart-wrap">
-        <canvas id="mp-ob-chart"></canvas>
-      </div>
-    </div>
-
-    <!-- Options Data (Deribit) -->
-    <div class="mp-section-block" id="mp-options-section" style="display:none;">
-      <div class="section-header mb-16">
-        <div class="section-title" data-i18n="mp.options_title">BTC 期权数据</div>
-        <span class="data-badge">Deribit</span>
-      </div>
-      <div class="mp-deriv-gauges" id="mp-options-cards"></div>
-      <div class="mp-deriv-charts" id="mp-options-charts">
-        <div class="mp-deriv-chart-wrap">
-          <div class="mp-deriv-chart-title" data-i18n="mp.iv_history">隐含波动率 vs 历史波动率</div>
-          <canvas id="mp-options-iv-chart"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- On-chain Data -->
-    <div class="mp-section-block" id="mp-onchain-section" style="display:none;">
-      <div class="section-header mb-16">
-        <div class="section-title" data-i18n="mp.onchain_title">链上数据</div>
-        <span class="data-badge" data-i18n="mp.onchain_sub">算力 · Mempool · 手续费 · 供应量</span>
-      </div>
-      <div class="mp-deriv-gauges" id="mp-onchain-cards"></div>
-    </div>
-
-    <!-- Backtest Performance -->
-    <div class="mp-section-block" id="mp-backtest-section" style="display:none;">
-      <div class="section-header mb-16">
-        <div class="section-title" data-i18n="mp.backtest_title">模型回测绩效</div>
-        <span class="data-badge" data-i18n="mp.backtest_sub">Walk-forward 历史回测验证</span>
-      </div>
-      <div class="mp-backtest-tabs">
-        <button class="mp-backtest-tab active" data-horizon="24h">24H</button>
-        <button class="mp-backtest-tab" data-horizon="168h">7D</button>
-      </div>
-      <div class="mp-backtest-chart-wrap">
-        <canvas id="mp-backtest-chart"></canvas>
-      </div>
-      <div class="table-wrapper">
-        <table id="mp-backtest-table">
-          <thead id="mp-backtest-head"></thead>
-          <tbody id="mp-backtest-body"></tbody>
-        </table>
-      </div>
-      <div class="mp-backtest-note" id="mp-backtest-note"></div>
-    </div>
-
-    <!-- Signal Consensus Panel -->
-    <div class="mp-section-block" id="mp-consensus-section" style="display:none;">
-      <div class="section-header mb-16">
-        <div class="section-title" data-i18n="mp.consensus_title">信号共识</div>
-        <span class="data-badge" data-i18n="mp.consensus_sub">全模型 × 全时间框架 共识热力图</span>
-      </div>
-      <!-- Heatmap -->
-      <div class="mp-consensus-heatmap-wrap">
-        <canvas id="mp-consensus-heatmap"></canvas>
-      </div>
-      <!-- Consensus meters per horizon -->
-      <div class="mp-consensus-meters" id="mp-consensus-meters"></div>
-      <!-- Multi-timeframe alignment -->
-      <div class="mp-consensus-alignment" id="mp-consensus-alignment"></div>
-    </div>
-
-    <!-- 预测市场（多平台） -->
-    <div class="mp-section-block">
-      <div class="section-header mb-16">
-        <div class="section-title">预测市场押注</div>
-        <span class="data-badge">真金白银的市场共识</span>
-      </div>
-      <div id="mp-betting-summary" class="mp-pm-summary" style="display:none;"></div>
-      <div class="mp-pm-sort-bar" id="mp-pm-sort-bar">
-        <span class="mp-pm-sort-label">排序：</span>
-        <button class="mp-pm-sort-btn active" data-sort="volume">押注额</button>
-        <button class="mp-pm-sort-btn" data-sort="deadline">到期时间</button>
-        <button class="mp-pm-sort-btn" data-sort="proximity">价格临近</button>
-      </div>
-      <div class="mp-pm-grid" id="mp-polymarket-panel"></div>
-    </div>
-
-    <!-- 数据流桑基图 -->
-    <div class="mp-section-block">
-      <div class="section-header mb-16">
-        <div class="section-title">预测数据流</div>
-        <span class="data-badge">从数据采集到最终预测的全链路</span>
-      </div>
-      <div class="mp-sankey-wrap">
-        <canvas id="mp-sankey-chart"></canvas>
-      </div>
-    </div>
-
-    <!-- 预测机制说明 -->
-    <div class="mp-section-block">
-      <div class="section-header mb-16">
-        <div class="section-title">预测机制说明</div>
-        <span class="data-badge">了解每个预测是怎么来的</span>
-      </div>
-      <div class="mp-explain-grid">
-
-        <div class="mp-explain-card">
-          <div class="mp-explain-title">综合预测（页面顶部的看涨/看跌）</div>
-          <div class="mp-explain-body">
-            <p>综合预测是本页最核心的结果，它融合了<strong>两大信息源</strong>：</p>
-            <ul>
-              <li><strong>模型投票（权重 70%）</strong>：11 个独立模型各自给出看涨/看跌判断，置信度越高、投票权重越大</li>
-              <li><strong>押注市场信号（权重 30%）</strong>：来自 Polymarket、Kalshi、Gemini 三个预测市场平台的真金白银共识，按各平台交易量加权</li>
-            </ul>
-            <p><strong>公式：</strong>综合分 = 模型投票加权均值 × 0.7 + 押注市场看涨分 × 0.3</p>
-            <p>简单理解：11 位"AI 分析师"投票 + 全球真金白银下注者的集体判断，两者结合得出最终结论。</p>
-            <p class="mp-explain-note">数据每 2 小时自动更新。当前价格为实时行情（每分钟刷新），预测方向和置信度按 2 小时周期更新。</p>
+    <!-- Row 4: Betting Table + Models Accordion -->
+    <div class="mp-bottom-row">
+      <div class="mp-betting-area">
+        <div class="mp-betting-header">
+          <span class="mp-betting-title" data-i18n="mp.betting_title">预测市场</span>
+          <span class="mp-betting-summary-inline" id="mp-betting-summary"></span>
+          <div class="mp-pm-sort-bar" id="mp-pm-sort-bar">
+            <button class="mp-pm-sort-btn active" data-sort="volume">Vol</button>
+            <button class="mp-pm-sort-btn" data-sort="deadline">Exp</button>
+            <button class="mp-pm-sort-btn" data-sort="proximity">Near</button>
           </div>
         </div>
-
-        <div class="mp-explain-card">
-          <div class="mp-explain-title">全模型预测（11 个独立模型）</div>
-          <div class="mp-explain-body">
-            <p>我们同时运行 11 个不同类型的预测模型，分为 4 大类：</p>
-            <div class="mp-explain-models">
-              <div class="mp-explain-model-group">
-                <span class="mp-cat-badge" style="background:rgba(59,130,246,0.15);color:#3b82f6;">ML</span>
-                <strong>机器学习（5 个）</strong>
-                <p>XGBoost、LightGBM、随机森林、SVR、岭回归 —— 学习历史价格走势规律，分析数千小时数据找出"当价格呈现某种形态时，接下来通常会涨还是跌"。</p>
-              </div>
-              <div class="mp-explain-model-group">
-                <span class="mp-cat-badge" style="background:rgba(168,85,247,0.15);color:#a855f7;">NN</span>
-                <strong>神经网络（1 个）</strong>
-                <p>MLP 多层感知器 —— 通过多层网络结构捕捉数据中更复杂的非线性关系。</p>
-              </div>
-              <div class="mp-explain-model-group">
-                <span class="mp-cat-badge" style="background:rgba(34,197,94,0.15);color:#22c55e;">TS</span>
-                <strong>时间序列（1 个）</strong>
-                <p>ARIMA —— 通过识别价格趋势和周期性波动来预测下一步走向。</p>
-              </div>
-              <div class="mp-explain-model-group">
-                <span class="mp-cat-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b;">TA</span>
-                <strong>技术分析（4 个）</strong>
-                <p>EMA 均线交叉、RSI 超买超卖、MACD 动量策略、布林带策略 —— 交易员常用的传统技术指标。</p>
-              </div>
-            </div>
-            <p><strong>输入数据：</strong>Binance BTC/USDT K线数据 + 30 个技术指标 + 恐惧贪婪指数。</p>
+        <div class="mp-betting-table-wrap">
+          <table class="mp-betting-tbl">
+            <thead id="mp-betting-head"></thead>
+            <tbody id="mp-betting-body"></tbody>
+          </table>
+          <div class="mp-betting-more" id="mp-betting-more" style="display:none;"></div>
+        </div>
+      </div>
+      <div class="mp-models-accordion" id="mp-models-accordion">
+        <div class="mp-accordion-header" id="mp-accordion-toggle">
+          <span id="mp-accordion-summary">全模型 (11) ▼</span>
+        </div>
+        <div class="mp-accordion-body" id="mp-accordion-body" style="display:none;">
+          <div class="table-wrapper">
+            <table id="mp-models-table">
+              <thead id="mp-models-head"></thead>
+              <tbody id="mp-models-body"></tbody>
+            </table>
           </div>
         </div>
-
-        <div class="mp-explain-card">
-          <div class="mp-explain-title">预测市场押注（3 个平台）</div>
-          <div class="mp-explain-body">
-            <p>我们同时追踪三大预测市场平台的 BTC 相关合约：</p>
-            <ul>
-              <li><strong><a href="https://polymarket.com" target="_blank" style="color:#22c55e;">Polymarket</a></strong> —— 全球最大预测市场，真金白银下注</li>
-              <li><strong><a href="https://kalshi.com" target="_blank" style="color:#3b82f6;">Kalshi</a></strong> —— 美国 CFTC 监管的合规预测市场</li>
-              <li><strong><a href="https://gemini.com" target="_blank" style="color:#06b6d4;">Gemini</a></strong> —— Winklevoss 兄弟创立的合规加密平台</li>
-            </ul>
-            <p><strong>加权算法：</strong>交易量越大的平台权重越高。打个比方：10 万人用真金白银下注的结果，比 100 人的判断更有参考价值。</p>
-            <p><strong>公式：</strong>平台权重 = log10(平台总交易量) / 所有平台 log 之和。看涨分 = 50 + 各平台加权概率汇总。</p>
-          </div>
-        </div>
-
-        <div class="mp-explain-card mp-explain-disclaimer">
-          <div class="mp-explain-title">免责声明</div>
-          <div class="mp-explain-body">
-            <p>所有预测仅供参考，不构成投资建议。加密货币市场波动剧烈，任何模型都无法准确预测未来价格。请根据自身风险承受能力做出投资决策。</p>
-          </div>
-        </div>
-
       </div>
     </div>
 
