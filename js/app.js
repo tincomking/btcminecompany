@@ -181,6 +181,26 @@ function actionLabel(a) {
   return `<span class="action-badge ${cls}">${keyMap[a] ? t(keyMap[a]) : a}</span>`;
 }
 
+// ── EV / EV/EH HELPERS ───────────────────────────────────────────────────────
+
+function calcEV(co) {
+  const fin = getLatestFinancial(co.ticker);
+  const mktCap = co.market_cap_usd_m;
+  if (!mktCap) return null;
+  const debt = (fin && fin.total_debt_usd_m) || 0;
+  const cash = (fin && fin.cash_and_equivalents_usd_m) || 0;
+  return mktCap + debt - cash;
+}
+
+function calcEVEH(co) {
+  const ev = calcEV(co);
+  if (!ev) return null;
+  const ops = getLatestOperational(co.ticker);
+  const hr = ops && ops.hash_rate_eh;
+  if (!hr || hr <= 0) return null;
+  return ev / hr;
+}
+
 // ── NAV TABS ────────────────────────────────────────────────────────────────
 
 document.querySelectorAll('.nav-tab').forEach(btn => {
@@ -226,6 +246,7 @@ function renderOverview() {
   updateStatsBar();
   renderEarningsCalendar();
   renderCompanyGrid('relevance');
+  renderCompTable();
   setupOverviewFilters();
 }
 
@@ -330,6 +351,20 @@ function updateStatsBar() {
     minedSub.textContent = minedRecords.length > 0
       ? `${minedRecords.length}${t('stats.companies_disclosed')}${range ? ' / ' + range : ''}`
       : t('stats.monthly_sub') || 'BTC';
+  }
+
+  // Industry average EV/EH
+  const evehValues = COMPANIES.map(co => calcEVEH(co)).filter(v => v != null);
+  const avgEveh = evehValues.length ? evehValues.reduce((s, v) => s + v, 0) / evehValues.length : null;
+  const evehEl = document.getElementById('stat-avg-eveh');
+  if (evehEl) {
+    evehEl.textContent = avgEveh != null ? `$${avgEveh.toFixed(1)}M` : '—';
+  }
+  const evehSub = evehEl && evehEl.closest('.stat-item').querySelector('.stat-sub');
+  if (evehSub) {
+    evehSub.textContent = evehValues.length > 0
+      ? `${evehValues.length}${t('stats.companies_disclosed')}`
+      : t('stats.avg_ev_eh_sub');
   }
 }
 
@@ -467,6 +502,17 @@ function renderCompanyGrid(sortBy = 'mktcap') {
               return t('js.btc_unit');
             })()}</div>
           </div>
+          <div class="metric-block">
+            <div class="metric-label">${t('js.ev_eh')}</div>
+            <div class="metric-value">${(() => {
+              const eveh = calcEVEH(co);
+              return eveh != null ? '$' + eveh.toFixed(1) + 'M' : '—';
+            })()}</div>
+            <div class="metric-yoy" style="color:var(--text-muted);font-size:10px;">${(() => {
+              const ev = calcEV(co);
+              return ev != null ? t('js.ev') + ' $' + (ev/1000).toFixed(1) + 'B' : '';
+            })()}</div>
+          </div>
         </div>
 
         <div class="company-card-footer">
@@ -494,6 +540,121 @@ function setupOverviewFilters() {
       renderCompanyGrid(btn.dataset.sort);
     });
   });
+}
+
+// ── COMP TABLE ──────────────────────────────────────────────────────────────
+
+let compSortCol = 'market_cap';
+let compSortAsc = false;
+
+function renderCompTable() {
+  const thead = document.getElementById('compTableHead');
+  const tbody = document.getElementById('compTableBody');
+  if (!thead || !tbody) return;
+
+  const cols = [
+    { key: 'ticker', label: t('comp.ticker'), align: 'left', sortable: true },
+    { key: 'market_cap', label: t('comp.market_cap'), align: 'right', sortable: true },
+    { key: 'ev', label: t('comp.ev'), align: 'right', sortable: true },
+    { key: 'revenue', label: t('comp.revenue'), align: 'right', sortable: true },
+    { key: 'ebitda', label: t('comp.ebitda'), align: 'right', sortable: true },
+    { key: 'pe', label: t('comp.pe'), align: 'right', sortable: true },
+    { key: 'ev_revenue', label: t('comp.ev_revenue'), align: 'right', sortable: true },
+    { key: 'ev_ebitda', label: t('comp.ev_ebitda'), align: 'right', sortable: true },
+    { key: 'ev_eh', label: t('comp.ev_eh'), align: 'right', sortable: true },
+    { key: 'hashrate', label: t('comp.hashrate'), align: 'right', sortable: true },
+    { key: 'efficiency', label: t('comp.efficiency'), align: 'right', sortable: true },
+  ];
+
+  // Build data rows
+  const rows = COMPANIES.map(co => {
+    const fin = getLatestFinancial(co.ticker);
+    const ops = getLatestOperational(co.ticker);
+    const ev = calcEV(co);
+    const rev = fin && fin.revenue_usd_m;
+    const ebitda = fin && fin.adjusted_ebitda_usd_m;
+    const eps = fin && fin.eps_diluted;
+    const pe = (co.stock_price && eps && eps > 0) ? co.stock_price / eps : null;
+    const evRev = (ev && rev && rev > 0) ? ev / rev : null;
+    const evEbitda = (ev && ebitda && ebitda > 0) ? ev / ebitda : null;
+    const evEh = calcEVEH(co);
+    const hr = ops && ops.hash_rate_eh;
+    const eff = ops && ops.fleet_efficiency_j_th;
+
+    return {
+      ticker: co.ticker,
+      name: co.name,
+      market_cap: co.market_cap_usd_m,
+      ev, revenue: rev, ebitda, pe, ev_revenue: evRev,
+      ev_ebitda: evEbitda, ev_eh: evEh,
+      hashrate: hr, efficiency: eff,
+    };
+  });
+
+  // Sort
+  rows.sort((a, b) => {
+    let va = a[compSortCol], vb = b[compSortCol];
+    if (compSortCol === 'ticker') {
+      va = va || ''; vb = vb || '';
+      return compSortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+    }
+    va = va || -Infinity; vb = vb || -Infinity;
+    return compSortAsc ? va - vb : vb - va;
+  });
+  ensureFufuFirst(rows);
+
+  // Render header
+  thead.innerHTML = '<tr>' + cols.map(c => {
+    const cls = c.align === 'right' ? ' class="td-right comp-sortable"' : ' class="comp-sortable"';
+    const arrow = compSortCol === c.key ? (compSortAsc ? ' sort-asc' : ' sort-desc') : '';
+    return `<th${cls} data-comp-sort="${c.key}"${arrow ? ` class="${(c.align === 'right' ? 'td-right comp-sortable ' : 'comp-sortable ') + arrow.trim()}"` : ''}>${c.label}</th>`;
+  }).join('') + '</tr>';
+
+  // Fix sort class
+  thead.querySelectorAll('th[data-comp-sort]').forEach(th => {
+    th.classList.remove('sort-asc', 'sort-desc');
+    if (th.dataset.compSort === compSortCol) {
+      th.classList.add(compSortAsc ? 'sort-asc' : 'sort-desc');
+    }
+    th.addEventListener('click', () => {
+      if (compSortCol === th.dataset.compSort) {
+        compSortAsc = !compSortAsc;
+      } else {
+        compSortCol = th.dataset.compSort;
+        compSortAsc = compSortCol === 'ticker';
+      }
+      renderCompTable();
+    });
+  });
+
+  // Render body
+  const fmtV = (v, dec = 1) => v != null ? '$' + v.toFixed(dec) + 'M' : '—';
+  const fmtR = (v, dec = 1) => v != null ? v.toFixed(dec) + 'x' : '—';
+  const fmtN = (v, dec = 1) => v != null ? v.toFixed(dec) : '—';
+
+  tbody.innerHTML = rows.map(r => {
+    return `<tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px;">
+          ${companyLogo(r.ticker, 20)}
+          <div style="display:flex;flex-direction:column;gap:1px;">
+            <span class="td-ticker">${r.ticker}</span>
+            <span style="font-size:10px;color:var(--text-muted);">${r.name}</span>
+          </div>
+        </div>
+      </td>
+      <td class="td-right td-mono">${r.market_cap ? '$' + (r.market_cap/1000).toFixed(1) + 'B' : '—'}</td>
+      <td class="td-right td-mono">${r.ev ? '$' + (r.ev/1000).toFixed(1) + 'B' : '—'}</td>
+      <td class="td-right td-mono td-primary">${fmtV(r.revenue)}</td>
+      <td class="td-right td-mono">${fmtV(r.ebitda)}</td>
+      <td class="td-right td-mono comp-secondary">${r.pe != null ? r.pe.toFixed(1) + 'x' : '—'}</td>
+      <td class="td-right td-mono comp-secondary">${fmtR(r.ev_revenue)}</td>
+      <td class="td-right td-mono comp-secondary">${fmtR(r.ev_ebitda)}</td>
+      <td class="td-right td-mono td-primary">${r.ev_eh != null ? '$' + r.ev_eh.toFixed(1) + 'M' : '—'}</td>
+      <td class="td-right td-mono">${fmtN(r.hashrate)}</td>
+      <td class="td-right td-mono comp-secondary">${fmtN(r.efficiency)}</td>
+    </tr>`;
+  }).join('');
 }
 
 // ── PAGE: FINANCIALS ────────────────────────────────────────────────────────
@@ -2813,6 +2974,21 @@ function renderMPCard(key, pred) {
   confEl.style.width = pred.confidence + '%';
   card.classList.remove('mp-card-up', 'mp-card-down');
   card.classList.add(isUp ? 'mp-card-up' : 'mp-card-down');
+
+  // Signal contradiction warning: direction vs expected_return sign mismatch
+  let conflictEl = card.querySelector('.mp-signal-conflict');
+  const hasConflict = (pred.direction === 'UP' && pred.expected_return < 0) ||
+                      (pred.direction === 'DOWN' && pred.expected_return > 0);
+  if (hasConflict) {
+    if (!conflictEl) {
+      conflictEl = document.createElement('div');
+      conflictEl.className = 'mp-signal-conflict';
+      card.appendChild(conflictEl);
+    }
+    conflictEl.innerHTML = `<span class="mp-conflict-icon" title="${t('js.signal_conflict_tip')}">&#9888;</span> <span class="mp-conflict-text">${t('js.signal_conflict')}</span>`;
+  } else if (conflictEl) {
+    conflictEl.remove();
+  }
 }
 
 let _mpCurrentRange = '30d';
@@ -3805,41 +3981,98 @@ async function fetchDifficulty() {
   }
 }
 
-// ── BTC PRICE TICKER ─────────────────────────────────────────────────────────
+// ── BTC PRICE TICKER (WebSocket + REST fallback) ─────────────────────────────
 
 let _lastBtcPrice = null;
+let _btcOpenPrice = null;
+let _btcWs = null;
+let _btcWsRetries = 0;
+const BTC_WS_MAX_RETRIES = 5;
 
-async function fetchBtcPrice() {
+function updateBtcPriceUI(price) {
+  const priceEl = document.getElementById('btcPrice');
+  const changeEl = document.getElementById('btcChange');
+  if (!priceEl || !price) return;
+
+  priceEl.textContent = '$' + price.toLocaleString('en-US', { maximumFractionDigits: 0 });
+
+  const mpPriceEl = document.getElementById('mp-price');
+  if (mpPriceEl) {
+    mpPriceEl.textContent = '$' + price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  if (_btcOpenPrice != null) {
+    const pct = ((price - _btcOpenPrice) / _btcOpenPrice * 100).toFixed(2);
+    const isUp = price >= _btcOpenPrice;
+    changeEl.textContent = (isUp ? '+' : '') + pct + '%';
+    changeEl.className = isUp ? 'btc-change-pos' : 'btc-change-neg';
+  } else if (_lastBtcPrice != null) {
+    const pct = ((price - _lastBtcPrice) / _lastBtcPrice * 100).toFixed(2);
+    const isUp = price >= _lastBtcPrice;
+    changeEl.textContent = (isUp ? '+' : '') + pct + '%';
+    changeEl.className = isUp ? 'btc-change-pos' : 'btc-change-neg';
+  }
+  _lastBtcPrice = price;
+}
+
+function connectBtcWebSocket() {
+  if (_btcWs && (_btcWs.readyState === WebSocket.OPEN || _btcWs.readyState === WebSocket.CONNECTING)) return;
+
+  try {
+    _btcWs = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@ticker');
+
+    _btcWs.onopen = () => {
+      _btcWsRetries = 0;
+    };
+
+    _btcWs.onmessage = (event) => {
+      try {
+        const d = JSON.parse(event.data);
+        const price = parseFloat(d.c); // current price
+        if (_btcOpenPrice == null && d.o) _btcOpenPrice = parseFloat(d.o); // 24h open price
+        if (price > 0) updateBtcPriceUI(price);
+      } catch (e) { /* ignore parse errors */ }
+    };
+
+    _btcWs.onclose = () => {
+      _btcWs = null;
+      if (_btcWsRetries < BTC_WS_MAX_RETRIES) {
+        _btcWsRetries++;
+        setTimeout(connectBtcWebSocket, 5000 * _btcWsRetries);
+      } else {
+        // Fallback to REST polling
+        startBtcRestPolling();
+      }
+    };
+
+    _btcWs.onerror = () => {
+      _btcWs.close();
+    };
+  } catch (e) {
+    // WebSocket not supported, fallback
+    startBtcRestPolling();
+  }
+}
+
+let _btcRestInterval = null;
+function startBtcRestPolling() {
+  if (_btcRestInterval) return;
+  fetchBtcPriceRest();
+  _btcRestInterval = setInterval(fetchBtcPriceRest, 60000);
+}
+
+async function fetchBtcPriceRest() {
   try {
     const res = await fetch('https://mempool.space/api/v1/prices');
     const d = await res.json();
-    const price = d.USD;
-    if (!price) return;
+    if (d.USD) updateBtcPriceUI(d.USD);
+  } catch (e) { /* silently fail */ }
+}
 
-    const priceEl = document.getElementById('btcPrice');
-    const changeEl = document.getElementById('btcChange');
-    if (!priceEl) return;
-
-    priceEl.textContent = '$' + price.toLocaleString();
-
-    // Also update market-predict hero price with real-time data
-    const mpPriceEl = document.getElementById('mp-price');
-    if (mpPriceEl) {
-      mpPriceEl.textContent = '$' + price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-
-    if (_lastBtcPrice != null) {
-      const pct = ((price - _lastBtcPrice) / _lastBtcPrice * 100).toFixed(2);
-      const isUp = price >= _lastBtcPrice;
-      changeEl.textContent = (isUp ? '+' : '') + pct + '%';
-      changeEl.className = isUp ? 'btc-change-pos' : 'btc-change-neg';
-    } else {
-      changeEl.textContent = '';
-    }
-    _lastBtcPrice = price;
-  } catch (e) {
-    // Silently fail
-  }
+async function fetchBtcPrice() {
+  // Initial fetch via REST, then upgrade to WebSocket
+  await fetchBtcPriceRest();
+  connectBtcWebSocket();
 }
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
@@ -3849,6 +4082,4 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderOverview();
   fetchBtcPrice();
   fetchDifficulty();
-  // Refresh BTC price every 60 seconds
-  setInterval(fetchBtcPrice, 60000);
 });

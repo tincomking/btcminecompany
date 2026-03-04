@@ -270,7 +270,7 @@ body {
 /* ── STAT BARS ─────────────────────────────────────────── */
 .stats-bar {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 1px;
   background: var(--border-subtle);
   border: 1px solid var(--border-subtle);
@@ -376,7 +376,7 @@ body {
 
 .company-metrics {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 10px;
   margin-bottom: 14px;
 }
@@ -2997,4 +2997,90 @@ canvas { max-width: 100%; }
   .mp-micro-widgets { grid-template-columns: 1fr; }
   .mp-ticker-strip { font-size: 11px; gap: 6px; padding: 6px 10px; }
   .mp-ticker-price { font-size: 16px; }
+}
+
+/* ================================================================
+   Comp Table
+   ================================================================ */
+.comp-table th.comp-sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s;
+}
+.comp-table th.comp-sortable:hover { color: var(--text-primary); }
+
+.comp-secondary { color: var(--text-muted); }
+
+/* ================================================================
+   Signal Conflict Warning (Market Predict cards)
+   ================================================================ */
+.mp-signal-conflict {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 3px 8px;
+  background: var(--orange-dim);
+  border: 1px solid rgba(245,158,11,0.25);
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--orange);
+}
+.mp-conflict-icon { font-size: 12px; }
+.mp-conflict-text { font-size: 10px; }
+
+/* ================================================================
+   Mobile Optimizations (< 768px)
+   ================================================================ */
+@media (max-width: 768px) {
+  /* Stats bar: 3 columns then wrap */
+  .stats-bar { grid-template-columns: repeat(3, 1fr); }
+
+  /* Company card metrics: 2 columns on mobile */
+  .company-metrics { grid-template-columns: 1fr 1fr; }
+
+  /* Comp Table: hide secondary columns */
+  .comp-table .comp-secondary { display: none; }
+
+  /* Financials table: hide less important columns */
+  #financialsTable th:nth-child(4),
+  #financialsTable td:nth-child(4),
+  #financialsTable th:nth-child(6),
+  #financialsTable td:nth-child(6),
+  #financialsTable th:nth-child(8),
+  #financialsTable td:nth-child(8) { display: none; }
+
+  /* Operations table: hide secondary columns */
+  #opsTable th:nth-child(7),
+  #opsTable td:nth-child(7),
+  #opsTable th:nth-child(8),
+  #opsTable td:nth-child(8),
+  #opsTable th:nth-child(9),
+  #opsTable td:nth-child(9),
+  #opsTable th:nth-child(10),
+  #opsTable td:nth-child(10) { display: none; }
+
+  /* Market predict cards: vertical layout */
+  .mp-side-col {
+    flex-direction: column !important;
+  }
+  .mp-mini-card {
+    min-width: unset !important;
+  }
+
+  /* Ratings table: hide notes column */
+  #ratingsTable th:nth-child(7),
+  #ratingsTable td:nth-child(7) { display: none; }
+}
+
+@media (max-width: 600px) {
+  .stats-bar { grid-template-columns: repeat(2, 1fr); }
+  .company-metrics { grid-template-columns: 1fr; }
+
+  /* Comp Table: hide more columns on very small screens */
+  .comp-table th:nth-child(3),
+  .comp-table td:nth-child(3),
+  .comp-table th:nth-child(5),
+  .comp-table td:nth-child(5) { display: none; }
 }
