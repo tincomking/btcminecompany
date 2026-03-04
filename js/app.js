@@ -161,12 +161,12 @@ function sentimentTooltip(soc) {
 }
 
 function categoryClass(cat) {
-  const map = { earnings:'cat-earnings', expansion:'cat-expansion', regulatory:'cat-regulatory', market:'cat-market', business:'cat-business', operations:'cat-operations', sustainability:'cat-sustainability', treasury:'cat-treasury' };
+  const map = { earnings:'cat-earnings', expansion:'cat-expansion', regulatory:'cat-regulatory', market:'cat-market', business:'cat-business', operations:'cat-operations', sustainability:'cat-sustainability', treasury:'cat-treasury', economy:'cat-economy' };
   return map[cat] || 'cat-default';
 }
 
 function categoryLabel(cat) {
-  const keyMap = { earnings:'cat.earnings', expansion:'cat.expansion', regulatory:'cat.regulatory', market:'cat.market', business:'cat.business', operations:'cat.operations', sustainability:'cat.sustainability', treasury:'cat.treasury' };
+  const keyMap = { earnings:'cat.earnings', expansion:'cat.expansion', regulatory:'cat.regulatory', market:'cat.market', business:'cat.business', operations:'cat.operations', sustainability:'cat.sustainability', treasury:'cat.treasury', economy:'cat.economy' };
   return keyMap[cat] ? t(keyMap[cat]) : cat;
 }
 

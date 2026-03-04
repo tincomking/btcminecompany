@@ -118,6 +118,7 @@ const I18N = {
     'news.category_stats': '分类统计',
 
     // Categories
+    'cat.economy': '宏观经济',
     'cat.earnings': '财报',
     'cat.expansion': '扩张',
     'cat.regulatory': '监管',
@@ -443,6 +444,7 @@ const I18N = {
     'news.sentiment_dist': 'Sentiment Distribution',
     'news.category_stats': 'Category Stats',
 
+    'cat.economy': 'Macro',
     'cat.earnings': 'Earnings',
     'cat.expansion': 'Expansion',
     'cat.regulatory': 'Regulatory',

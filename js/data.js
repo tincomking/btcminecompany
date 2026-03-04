@@ -99,9 +99,14 @@ async function loadAllData() {
       social_sentiment: sentimentRes.social_sentiment || [],
     };
 
-    // Economic calendar (non-blocking)
+    // Economic calendar (try API first, fallback to static JSON)
     try {
-      const calRes = await fetch('data/economic-calendar.json').then(r => r.json());
+      let calRes;
+      try {
+        calRes = await fetchAPI('/api/btcmine/economic-calendar');
+      } catch (_) {
+        calRes = await fetch('data/economic-calendar.json').then(r => r.json());
+      }
       ECONOMIC_CALENDAR = (calRes.events || []).map(e => ({
         ...e,
         dateObj: new Date(e.date + 'T00:00:00'),
