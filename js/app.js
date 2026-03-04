@@ -2646,6 +2646,11 @@ async function renderMarketPredict() {
     renderMPDerivatives(MARKET_PREDICT.derivatives);
   }
 
+  // Backtest Performance
+  if (MARKET_PREDICT.backtest) {
+    renderMPBacktest(MARKET_PREDICT.backtest);
+  }
+
   // Models
   if (models && models.predictions) {
     renderMPModels(models.predictions);
@@ -3316,6 +3321,145 @@ function renderMPFearGreed(data) {
       <div class="mp-fg-inline-val">${label}</div>
     </div>
     <div class="mp-fg-inline-spark">${sparkline}</div>`;
+}
+
+// ── BACKTEST PERFORMANCE ─────────────────────────────────────────────────────
+
+let _backtestChart = null;
+let _backtestData = null;
+let _backtestHorizon = '24h';
+
+function renderMPBacktest(data) {
+  const section = document.getElementById('mp-backtest-section');
+  if (!section) return;
+  if (!data || !data.backtest || Object.keys(data.backtest).length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = '';
+  _backtestData = data;
+
+  // Bind tab clicks
+  document.querySelectorAll('.mp-backtest-tab').forEach(tab => {
+    tab.onclick = () => {
+      _backtestHorizon = tab.dataset.horizon;
+      document.querySelectorAll('.mp-backtest-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      _renderBacktestContent();
+    };
+  });
+
+  _renderBacktestContent();
+
+  // Note
+  const noteEl = document.getElementById('mp-backtest-note');
+  if (noteEl && data.generated_at) {
+    const d = new Date(data.generated_at);
+    noteEl.textContent = (currentLang === 'zh' ? '回测时间: ' : 'Backtest: ')
+      + d.toLocaleString('zh-CN', { timeZone: 'Asia/Singapore' })
+      + ` | ${data.data_points || 0} ${currentLang === 'zh' ? '个数据点' : 'data points'}`;
+  }
+}
+
+function _renderBacktestContent() {
+  if (!_backtestData) return;
+  const horizonData = _backtestData.backtest[_backtestHorizon];
+  if (!horizonData) return;
+
+  _renderBacktestTable(horizonData);
+  _renderBacktestChart(horizonData);
+}
+
+function _renderBacktestTable(horizonData) {
+  const thead = document.getElementById('mp-backtest-head');
+  const tbody = document.getElementById('mp-backtest-body');
+  if (!thead || !tbody) return;
+
+  thead.innerHTML = `<tr>
+    <th>${t('mp.model')}</th>
+    <th class="td-right">${t('mp.bt_accuracy')}</th>
+    <th class="td-right">${t('mp.bt_sharpe')}</th>
+    <th class="td-right">${t('mp.bt_cum_return')}</th>
+    <th class="td-right">${t('mp.bt_trades')}</th>
+  </tr>`;
+
+  const sorted = Object.entries(horizonData).sort((a, b) => b[1].accuracy - a[1].accuracy);
+  const catLabels = { ml: 'ML', nn: 'NN', ts: 'TS', ta: 'TA', ensemble: 'ENS' };
+
+  tbody.innerHTML = sorted.map(([key, m]) => {
+    const accCls = m.accuracy > 55 ? 'mp-up' : m.accuracy < 45 ? 'mp-down' : '';
+    const retCls = m.cum_return > 0 ? 'mp-up' : m.cum_return < 0 ? 'mp-down' : '';
+    const sharpeCls = m.sharpe > 0.5 ? 'mp-up' : m.sharpe < 0 ? 'mp-down' : '';
+    return `<tr>
+      <td><span style="font-size:12px;">${m.name}</span> <span class="mp-cat-badge">${catLabels[m.category] || ''}</span></td>
+      <td class="td-right td-mono ${accCls}">${m.accuracy}%</td>
+      <td class="td-right td-mono ${sharpeCls}">${m.sharpe}</td>
+      <td class="td-right td-mono ${retCls}">${m.cum_return >= 0 ? '+' : ''}${m.cum_return}%</td>
+      <td class="td-right td-mono">${m.total_trades}</td>
+    </tr>`;
+  }).join('');
+}
+
+function _renderBacktestChart(horizonData) {
+  const canvas = document.getElementById('mp-backtest-chart');
+  if (!canvas) return;
+
+  if (_backtestChart) { _backtestChart.destroy(); _backtestChart = null; }
+
+  const sorted = Object.entries(horizonData).sort((a, b) => b[1].accuracy - a[1].accuracy);
+  const labels = sorted.map(([, m]) => m.name);
+  const accuracies = sorted.map(([, m]) => m.accuracy);
+  const colors = accuracies.map(a => a > 55 ? 'rgba(34,197,94,0.7)' : a < 45 ? 'rgba(239,68,68,0.7)' : 'rgba(107,114,128,0.5)');
+
+  const cs = getComputedStyle(document.documentElement);
+  const gridColor = cs.getPropertyValue('--border').trim() || 'rgba(255,255,255,0.06)';
+  const tickColor = cs.getPropertyValue('--text-muted').trim() || '#666';
+
+  _backtestChart = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: t('mp.bt_accuracy'),
+        data: accuracies,
+        backgroundColor: colors,
+        borderRadius: 4,
+      }],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ctx.parsed.x.toFixed(1) + '%' } },
+        annotation: {
+          annotations: {
+            refLine: {
+              type: 'line',
+              xMin: 50, xMax: 50,
+              borderColor: 'rgba(245,158,11,0.6)',
+              borderDash: [6, 3],
+              borderWidth: 2,
+              label: { display: true, content: '50%', position: 'start', color: '#f59e0b', font: { size: 10 } },
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: { color: gridColor },
+          ticks: { color: tickColor, font: { size: 10, family: 'JetBrains Mono' }, callback: v => v + '%' },
+          min: 30,
+          max: 80,
+        },
+        y: {
+          grid: { display: false },
+          ticks: { color: tickColor, font: { size: 10 } },
+        },
+      },
+    },
+  });
 }
 
 // ── SIGNAL CONSENSUS PANEL ───────────────────────────────────────────────────

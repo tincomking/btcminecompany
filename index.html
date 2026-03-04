@@ -616,6 +616,28 @@
       </div>
     </div>
 
+    <!-- Backtest Performance -->
+    <div class="mp-section-block" id="mp-backtest-section" style="display:none;">
+      <div class="section-header mb-16">
+        <div class="section-title" data-i18n="mp.backtest_title">模型回测绩效</div>
+        <span class="data-badge" data-i18n="mp.backtest_sub">Walk-forward 历史回测验证</span>
+      </div>
+      <div class="mp-backtest-tabs">
+        <button class="mp-backtest-tab active" data-horizon="24h">24H</button>
+        <button class="mp-backtest-tab" data-horizon="168h">7D</button>
+      </div>
+      <div class="mp-backtest-chart-wrap">
+        <canvas id="mp-backtest-chart"></canvas>
+      </div>
+      <div class="table-wrapper">
+        <table id="mp-backtest-table">
+          <thead id="mp-backtest-head"></thead>
+          <tbody id="mp-backtest-body"></tbody>
+        </table>
+      </div>
+      <div class="mp-backtest-note" id="mp-backtest-note"></div>
+    </div>
+
     <!-- Signal Consensus Panel -->
     <div class="mp-section-block" id="mp-consensus-section" style="display:none;">
       <div class="section-header mb-16">

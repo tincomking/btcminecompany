@@ -289,6 +289,15 @@ const I18N = {
     'mp.buy': '买',
     'mp.sell': '卖',
 
+    // Backtest
+    'mp.backtest_title': '模型回测绩效',
+    'mp.backtest_sub': 'Walk-forward 历史回测验证',
+    'mp.bt_accuracy': '准确率',
+    'mp.bt_sharpe': '夏普比率',
+    'mp.bt_cum_return': '累计收益',
+    'mp.bt_trades': '交易数',
+    'mp.bt_ref_line': '50% 基准线',
+
     // Consensus
     'mp.consensus_title': '信号共识',
     'mp.consensus_sub': '全模型 × 全时间框架 共识热力图',
@@ -572,6 +581,15 @@ const I18N = {
     'mp.bias_balanced': 'Balanced',
     'mp.buy': 'Buy',
     'mp.sell': 'Sell',
+
+    // Backtest
+    'mp.backtest_title': 'Model Backtest Performance',
+    'mp.backtest_sub': 'Walk-forward historical validation',
+    'mp.bt_accuracy': 'Accuracy',
+    'mp.bt_sharpe': 'Sharpe',
+    'mp.bt_cum_return': 'Cum. Return',
+    'mp.bt_trades': 'Trades',
+    'mp.bt_ref_line': '50% baseline',
 
     // Consensus
     'mp.consensus_title': 'Signal Consensus',
