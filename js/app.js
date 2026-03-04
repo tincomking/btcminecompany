@@ -2646,6 +2646,11 @@ async function renderMarketPredict() {
     renderMPDerivatives(MARKET_PREDICT.derivatives);
   }
 
+  // On-chain Data
+  if (MARKET_PREDICT.onchain) {
+    renderMPOnchain(MARKET_PREDICT.onchain);
+  }
+
   // Backtest Performance
   if (MARKET_PREDICT.backtest) {
     renderMPBacktest(MARKET_PREDICT.backtest);
@@ -3321,6 +3326,55 @@ function renderMPFearGreed(data) {
       <div class="mp-fg-inline-val">${label}</div>
     </div>
     <div class="mp-fg-inline-spark">${sparkline}</div>`;
+}
+
+// ── ON-CHAIN DATA ───────────────────────────────────────────────────────────
+
+function renderMPOnchain(data) {
+  const section = document.getElementById('mp-onchain-section');
+  if (!section) return;
+  if (!data || !data.metrics || Object.keys(data.metrics).length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = '';
+
+  const m = data.metrics;
+  const cards = document.getElementById('mp-onchain-cards');
+  if (!cards) return;
+
+  const get = (key) => m[key]?.value ?? '--';
+
+  const hrVal = get('hashrate_eh');
+  const diffVal = get('difficulty_t');
+  const mpCount = get('mempool_count');
+  const mpSize = get('mempool_vsize_mb');
+  const feeFast = get('fee_fastest');
+  const feeHour = get('fee_hour');
+  const totalBTC = get('total_btc');
+
+  cards.innerHTML = `
+    <div class="mp-deriv-card">
+      <div class="mp-deriv-label">${currentLang === 'zh' ? '全网算力' : 'Hashrate'}</div>
+      <div class="mp-deriv-value">${typeof hrVal === 'number' ? hrVal.toLocaleString() : hrVal}</div>
+      <div class="mp-deriv-sub">EH/s</div>
+    </div>
+    <div class="mp-deriv-card">
+      <div class="mp-deriv-label">${currentLang === 'zh' ? '挖矿难度' : 'Difficulty'}</div>
+      <div class="mp-deriv-value">${typeof diffVal === 'number' ? diffVal.toFixed(2) : diffVal}</div>
+      <div class="mp-deriv-sub">T</div>
+    </div>
+    <div class="mp-deriv-card">
+      <div class="mp-deriv-label">Mempool</div>
+      <div class="mp-deriv-value">${typeof mpCount === 'number' ? mpCount.toLocaleString() : mpCount}</div>
+      <div class="mp-deriv-sub">${currentLang === 'zh' ? '笔交易' : 'txns'} (${typeof mpSize === 'number' ? mpSize.toFixed(1) : mpSize} MB)</div>
+    </div>
+    <div class="mp-deriv-card">
+      <div class="mp-deriv-label">${currentLang === 'zh' ? '手续费' : 'Fees'}</div>
+      <div class="mp-deriv-value">${typeof feeFast === 'number' ? feeFast : '--'}</div>
+      <div class="mp-deriv-sub">sat/vB (${currentLang === 'zh' ? '最快' : 'fast'}) | ${typeof feeHour === 'number' ? feeHour : '--'} (1h)</div>
+    </div>
+  `;
 }
 
 // ── BACKTEST PERFORMANCE ─────────────────────────────────────────────────────

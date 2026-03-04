@@ -289,6 +289,10 @@ const I18N = {
     'mp.buy': '买',
     'mp.sell': '卖',
 
+    // On-chain
+    'mp.onchain_title': '链上数据',
+    'mp.onchain_sub': '算力 · Mempool · 手续费 · 供应量',
+
     // Backtest
     'mp.backtest_title': '模型回测绩效',
     'mp.backtest_sub': 'Walk-forward 历史回测验证',
@@ -581,6 +585,10 @@ const I18N = {
     'mp.bias_balanced': 'Balanced',
     'mp.buy': 'Buy',
     'mp.sell': 'Sell',
+
+    // On-chain
+    'mp.onchain_title': 'On-chain Data',
+    'mp.onchain_sub': 'Hashrate · Mempool · Fees · Supply',
 
     // Backtest
     'mp.backtest_title': 'Model Backtest Performance',
