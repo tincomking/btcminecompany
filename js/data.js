@@ -10,6 +10,7 @@ let FINANCIALS = [];
 let OPERATIONAL = [];
 let NEWS = [];
 let SENTIMENT = { analyst_ratings: [], social_sentiment: [] };
+let ECONOMIC_CALENDAR = [];
 let ANALYSIS_DATA = {};
 let BTC_PREDICTIONS = {};
 let MARKET_PREDICT = { latest: null, forecast: null, models: null, polymarket: null, fearGreed: null, derivatives: null, backtest: null, onchain: null, options: null, orderbook: null, predictionHistory: null, signalHistory: null };
@@ -97,6 +98,15 @@ async function loadAllData() {
       analyst_ratings: sentimentRes.analyst_ratings || [],
       social_sentiment: sentimentRes.social_sentiment || [],
     };
+
+    // Economic calendar (non-blocking)
+    try {
+      const calRes = await fetch('data/economic-calendar.json').then(r => r.json());
+      ECONOMIC_CALENDAR = (calRes.events || []).map(e => ({
+        ...e,
+        dateObj: new Date(e.date + 'T00:00:00'),
+      }));
+    } catch (_) { console.warn('Economic calendar not available'); }
 
     // Analysis supplemental data
     ANALYSIS_DATA = analysisRes.data || {};

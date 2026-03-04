@@ -112,6 +112,8 @@ const I18N = {
 
     // News
     'news.list': '新闻列表',
+    'news.econ_calendar': '经济日历',
+    'news.econ_calendar_sub': '美国重要经济数据排期',
     'news.sentiment_dist': '情绪分布',
     'news.category_stats': '分类统计',
 
@@ -436,6 +438,8 @@ const I18N = {
     'ops.btc_trend_title': 'Monthly BTC Production Trend (Top Miners)',
 
     'news.list': 'News Feed',
+    'news.econ_calendar': 'Economic Calendar',
+    'news.econ_calendar_sub': 'Key US Economic Data Schedule',
     'news.sentiment_dist': 'Sentiment Distribution',
     'news.category_stats': 'Category Stats',
 

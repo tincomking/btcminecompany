@@ -1218,7 +1218,90 @@ let newsFilterCompany = 'ALL';
 function renderNews() {
   renderNewsList();
   renderNewsCharts();
+  renderEconCalendar();
   setupNewsFilters();
+}
+
+function renderEconCalendar() {
+  const el = document.getElementById('econCalendarWidget');
+  if (!el) return;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Show events from today up to 30 days ahead
+  const futureLimit = new Date(today);
+  futureLimit.setDate(futureLimit.getDate() + 30);
+
+  const upcoming = ECONOMIC_CALENDAR
+    .filter(e => e.dateObj >= today && e.dateObj <= futureLimit)
+    .sort((a, b) => a.dateObj - b.dateObj);
+
+  if (!upcoming.length) {
+    el.innerHTML = `<div style="padding:16px;color:var(--text-muted);font-size:11px;">${currentLang === 'zh' ? '暂无数据' : 'No data'}</div>`;
+    return;
+  }
+
+  // Group by date
+  const groups = {};
+  upcoming.forEach(e => {
+    const key = e.date;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(e);
+  });
+
+  const impactIcon = (level) => {
+    if (level === 'high') return '<span class="econ-impact econ-impact-high" title="High Impact">!!!</span>';
+    if (level === 'medium') return '<span class="econ-impact econ-impact-med" title="Medium Impact">!!</span>';
+    return '<span class="econ-impact econ-impact-low" title="Low Impact">!</span>';
+  };
+
+  const daysDiff = (d) => {
+    const diff = Math.ceil((d - today) / 86400000);
+    if (diff === 0) return currentLang === 'zh' ? '今天' : 'Today';
+    if (diff === 1) return currentLang === 'zh' ? '明天' : 'Tomorrow';
+    if (diff <= 7) return currentLang === 'zh' ? `${diff}天后` : `In ${diff}d`;
+    return '';
+  };
+
+  let html = '<div class="econ-cal-list">';
+
+  Object.entries(groups).forEach(([dateStr, events]) => {
+    const d = new Date(dateStr + 'T00:00:00');
+    const dayLabel = d.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', weekday: 'short' });
+    const diffLabel = daysDiff(d);
+    const isToday = diffLabel === '今天' || diffLabel === 'Today';
+    const isNear = (d - today) / 86400000 <= 3;
+
+    html += `<div class="econ-cal-date-group ${isToday ? 'econ-cal-today' : ''} ${isNear ? 'econ-cal-near' : ''}">`;
+    html += `<div class="econ-cal-date-header">
+      <span class="econ-cal-date">${dayLabel}</span>
+      ${diffLabel ? `<span class="econ-cal-diff">${diffLabel}</span>` : ''}
+    </div>`;
+
+    events.forEach(ev => {
+      const name = currentLang === 'zh' ? ev.event_cn : ev.event;
+      html += `<div class="econ-cal-event">
+        <div class="econ-cal-event-main">
+          ${impactIcon(ev.impact)}
+          <span class="econ-cal-event-name">${name}</span>
+          <span class="econ-cal-event-time">${ev.time} ${ev.tz}</span>
+        </div>`;
+      if (ev.previous || ev.forecast) {
+        html += `<div class="econ-cal-event-data">`;
+        if (ev.previous) html += `<span class="econ-cal-val">${currentLang === 'zh' ? '前值' : 'Prev'}: <b>${ev.previous}</b></span>`;
+        if (ev.forecast) html += `<span class="econ-cal-val">${currentLang === 'zh' ? '预期' : 'Exp'}: <b>${ev.forecast}</b></span>`;
+        if (ev.actual) html += `<span class="econ-cal-val econ-cal-actual">${currentLang === 'zh' ? '实际' : 'Act'}: <b>${ev.actual}</b></span>`;
+        html += `</div>`;
+      }
+      html += `</div>`;
+    });
+
+    html += '</div>';
+  });
+
+  html += '</div>';
+  el.innerHTML = html;
 }
 
 function getFilteredNews() {

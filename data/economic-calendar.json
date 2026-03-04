@@ -1,0 +1,202 @@
+{
+  "updated_at": "2026-03-04",
+  "source": "US Bureau of Labor Statistics / Federal Reserve / Bureau of Economic Analysis",
+  "events": [
+    {
+      "date": "2026-03-04", "time": "10:00", "tz": "ET",
+      "event": "ISM Services PMI", "event_cn": "ISM 服务业 PMI",
+      "country": "US", "impact": "medium",
+      "previous": "52.8", "forecast": "53.0", "actual": null,
+      "description": "Services sector activity index, above 50 indicates expansion"
+    },
+    {
+      "date": "2026-03-05", "time": "08:15", "tz": "ET",
+      "event": "ADP Employment Change", "event_cn": "ADP 就业人数变化",
+      "country": "US", "impact": "medium",
+      "previous": "183K", "forecast": "175K", "actual": null,
+      "description": "Private sector employment change, precursor to NFP"
+    },
+    {
+      "date": "2026-03-06", "time": "08:30", "tz": "ET",
+      "event": "Non-Farm Payrolls", "event_cn": "非农就业人数",
+      "country": "US", "impact": "high",
+      "previous": "143K", "forecast": "160K", "actual": null,
+      "description": "Key employment data, major market mover"
+    },
+    {
+      "date": "2026-03-06", "time": "08:30", "tz": "ET",
+      "event": "Unemployment Rate", "event_cn": "失业率",
+      "country": "US", "impact": "high",
+      "previous": "4.0%", "forecast": "4.0%", "actual": null,
+      "description": "National unemployment rate"
+    },
+    {
+      "date": "2026-03-11", "time": "08:30", "tz": "ET",
+      "event": "CPI (YoY)", "event_cn": "CPI 消费者物价指数 (同比)",
+      "country": "US", "impact": "high",
+      "previous": "3.0%", "forecast": "2.9%", "actual": null,
+      "description": "Consumer inflation, directly impacts Fed policy and crypto"
+    },
+    {
+      "date": "2026-03-11", "time": "08:30", "tz": "ET",
+      "event": "Core CPI (YoY)", "event_cn": "核心 CPI (同比)",
+      "country": "US", "impact": "high",
+      "previous": "3.3%", "forecast": "3.2%", "actual": null,
+      "description": "Excludes food and energy, Fed's preferred inflation measure"
+    },
+    {
+      "date": "2026-03-12", "time": "08:30", "tz": "ET",
+      "event": "PPI (YoY)", "event_cn": "PPI 生产者物价指数 (同比)",
+      "country": "US", "impact": "medium",
+      "previous": "3.5%", "forecast": "3.3%", "actual": null,
+      "description": "Producer-level inflation, leading indicator for CPI"
+    },
+    {
+      "date": "2026-03-13", "time": "08:30", "tz": "ET",
+      "event": "Initial Jobless Claims", "event_cn": "初请失业金人数",
+      "country": "US", "impact": "medium",
+      "previous": "242K", "forecast": "235K", "actual": null,
+      "description": "Weekly new unemployment claims"
+    },
+    {
+      "date": "2026-03-17", "time": "08:30", "tz": "ET",
+      "event": "Retail Sales (MoM)", "event_cn": "零售销售 (环比)",
+      "country": "US", "impact": "medium",
+      "previous": "-0.9%", "forecast": "0.3%", "actual": null,
+      "description": "Consumer spending indicator"
+    },
+    {
+      "date": "2026-03-18", "time": "14:00", "tz": "ET",
+      "event": "FOMC Interest Rate Decision", "event_cn": "FOMC 利率决议",
+      "country": "US", "impact": "high",
+      "previous": "4.50%", "forecast": "4.50%", "actual": null,
+      "description": "Federal Reserve interest rate decision, highest market impact"
+    },
+    {
+      "date": "2026-03-18", "time": "14:30", "tz": "ET",
+      "event": "FOMC Press Conference", "event_cn": "FOMC 新闻发布会",
+      "country": "US", "impact": "high",
+      "previous": null, "forecast": null, "actual": null,
+      "description": "Fed Chair remarks on economic outlook and policy direction"
+    },
+    {
+      "date": "2026-03-26", "time": "08:30", "tz": "ET",
+      "event": "GDP (Q4 Final)", "event_cn": "GDP 终值 (Q4)",
+      "country": "US", "impact": "medium",
+      "previous": "2.3%", "forecast": "2.3%", "actual": null,
+      "description": "Final Q4 GDP growth rate"
+    },
+    {
+      "date": "2026-03-27", "time": "08:30", "tz": "ET",
+      "event": "PCE Price Index (YoY)", "event_cn": "PCE 物价指数 (同比)",
+      "country": "US", "impact": "high",
+      "previous": "2.6%", "forecast": "2.5%", "actual": null,
+      "description": "Fed's preferred inflation gauge, major policy driver"
+    },
+    {
+      "date": "2026-03-27", "time": "08:30", "tz": "ET",
+      "event": "Core PCE (YoY)", "event_cn": "核心 PCE (同比)",
+      "country": "US", "impact": "high",
+      "previous": "2.8%", "forecast": "2.7%", "actual": null,
+      "description": "Core PCE excluding food/energy"
+    },
+    {
+      "date": "2026-03-28", "time": "10:00", "tz": "ET",
+      "event": "Michigan Consumer Sentiment", "event_cn": "密歇根消费者信心指数",
+      "country": "US", "impact": "medium",
+      "previous": "64.7", "forecast": "65.0", "actual": null,
+      "description": "Consumer confidence survey"
+    },
+    {
+      "date": "2026-04-01", "time": "10:00", "tz": "ET",
+      "event": "ISM Manufacturing PMI", "event_cn": "ISM 制造业 PMI",
+      "country": "US", "impact": "high",
+      "previous": "50.9", "forecast": "51.0", "actual": null,
+      "description": "Manufacturing sector activity, key economic barometer"
+    },
+    {
+      "date": "2026-04-02", "time": "08:15", "tz": "ET",
+      "event": "ADP Employment Change", "event_cn": "ADP 就业人数变化",
+      "country": "US", "impact": "medium",
+      "previous": null, "forecast": null, "actual": null,
+      "description": "March private sector employment"
+    },
+    {
+      "date": "2026-04-03", "time": "08:30", "tz": "ET",
+      "event": "Non-Farm Payrolls", "event_cn": "非农就业人数",
+      "country": "US", "impact": "high",
+      "previous": null, "forecast": null, "actual": null,
+      "description": "March employment report"
+    },
+    {
+      "date": "2026-04-03", "time": "08:30", "tz": "ET",
+      "event": "Unemployment Rate", "event_cn": "失业率",
+      "country": "US", "impact": "high",
+      "previous": null, "forecast": null, "actual": null,
+      "description": "March unemployment rate"
+    },
+    {
+      "date": "2026-04-10", "time": "08:30", "tz": "ET",
+      "event": "CPI (YoY)", "event_cn": "CPI 消费者物价指数 (同比)",
+      "country": "US", "impact": "high",
+      "previous": null, "forecast": null, "actual": null,
+      "description": "March consumer inflation data"
+    },
+    {
+      "date": "2026-04-10", "time": "08:30", "tz": "ET",
+      "event": "Core CPI (YoY)", "event_cn": "核心 CPI (同比)",
+      "country": "US", "impact": "high",
+      "previous": null, "forecast": null, "actual": null,
+      "description": "March core inflation"
+    },
+    {
+      "date": "2026-04-14", "time": "08:30", "tz": "ET",
+      "event": "PPI (YoY)", "event_cn": "PPI 生产者物价指数 (同比)",
+      "country": "US", "impact": "medium",
+      "previous": null, "forecast": null, "actual": null,
+      "description": "March producer price inflation"
+    },
+    {
+      "date": "2026-04-15", "time": "08:30", "tz": "ET",
+      "event": "Retail Sales (MoM)", "event_cn": "零售销售 (环比)",
+      "country": "US", "impact": "medium",
+      "previous": null, "forecast": null, "actual": null,
+      "description": "March consumer spending"
+    },
+    {
+      "date": "2026-04-29", "time": "08:30", "tz": "ET",
+      "event": "GDP (Q1 Advance)", "event_cn": "GDP 初值 (Q1)",
+      "country": "US", "impact": "high",
+      "previous": null, "forecast": null, "actual": null,
+      "description": "First estimate of Q1 GDP growth"
+    },
+    {
+      "date": "2026-04-30", "time": "08:30", "tz": "ET",
+      "event": "PCE Price Index (YoY)", "event_cn": "PCE 物价指数 (同比)",
+      "country": "US", "impact": "high",
+      "previous": null, "forecast": null, "actual": null,
+      "description": "March PCE inflation"
+    },
+    {
+      "date": "2026-05-06", "time": "14:00", "tz": "ET",
+      "event": "FOMC Interest Rate Decision", "event_cn": "FOMC 利率决议",
+      "country": "US", "impact": "high",
+      "previous": null, "forecast": null, "actual": null,
+      "description": "May FOMC rate decision"
+    },
+    {
+      "date": "2026-05-08", "time": "08:30", "tz": "ET",
+      "event": "Non-Farm Payrolls", "event_cn": "非农就业人数",
+      "country": "US", "impact": "high",
+      "previous": null, "forecast": null, "actual": null,
+      "description": "April employment report"
+    },
+    {
+      "date": "2026-05-12", "time": "08:30", "tz": "ET",
+      "event": "CPI (YoY)", "event_cn": "CPI 消费者物价指数 (同比)",
+      "country": "US", "impact": "high",
+      "previous": null, "forecast": null, "actual": null,
+      "description": "April consumer inflation"
+    }
+  ]
+}

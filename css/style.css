@@ -789,6 +789,90 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 .news-summary { font-size: 11px; color: var(--text-muted); line-height: 1.5; display: none; }
 .news-item.expanded .news-summary { display: block; }
 
+/* ── ECONOMIC CALENDAR ────────────────────────────────── */
+.econ-cal-list { padding: 4px 0; }
+
+.econ-cal-date-group { padding: 0 14px 10px; }
+.econ-cal-date-group + .econ-cal-date-group {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 10px;
+}
+
+.econ-cal-today {
+  background: rgba(247,147,26,0.04);
+  border-radius: var(--radius-md);
+  margin: 0 2px;
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+}
+
+.econ-cal-date-header {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 6px; padding-top: 6px;
+}
+
+.econ-cal-date {
+  font-size: 11px; font-weight: 600;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.econ-cal-diff {
+  font-size: 9px; font-weight: 600;
+  padding: 1px 6px; border-radius: 8px;
+}
+.econ-cal-today .econ-cal-diff {
+  background: var(--orange-dim); color: var(--orange);
+}
+.econ-cal-near .econ-cal-diff {
+  background: rgba(247,147,26,0.08); color: var(--orange);
+}
+
+.econ-cal-event {
+  padding: 4px 0 4px 4px;
+}
+
+.econ-cal-event-main {
+  display: flex; align-items: center; gap: 6px;
+}
+
+.econ-impact {
+  font-size: 8px; font-weight: 800;
+  letter-spacing: -0.5px;
+  min-width: 18px; text-align: center;
+  padding: 1px 3px; border-radius: 3px;
+  font-family: var(--font-mono);
+}
+.econ-impact-high { background: var(--red-dim); color: var(--red); }
+.econ-impact-med { background: var(--orange-dim); color: var(--orange); }
+.econ-impact-low { background: var(--bg-elevated); color: var(--text-muted); }
+
+.econ-cal-event-name {
+  font-size: 11px; color: var(--text-primary);
+  font-weight: 500; flex: 1;
+}
+
+.econ-cal-event-time {
+  font-size: 9px; color: var(--text-muted);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+
+.econ-cal-event-data {
+  display: flex; gap: 10px;
+  padding: 2px 0 0 28px;
+}
+
+.econ-cal-val {
+  font-size: 10px; color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+.econ-cal-val b {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+.econ-cal-actual b { color: var(--green); }
+
 /* ── ANALYST RATINGS ───────────────────────────────────── */
 .rating-badge {
   display: inline-flex;
