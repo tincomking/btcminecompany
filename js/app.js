@@ -3069,23 +3069,23 @@ async function _renderMPChart() {
     const BUCKET_MS = 2 * 3600 * 1000;
     const bucketMap = new Map();
     sorted.forEach(p => {
-      const t = new Date(p.timestamp).getTime();
-      const bucket = Math.floor(t / BUCKET_MS);
+      const ts = new Date(p.timestamp).getTime();
+      const bucket = Math.floor(ts / BUCKET_MS);
       bucketMap.set(bucket, p);
     });
-    const sampled = Array.from(bucketMap.values())
+    let pts = Array.from(bucketMap.values())
       .map(p => ({ x: new Date(p.timestamp), y: p.predicted_price }))
       .sort((a, b) => a.x - b.x);
-    // 2. 3点移动平均平滑：消除相邻预测间的跳动
-    const smoothed = sampled.map((pt, i, arr) => {
+    // 2. 双重移动平均平滑（两轮3点MA，等效于加权5点）
+    const sma3 = arr => arr.map((pt, i) => {
       if (i === 0 || i === arr.length - 1) return pt;
-      const avg = (arr[i - 1].y + pt.y + arr[i + 1].y) / 3;
-      return { x: pt.x, y: Math.round(avg * 100) / 100 };
+      return { x: pt.x, y: (arr[i - 1].y + pt.y + arr[i + 1].y) / 3 };
     });
-    if (smoothed.length > 0) {
+    pts = sma3(sma3(pts));
+    if (pts.length > 0) {
       datasets.push({
         label: t('mp.hist_pred') || '历史预测',
-        data: smoothed,
+        data: pts,
         borderColor: '#d4a017',
         borderWidth: 2,
         borderDash: [6, 4],
