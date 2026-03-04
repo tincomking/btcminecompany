@@ -3062,34 +3062,34 @@ async function _renderMPChart() {
 
   const predHistory = MARKET_PREDICT.predictionHistory;
   if (predHistory && predHistory.predictions && predHistory.predictions.length > 0) {
-    // 1. 按时间排序，下采样到每2小时1个点（取窗口内最后一条）
+    // 1. 按时间排序，下采样到每2小时1个点
     const sorted = predHistory.predictions
       .filter(p => p.predicted_price && p.predicted_price > 0)
       .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-    const BUCKET_MS = 2 * 3600 * 1000; // 2小时
+    const BUCKET_MS = 2 * 3600 * 1000;
     const bucketMap = new Map();
     sorted.forEach(p => {
       const t = new Date(p.timestamp).getTime();
       const bucket = Math.floor(t / BUCKET_MS);
-      bucketMap.set(bucket, p); // 同一桶内后面的覆盖前面的
+      bucketMap.set(bucket, p);
     });
-    // 2. 将预测点绘制在目标时间(预测发起+24h)，这样能和实际价格线对比
-    const HORIZON_MS = 24 * 3600 * 1000;
-    const predData = Array.from(bucketMap.values())
-      .map(p => ({
-        x: new Date(new Date(p.timestamp).getTime() + HORIZON_MS),
-        y: p.predicted_price,
-      }))
+    const sampled = Array.from(bucketMap.values())
+      .map(p => ({ x: new Date(p.timestamp), y: p.predicted_price }))
       .sort((a, b) => a.x - b.x);
-    if (predData.length > 0) {
+    // 2. 3点移动平均平滑：消除相邻预测间的跳动
+    const smoothed = sampled.map((pt, i, arr) => {
+      if (i === 0 || i === arr.length - 1) return pt;
+      const avg = (arr[i - 1].y + pt.y + arr[i + 1].y) / 3;
+      return { x: pt.x, y: Math.round(avg * 100) / 100 };
+    });
+    if (smoothed.length > 0) {
       datasets.push({
         label: t('mp.hist_pred') || '历史预测',
-        data: predData,
+        data: smoothed,
         borderColor: '#d4a017',
         borderWidth: 2,
         borderDash: [6, 4],
-        pointRadius: 3,
-        pointBackgroundColor: '#d4a017',
+        pointRadius: 0,
         tension: 0.4,
         cubicInterpolationMode: 'monotone',
         order: 4,
@@ -3099,18 +3099,33 @@ async function _renderMPChart() {
 
   const sigHistory = MARKET_PREDICT.signalHistory;
   if (sigHistory && sigHistory.history && sigHistory.history.length > 0) {
-    const sigData = sigHistory.history
+    // 下采样+移动平均平滑
+    const sigSorted = sigHistory.history
       .filter(s => s.consensus_price && s.consensus_price > 0)
-      .map(s => ({ x: new Date(s.timestamp), y: s.consensus_price }));
-    if (sigData.length > 0) {
+      .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    const SIG_BUCKET = 2 * 3600 * 1000;
+    const sigBuckets = new Map();
+    sigSorted.forEach(s => {
+      const bk = Math.floor(new Date(s.timestamp).getTime() / SIG_BUCKET);
+      sigBuckets.set(bk, s);
+    });
+    const sigSampled = Array.from(sigBuckets.values())
+      .map(s => ({ x: new Date(s.timestamp), y: s.consensus_price }))
+      .sort((a, b) => a.x - b.x);
+    const sigSmoothed = sigSampled.map((pt, i, arr) => {
+      if (i === 0 || i === arr.length - 1) return pt;
+      return { x: pt.x, y: Math.round(((arr[i-1].y + pt.y + arr[i+1].y) / 3) * 100) / 100 };
+    });
+    if (sigSmoothed.length > 0) {
       datasets.push({
-        label: '押注共识',
-        data: sigData,
+        label: t('mp.betting_consensus') || '押注共识',
+        data: sigSmoothed,
         borderColor: '#22c55e',
         borderWidth: 1.5,
         borderDash: [3, 3],
         pointRadius: 0,
-        tension: 0.3,
+        tension: 0.4,
+        cubicInterpolationMode: 'monotone',
         order: 5,
       });
     }
