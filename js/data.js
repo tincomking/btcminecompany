@@ -109,7 +109,7 @@ async function loadAllData() {
       }
       ECONOMIC_CALENDAR = (calRes.events || []).map(e => ({
         ...e,
-        dateObj: new Date(e.date + 'T00:00:00'),
+        dateObj: new Date(e.date + 'T12:00:00'),
       }));
     } catch (_) { console.warn('Economic calendar not available'); }
 
@@ -185,6 +185,13 @@ async function loadMarketPredictions() {
         MARKET_PREDICT.bettingMarkets = bettingRes;
       }
     } catch (_) { /* new API not available yet, use polymarket only */ }
+    // Whale transfers data
+    try {
+      const whaleRes = await fetchAPI('/api/predict/whale-transfers');
+      if (whaleRes && whaleRes.transfers) {
+        MARKET_PREDICT.whaleTransfers = whaleRes;
+      }
+    } catch (_) { /* whale data not available yet */ }
     // Fetch historical data (non-blocking)
     try {
       const [predHist, sigHist] = await Promise.all([

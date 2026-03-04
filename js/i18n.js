@@ -367,6 +367,23 @@ const I18N = {
     'mp.betting_show_all': '显示全部',
     'mp.betting_collapse': '收起',
     'mp.betting_markets': '个市场',
+
+    // Composite analysis
+    'analysis.summary': '综合评估',
+    'analysis.composite_rating': '综合评级',
+    'analysis.grade_a': '优秀',
+    'analysis.grade_b': '良好',
+    'analysis.grade_c': '一般',
+    'analysis.grade_d': '警示',
+
+    // Whale & Strike
+    'mp.whale_flow': '鲸鱼流向',
+    'mp.strike_conc': '行权集中',
+    'mp.net_outflow': '净流出 (看涨)',
+    'mp.net_inflow': '净流入 (看跌)',
+
+    // News
+    'news.read_full': '查看全文',
   },
 
   en: {
@@ -720,6 +737,23 @@ const I18N = {
     'mp.betting_show_all': 'Show all',
     'mp.betting_collapse': 'Collapse',
     'mp.betting_markets': 'markets',
+
+    // Composite analysis
+    'analysis.summary': 'Composite Summary',
+    'analysis.composite_rating': 'Composite Rating',
+    'analysis.grade_a': 'Excellent',
+    'analysis.grade_b': 'Good',
+    'analysis.grade_c': 'Average',
+    'analysis.grade_d': 'Warning',
+
+    // Whale & Strike
+    'mp.whale_flow': 'Whale Flow',
+    'mp.strike_conc': 'Strike Concentration',
+    'mp.net_outflow': 'Net Outflow (Bullish)',
+    'mp.net_inflow': 'Net Inflow (Bearish)',
+
+    // News
+    'news.read_full': 'Read Full Article',
   }
 };
 

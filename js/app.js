@@ -1314,13 +1314,23 @@ function renderOpsTable(period) {
   }).join('');
 }
 
-function renderBtcProductionChart() {
+function renderBtcProductionChart(selectedMonth) {
   const canvas = document.getElementById('btcProductionChart');
   if (!canvas) return;
 
   // Dynamically find top tickers with btc_mined data and available periods
   const allPeriods = [...new Set(OPERATIONAL.map(o => o.period))].sort();
-  const periods = allPeriods.slice(-3); // Last 3 months
+  let periods;
+  if (selectedMonth && selectedMonth !== 'all') {
+    const idx = allPeriods.indexOf(selectedMonth);
+    if (idx >= 0) {
+      periods = allPeriods.slice(Math.max(0, idx - 1), idx + 2);
+    } else {
+      periods = allPeriods.slice(-3);
+    }
+  } else {
+    periods = allPeriods.slice(-3);
+  }
   const periodLabels = periods.map(p => {
     const o = OPERATIONAL.find(op => op.period === p);
     return o ? o.period_label : p;
@@ -1367,7 +1377,10 @@ function setupOpsFilters() {
   const sel = document.getElementById('ops-month-filter');
   if (sel && !sel._init) {
     sel._init = true;
-    sel.addEventListener('change', () => renderOpsTable(sel.value));
+    sel.addEventListener('change', () => {
+      renderOpsTable(sel.value);
+      renderBtcProductionChart(sel.value);
+    });
   }
 }
 
@@ -1428,7 +1441,7 @@ function renderEconCalendar() {
   let html = '<div class="econ-cal-list">';
 
   Object.entries(groups).forEach(([dateStr, events]) => {
-    const d = new Date(dateStr + 'T00:00:00');
+    const d = new Date(dateStr + 'T12:00:00');
     const dayLabel = d.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', weekday: 'short' });
     const diffLabel = daysDiff(d);
     const isToday = diffLabel === '今天' || diffLabel === 'Today';
@@ -1442,7 +1455,7 @@ function renderEconCalendar() {
 
     events.forEach(ev => {
       const name = currentLang === 'zh' ? ev.event_cn : ev.event;
-      html += `<div class="econ-cal-event">
+      html += `<div class="econ-cal-event"${ev.impact === 'high' ? ' style="border-left:3px solid var(--red);padding-left:8px;"' : ''}>
         <div class="econ-cal-event-main">
           ${impactIcon(ev.impact)}
           <span class="econ-cal-event-name">${name}</span>
@@ -1490,7 +1503,9 @@ function renderNewsList() {
           ${n.ticker ? `<span class="ticker-badge" style="font-size:9px;padding:2px 5px;">${n.ticker}</span>` : ''}
           <span class="news-sentiment-dot ${sentDot}" style="margin-left:auto;"></span>
         </div>
-        <div class="news-title">${n.title_cn || n.title}</div>
+        <div class="news-title">${n.source_url
+          ? `<a href="${n.source_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:inherit;text-decoration:none;">${n.title_cn || n.title} <span style="font-size:9px;color:var(--accent-blue);">↗</span></a>`
+          : (n.title_cn || n.title)}</div>
         <div class="news-meta">
           <span class="news-source">${n.source}</span>
           <span>·</span>
@@ -1840,9 +1855,9 @@ function renderSocialSentiment() {
           </div>
         </div>
         <div style="margin-top:8px;display:flex;gap:12px;font-size:10px;color:var(--text-muted);">
-          <span>Reddit: <span style="color:var(--text-secondary);">${s.reddit_mentions_24h}</span></span>
-          <span>X/Twitter: <span style="color:var(--text-secondary);">${s.twitter_x_mentions_24h.toLocaleString()}</span></span>
-          <span>StockTwits: <span style="color:${s.stocktwits_bullish_pct>=60?'var(--green)':'var(--text-secondary)'};">${s.stocktwits_bullish_pct}% ${t('js.bullish')}</span></span>
+          <span><a href="https://www.reddit.com/search/?q=${s.ticker}" target="_blank" rel="noopener" style="color:var(--accent-blue);text-decoration:none;">Reddit</a>: <span style="color:var(--text-secondary);">${s.reddit_mentions_24h}</span></span>
+          <span><a href="https://x.com/search?q=%24${s.ticker}" target="_blank" rel="noopener" style="color:var(--accent-blue);text-decoration:none;">X/Twitter</a>: <span style="color:var(--text-secondary);">${s.twitter_x_mentions_24h.toLocaleString()}</span></span>
+          <span><a href="https://stocktwits.com/symbol/${s.ticker}" target="_blank" rel="noopener" style="color:var(--accent-blue);text-decoration:none;">StockTwits</a>: <span style="color:${s.stocktwits_bullish_pct>=60?'var(--green)':'var(--text-secondary)'};">${s.stocktwits_bullish_pct}% ${t('js.bullish')}</span></span>
         </div>
       </div>`;
   }).join('');
@@ -1963,13 +1978,21 @@ function renderAnalysis() {
     return;
   }
   setupAnalysisModelSelector();
-  renderAnalysisModel(currentAnalysisModel);
+  if (currentAnalysisModel === 'summary') {
+    renderAnalysisSummary();
+  } else {
+    renderAnalysisModel(currentAnalysisModel);
+  }
 }
 
 function setupAnalysisModelSelector() {
   const container = document.getElementById('analysisModelSelector');
-  const modelKeys = ['montecarlo', 'kmv', 'altman', 'beneish', 'piotroski', 'jones'];
+  const modelKeys = ['summary', 'montecarlo', 'kmv', 'altman', 'beneish', 'piotroski', 'jones'];
   container.innerHTML = modelKeys.map(key => {
+    if (key === 'summary') {
+      const active = key === currentAnalysisModel ? ' active' : '';
+      return `<button class="model-tab${active}" data-model="summary">${t('analysis.summary')}</button>`;
+    }
     const model = window.ANALYSIS_MODELS[key];
     if (!model) return '';
     const info = model.info[currentLang] || model.info.zh;
@@ -1982,9 +2005,91 @@ function setupAnalysisModelSelector() {
       container.querySelectorAll('.model-tab').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentAnalysisModel = btn.dataset.model;
-      renderAnalysisModel(currentAnalysisModel);
+      if (currentAnalysisModel === 'summary') {
+        renderAnalysisSummary();
+      } else {
+        renderAnalysisModel(currentAnalysisModel);
+      }
     });
   });
+}
+
+function renderAnalysisSummary() {
+  const panel = document.getElementById('analysisInfoPanel');
+  panel.innerHTML = `<div class="analysis-info-content">
+    <div class="analysis-info-header"><h3 class="analysis-model-name">${t('analysis.summary')}</h3></div>
+    <p class="analysis-model-desc">${currentLang === 'zh' ? '汇总六大量化模型的评估结果，给出综合评级。' : 'Aggregates results from all six quantitative models into a composite rating.'}</p>
+  </div>`;
+
+  const mcArea = document.getElementById('mcChartArea');
+  mcArea.style.display = 'none';
+
+  const modelKeys = ['altman', 'piotroski', 'beneish', 'kmv', 'jones', 'montecarlo'];
+  const modelLabels = {
+    altman: 'Altman Z',
+    piotroski: 'Piotroski F',
+    beneish: 'Beneish M',
+    kmv: 'KMV DD',
+    jones: 'Jones DA',
+    montecarlo: 'Monte Carlo',
+  };
+
+  // Collect all tickers
+  const tickerSet = new Set();
+  const modelResults = {};
+  modelKeys.forEach(key => {
+    const model = window.ANALYSIS_MODELS[key];
+    if (!model) return;
+    const results = model.calculate(ANALYSIS_DATA);
+    modelResults[key] = results;
+    results.forEach(r => tickerSet.add(r.ticker));
+  });
+
+  const tickers = [...tickerSet].sort();
+  const verdictScore = (vc) => {
+    if (!vc) return 1;
+    if (vc.includes('safe') || vc.includes('strong') || vc.includes('healthy') || vc.includes('low') || vc.includes('normal')) return 2;
+    if (vc.includes('danger') || vc.includes('distress') || vc.includes('weak') || vc.includes('high') || vc.includes('manipulat')) return 0;
+    return 1;
+  };
+
+  const thead = document.getElementById('analysisTableHead');
+  const tbody = document.getElementById('analysisTableBody');
+
+  thead.innerHTML = `<tr>
+    <th>${t('th.company')}</th>
+    ${modelKeys.map(k => `<th class="td-right">${modelLabels[k]}</th>`).join('')}
+    <th class="td-right">${t('analysis.composite_rating')}</th>
+  </tr>`;
+
+  tbody.innerHTML = tickers.map(ticker => {
+    const co = COMPANIES.find(c => c.ticker === ticker);
+    let totalScore = 0, count = 0;
+    const cells = modelKeys.map(key => {
+      const results = modelResults[key] || [];
+      const r = results.find(x => x.ticker === ticker);
+      if (!r) return `<td class="td-right" style="color:var(--text-muted);">—</td>`;
+      const vc = r.verdictClass || '';
+      const vLabel = r.verdict[currentLang] || r.verdict.zh || '';
+      const s = verdictScore(vc);
+      totalScore += s;
+      count++;
+      return `<td class="td-right"><span class="verdict-badge ${vc}" style="font-size:10px;">${vLabel}</span></td>`;
+    }).join('');
+
+    const avg = count > 0 ? totalScore / count : 0;
+    let grade, gradeColor, gradeKey;
+    if (avg >= 1.6) { grade = 'A'; gradeColor = '#22c55e'; gradeKey = 'analysis.grade_a'; }
+    else if (avg >= 1.2) { grade = 'B'; gradeColor = '#3b82f6'; gradeKey = 'analysis.grade_b'; }
+    else if (avg >= 0.8) { grade = 'C'; gradeColor = '#f59e0b'; gradeKey = 'analysis.grade_c'; }
+    else { grade = 'D'; gradeColor = '#ef4444'; gradeKey = 'analysis.grade_d'; }
+
+    return `<tr>
+      <td><div class="analysis-company-cell"><span class="td-ticker">${ticker}</span><span class="analysis-co-name">${co ? co.name : ''}</span></div></td>
+      ${cells}
+      <td class="td-right"><span style="display:inline-block;padding:2px 8px;border-radius:4px;font-weight:700;font-size:12px;color:#fff;background:${gradeColor};">${grade}</span> <span style="font-size:9px;color:var(--text-muted);">${t(gradeKey)}</span></td>
+    </tr>`;
+  }).join('');
 }
 
 function renderAnalysisModel(modelKey) {
@@ -2432,7 +2537,12 @@ function renderInstitutionalPredictions() {
     ${years.map(y => `<th class="td-right">${y}</th>`).join('')}
   </tr>`;
 
-  tbody.innerHTML = data.map(src => {
+  tbody.innerHTML = data.filter(src => {
+    return years.some(y => {
+      const yp = src.predictions[y];
+      return yp && (yp.target || yp.bear || yp.base || yp.bull);
+    });
+  }).map(src => {
     const p = src.predictions;
     return `<tr>
       <td>
@@ -3542,9 +3652,17 @@ function renderMPBettingTable(data) {
       const countdown = formatPMCountdown(deadlineStr);
       const badgeClass = `mp-pm-badge mp-pm-badge-${source}`;
       const badgeLabel = { polymarket: 'PM', kalshi: 'KA', gemini: 'GE' }[source] || source;
+      const marketUrl = source === 'polymarket'
+        ? (m.condition_id || m.slug ? `https://polymarket.com/event/${m.condition_id || m.slug}` : '')
+        : source === 'kalshi'
+        ? (m.ticker_name || m.market_id ? `https://kalshi.com/markets/${m.ticker_name || m.market_id}` : '')
+        : '';
+      const badgeHtml = marketUrl
+        ? `<a href="${marketUrl}" target="_blank" rel="noopener" class="${badgeClass}" style="text-decoration:none;">${badgeLabel}</a>`
+        : `<span class="${badgeClass}">${badgeLabel}</span>`;
 
       return `<tr>
-        <td class="mp-bt-q"><span class="${badgeClass}">${badgeLabel}</span>${cnQ || m.question}</td>
+        <td class="mp-bt-q">${badgeHtml}${cnQ || m.question}</td>
         <td class="td-right mp-bt-yes">${yesPct}%</td>
         <td class="td-right mp-bt-no">${noPct}%</td>
         <td class="td-right">${formatVolume(m.volume || 0)}</td>
@@ -3689,6 +3807,16 @@ function renderMPMicroWidgets(optionsData, onchainData) {
       desc: '期权最大痛点，到期日价格倾向靠拢',
       color: '#f59e0b',
     });
+    if (optionsData.strike_concentration && optionsData.strike_concentration.length) {
+      const top = optionsData.strike_concentration[0];
+      widgets.push({
+        label: 'Strike',
+        value: '$' + top.strike.toLocaleString(),
+        sub: 'OI: ' + top.total_oi.toLocaleString(),
+        desc: '期权OI最集中行权价，磁吸效应',
+        color: '#a855f7',
+      });
+    }
   }
 
   // Onchain data
@@ -3716,6 +3844,19 @@ function renderMPMicroWidgets(optionsData, onchainData) {
       sub: 'sat/vB',
       desc: '最快确认手续费，高=网络繁忙',
       color: '#f97316',
+    });
+  }
+
+  // Whale transfers data
+  if (MARKET_PREDICT.whaleTransfers && MARKET_PREDICT.whaleTransfers.summary) {
+    const wt = MARKET_PREDICT.whaleTransfers.summary;
+    const netFlow = wt.net_exchange_flow_24h_btc || 0;
+    widgets.push({
+      label: 'Whale',
+      value: (netFlow > 0 ? '+' : '') + netFlow.toLocaleString() + ' BTC',
+      sub: netFlow < 0 ? t('mp.net_outflow') : t('mp.net_inflow'),
+      desc: '24h交易所净流量，流出=囤币看涨',
+      color: netFlow < 0 ? '#22c55e' : '#ef4444',
     });
   }
 
@@ -4114,4 +4255,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderOverview();
   fetchBtcPrice();
   fetchDifficulty();
+  loadMarketPredictions(); // preload, no await
 });
