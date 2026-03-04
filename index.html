@@ -552,6 +552,57 @@
       </div>
     </div>
 
+    <!-- Derivatives Dashboard -->
+    <div class="mp-section-block" id="mp-deriv-section" style="display:none;">
+      <div class="section-header mb-16">
+        <div class="section-title" data-i18n="mp.derivatives">衍生品仪表盘</div>
+        <span class="data-badge" data-i18n="mp.derivatives_sub">资金费率 · 持仓量 · 多空比 · 买卖比</span>
+      </div>
+      <!-- 4-column gauge cards -->
+      <div class="mp-deriv-gauges">
+        <div class="mp-deriv-card" id="mp-deriv-fr">
+          <div class="mp-deriv-label" data-i18n="mp.funding_rate">资金费率</div>
+          <div class="mp-deriv-value" id="mp-deriv-fr-val">--</div>
+          <div class="mp-deriv-zone" id="mp-deriv-fr-zone"></div>
+          <div class="mp-deriv-bar-wrap"><div class="mp-deriv-bar" id="mp-deriv-fr-bar"></div></div>
+        </div>
+        <div class="mp-deriv-card" id="mp-deriv-ls">
+          <div class="mp-deriv-label" data-i18n="mp.long_short">多空比</div>
+          <div class="mp-deriv-value" id="mp-deriv-ls-val">--</div>
+          <div class="mp-deriv-sub" id="mp-deriv-ls-pct"></div>
+          <canvas id="mp-deriv-ls-gauge" width="120" height="70"></canvas>
+        </div>
+        <div class="mp-deriv-card" id="mp-deriv-taker">
+          <div class="mp-deriv-label" data-i18n="mp.taker_ratio">主动买卖比</div>
+          <div class="mp-deriv-value" id="mp-deriv-taker-val">--</div>
+          <div class="mp-deriv-taker-bar">
+            <div class="mp-deriv-taker-buy" id="mp-deriv-taker-buy"></div>
+            <div class="mp-deriv-taker-sell" id="mp-deriv-taker-sell"></div>
+          </div>
+          <div class="mp-deriv-taker-labels">
+            <span class="mp-deriv-taker-buy-label" id="mp-deriv-buy-label"></span>
+            <span class="mp-deriv-taker-sell-label" id="mp-deriv-sell-label"></span>
+          </div>
+        </div>
+        <div class="mp-deriv-card" id="mp-deriv-oi">
+          <div class="mp-deriv-label" data-i18n="mp.open_interest">持仓量 (OI)</div>
+          <div class="mp-deriv-value" id="mp-deriv-oi-val">--</div>
+          <div class="mp-deriv-sub" id="mp-deriv-oi-trend"></div>
+        </div>
+      </div>
+      <!-- 2 charts -->
+      <div class="mp-deriv-charts">
+        <div class="mp-deriv-chart-wrap">
+          <div class="mp-deriv-chart-title" data-i18n="mp.fr_history">资金费率历史 (7天)</div>
+          <canvas id="mp-deriv-fr-chart"></canvas>
+        </div>
+        <div class="mp-deriv-chart-wrap">
+          <div class="mp-deriv-chart-title" data-i18n="mp.oi_vs_price">持仓量 vs 价格 (7天)</div>
+          <canvas id="mp-deriv-oi-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
     <!-- All Models Grid -->
     <div class="mp-section-block">
       <div class="section-header mb-16">

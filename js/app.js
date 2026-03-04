@@ -2641,6 +2641,11 @@ async function renderMarketPredict() {
   // Forecast chart (always render — historical data + prediction/signal overlays even if no forecast)
   renderMPForecastChart(forecast && !forecast.error ? forecast : null);
 
+  // Derivatives Dashboard
+  if (MARKET_PREDICT.derivatives) {
+    renderMPDerivatives(MARKET_PREDICT.derivatives);
+  }
+
   // Models
   if (models && models.predictions) {
     renderMPModels(models.predictions);
@@ -3309,6 +3314,330 @@ function renderMPFearGreed(data) {
       <div class="mp-fg-inline-val">${label}</div>
     </div>
     <div class="mp-fg-inline-spark">${sparkline}</div>`;
+}
+
+// ── DERIVATIVES DASHBOARD ────────────────────────────────────────────────────
+
+let _derivFRChart = null;
+let _derivOIChart = null;
+
+function renderMPDerivatives(data) {
+  const section = document.getElementById('mp-deriv-section');
+  if (!section) return;
+  if (!data || !data.snapshot) { section.style.display = 'none'; return; }
+  section.style.display = '';
+
+  const { snapshot, history, signals } = data;
+  renderDerivFRGauge(snapshot, signals);
+  renderDerivLSGauge(snapshot, signals);
+  renderDerivTakerBar(snapshot);
+  renderDerivOISummary(snapshot, signals);
+  if (history) {
+    renderDerivFRChart(history.funding_rate || []);
+    renderDerivOIChart(history.open_interest || [], history.price || []);
+  }
+}
+
+function renderDerivFRGauge(snap, sig) {
+  const valEl = document.getElementById('mp-deriv-fr-val');
+  const zoneEl = document.getElementById('mp-deriv-fr-zone');
+  const barEl = document.getElementById('mp-deriv-fr-bar');
+  if (!valEl) return;
+
+  const fr = snap.funding_rate || 0;
+  const frPct = (fr * 100).toFixed(4);
+  valEl.textContent = (fr >= 0 ? '+' : '') + frPct + '%';
+  valEl.style.color = fr > 0 ? '#22c55e' : fr < 0 ? '#ef4444' : 'var(--text-primary)';
+
+  const zone = sig.fr_zone || 'neutral';
+  const zoneMap = {
+    neutral: { cls: 'zone-neutral', label: t('mp.fr_neutral') },
+    positive: { cls: 'zone-positive', label: t('mp.fr_positive') },
+    negative: { cls: 'zone-negative', label: t('mp.fr_negative') },
+    extreme_positive: { cls: 'zone-extreme-pos', label: t('mp.fr_extreme_pos') },
+    extreme_negative: { cls: 'zone-extreme-neg', label: t('mp.fr_extreme_neg') },
+  };
+  const z = zoneMap[zone] || zoneMap.neutral;
+  zoneEl.className = 'mp-deriv-zone ' + z.cls;
+  zoneEl.textContent = z.label;
+
+  // Bar: center = 0, extend left (negative) or right (positive)
+  const maxFR = 0.0005; // ±0.05% as full width
+  const pct = Math.min(Math.abs(fr) / maxFR, 1) * 50;
+  if (fr >= 0) {
+    barEl.style.left = '50%';
+    barEl.style.width = pct + '%';
+    barEl.style.background = '#22c55e';
+  } else {
+    barEl.style.left = (50 - pct) + '%';
+    barEl.style.width = pct + '%';
+    barEl.style.background = '#ef4444';
+  }
+}
+
+function renderDerivLSGauge(snap, sig) {
+  const valEl = document.getElementById('mp-deriv-ls-val');
+  const pctEl = document.getElementById('mp-deriv-ls-pct');
+  const canvas = document.getElementById('mp-deriv-ls-gauge');
+  if (!valEl) return;
+
+  const ls = snap.long_short_ratio || 0;
+  valEl.textContent = ls.toFixed(2);
+
+  const longPct = snap.long_account_pct ? (snap.long_account_pct * 100).toFixed(1) : '--';
+  const shortPct = snap.short_account_pct ? (snap.short_account_pct * 100).toFixed(1) : '--';
+  const bias = sig.ls_bias || 'balanced';
+  const biasLabel = t('mp.bias_' + bias);
+  pctEl.innerHTML = `<span class="mp-deriv-bias bias-${bias}">${biasLabel}</span> (${t('mp.buy')} ${longPct}% / ${t('mp.sell')} ${shortPct}%)`;
+
+  // Draw semicircle gauge
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  const cx = w / 2, cy = h - 5, r = 50;
+
+  // Background arc
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, Math.PI, 0, false);
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = 'rgba(107,114,128,0.2)';
+  ctx.stroke();
+
+  // Value arc: ls = 0..2 mapped to PI..0 (left=short, right=long)
+  const ratio = Math.min(Math.max(ls, 0), 3) / 3; // 0-3 range
+  const angle = Math.PI - ratio * Math.PI;
+
+  // Green (long) portion
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, angle, 0, false);
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = '#22c55e';
+  ctx.stroke();
+
+  // Red (short) portion
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, Math.PI, angle, false);
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = '#ef4444';
+  ctx.stroke();
+
+  // Needle
+  const needleAngle = Math.PI - ratio * Math.PI;
+  const nx = cx + Math.cos(needleAngle) * (r - 15);
+  const ny = cy + Math.sin(needleAngle) * (r - 15);
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(nx, ny);
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'var(--text-primary)';
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+  ctx.fillStyle = 'var(--text-primary)';
+  ctx.fill();
+}
+
+function renderDerivTakerBar(snap) {
+  const valEl = document.getElementById('mp-deriv-taker-val');
+  const buyEl = document.getElementById('mp-deriv-taker-buy');
+  const sellEl = document.getElementById('mp-deriv-taker-sell');
+  const buyLabel = document.getElementById('mp-deriv-buy-label');
+  const sellLabel = document.getElementById('mp-deriv-sell-label');
+  if (!valEl) return;
+
+  const ratio = snap.taker_buy_sell_ratio || 0;
+  valEl.textContent = ratio.toFixed(4);
+  valEl.style.color = ratio > 1 ? '#22c55e' : ratio < 1 ? '#ef4444' : 'var(--text-primary)';
+
+  const buyVol = snap.taker_buy_vol || 0;
+  const sellVol = snap.taker_sell_vol || 0;
+  const total = buyVol + sellVol || 1;
+  const buyPct = (buyVol / total * 100).toFixed(1);
+  const sellPct = (sellVol / total * 100).toFixed(1);
+
+  buyEl.style.width = buyPct + '%';
+  sellEl.style.width = sellPct + '%';
+  buyLabel.textContent = `${t('mp.buy')} ${buyPct}%`;
+  sellLabel.textContent = `${t('mp.sell')} ${sellPct}%`;
+}
+
+function renderDerivOISummary(snap, sig) {
+  const valEl = document.getElementById('mp-deriv-oi-val');
+  const trendEl = document.getElementById('mp-deriv-oi-trend');
+  if (!valEl) return;
+
+  const oi = snap.open_interest || 0;
+  // Format OI: e.g. 79,136 BTC
+  valEl.textContent = oi.toLocaleString('en-US', { maximumFractionDigits: 0 }) + ' BTC';
+
+  const trend = sig.oi_trend || 'flat';
+  const trendMap = {
+    rising: { arrow: '▲', cls: 'mp-deriv-trend-up', label: t('mp.oi_rising') },
+    falling: { arrow: '▼', cls: 'mp-deriv-trend-down', label: t('mp.oi_falling') },
+    flat: { arrow: '→', cls: 'mp-deriv-trend-flat', label: t('mp.oi_flat') },
+  };
+  const tr = trendMap[trend] || trendMap.flat;
+  trendEl.innerHTML = `<span class="${tr.cls}">${tr.arrow} ${tr.label}</span>`;
+
+  // Show divergence signal if present
+  const div = sig.oi_price_divergence || 0;
+  if (div !== 0) {
+    const divLabel = div > 0 ? (currentLang === 'zh' ? 'OI背离: 看涨' : 'OI Divergence: Bullish')
+                             : (currentLang === 'zh' ? 'OI背离: 看跌' : 'OI Divergence: Bearish');
+    const divCls = div > 0 ? 'mp-deriv-trend-up' : 'mp-deriv-trend-down';
+    trendEl.innerHTML += ` <span class="${divCls}" style="font-size:10px;margin-left:4px;">${divLabel}</span>`;
+  }
+}
+
+function renderDerivFRChart(frHistory) {
+  const canvas = document.getElementById('mp-deriv-fr-chart');
+  if (!canvas || !frHistory.length) return;
+
+  if (_derivFRChart) { _derivFRChart.destroy(); _derivFRChart = null; }
+
+  const labels = frHistory.map(d => {
+    const dt = new Date(d.timestamp);
+    return dt.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) + ' '
+         + dt.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
+  });
+  const values = frHistory.map(d => d.value * 100); // to percentage
+  const colors = values.map(v => v >= 0 ? 'rgba(34,197,94,0.8)' : 'rgba(239,68,68,0.8)');
+
+  const cs = getComputedStyle(document.documentElement);
+  const gridColor = cs.getPropertyValue('--border').trim() || 'rgba(255,255,255,0.06)';
+  const tickColor = cs.getPropertyValue('--text-muted').trim() || '#666';
+
+  _derivFRChart = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors,
+        borderRadius: 2,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y.toFixed(4)}%`,
+          },
+        },
+        annotation: {
+          annotations: {
+            posLine: { type: 'line', yMin: 0.03, yMax: 0.03, borderColor: 'rgba(34,197,94,0.4)', borderDash: [4,4], borderWidth: 1 },
+            negLine: { type: 'line', yMin: -0.03, yMax: -0.03, borderColor: 'rgba(239,68,68,0.4)', borderDash: [4,4], borderWidth: 1 },
+            zeroLine: { type: 'line', yMin: 0, yMax: 0, borderColor: 'rgba(255,255,255,0.2)', borderWidth: 1 },
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: { color: gridColor },
+          ticks: { color: tickColor, font: { size: 9 }, maxRotation: 45, maxTicksLimit: 10 },
+        },
+        y: {
+          grid: { color: gridColor },
+          ticks: { color: tickColor, font: { size: 10, family: 'JetBrains Mono' }, callback: v => v.toFixed(3) + '%' },
+        },
+      },
+    },
+  });
+}
+
+function renderDerivOIChart(oiHistory, priceHistory) {
+  const canvas = document.getElementById('mp-deriv-oi-chart');
+  if (!canvas || (!oiHistory.length && !priceHistory.length)) return;
+
+  if (_derivOIChart) { _derivOIChart.destroy(); _derivOIChart = null; }
+
+  // Use price history timestamps as primary labels (more uniform)
+  const primary = priceHistory.length ? priceHistory : oiHistory;
+  const labels = primary.map(d => {
+    const dt = new Date(d.timestamp);
+    return dt.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) + ' '
+         + dt.toLocaleTimeString('zh-CN', { hour: '2-digit', hour12: false });
+  });
+
+  const cs = getComputedStyle(document.documentElement);
+  const gridColor = cs.getPropertyValue('--border').trim() || 'rgba(255,255,255,0.06)';
+  const tickColor = cs.getPropertyValue('--text-muted').trim() || '#666';
+
+  const datasets = [];
+  if (oiHistory.length) {
+    datasets.push({
+      label: 'Open Interest (BTC)',
+      data: oiHistory.map(d => d.value),
+      borderColor: '#f59e0b',
+      backgroundColor: 'rgba(245,158,11,0.1)',
+      fill: true,
+      yAxisID: 'y',
+      pointRadius: 0,
+      borderWidth: 2,
+      tension: 0.3,
+    });
+  }
+  if (priceHistory.length) {
+    datasets.push({
+      label: 'Price (USD)',
+      data: priceHistory.map(d => d.value),
+      borderColor: '#3b82f6',
+      backgroundColor: 'transparent',
+      yAxisID: 'y1',
+      pointRadius: 0,
+      borderWidth: 2,
+      tension: 0.3,
+    });
+  }
+
+  _derivOIChart = new Chart(canvas, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          labels: { color: tickColor, font: { size: 10 }, boxWidth: 12 },
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = ctx.parsed.y;
+              return ctx.dataset.yAxisID === 'y1'
+                ? `$${v.toLocaleString('en-US', { maximumFractionDigits: 0 })}`
+                : v.toLocaleString('en-US', { maximumFractionDigits: 0 }) + ' BTC';
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: { color: gridColor },
+          ticks: { color: tickColor, font: { size: 9 }, maxRotation: 45, maxTicksLimit: 12 },
+        },
+        y: {
+          position: 'left',
+          grid: { color: gridColor },
+          ticks: { color: '#f59e0b', font: { size: 10, family: 'JetBrains Mono' }, callback: v => (v / 1000).toFixed(0) + 'K' },
+          title: { display: true, text: 'OI (BTC)', color: '#f59e0b', font: { size: 10 } },
+        },
+        y1: {
+          position: 'right',
+          grid: { drawOnChartArea: false },
+          ticks: { color: '#3b82f6', font: { size: 10, family: 'JetBrains Mono' }, callback: v => '$' + (v / 1000).toFixed(1) + 'K' },
+          title: { display: true, text: 'Price', color: '#3b82f6', font: { size: 10 } },
+        },
+      },
+      interaction: { intersect: false, mode: 'index' },
+    },
+  });
 }
 
 // ── DIFFICULTY TICKER ────────────────────────────────────────────────────────

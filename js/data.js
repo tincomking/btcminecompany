@@ -12,7 +12,7 @@ let NEWS = [];
 let SENTIMENT = { analyst_ratings: [], social_sentiment: [] };
 let ANALYSIS_DATA = {};
 let BTC_PREDICTIONS = {};
-let MARKET_PREDICT = { latest: null, forecast: null, models: null, polymarket: null, fearGreed: null, predictionHistory: null, signalHistory: null };
+let MARKET_PREDICT = { latest: null, forecast: null, models: null, polymarket: null, fearGreed: null, derivatives: null, predictionHistory: null, signalHistory: null };
 
 let dataReady = false;
 let marketPredictLoaded = false;
@@ -128,6 +128,13 @@ async function loadMarketPredictions() {
       polymarket: pmRes,
       fearGreed: fgRes,
     };
+    // Derivatives data
+    try {
+      const derivRes = await fetchAPI('/api/predict/derivatives');
+      if (derivRes && derivRes.snapshot) {
+        MARKET_PREDICT.derivatives = derivRes;
+      }
+    } catch (_) { /* derivatives not available yet */ }
     // Try fetching multi-platform betting data; fallback to polymarket only
     try {
       const bettingRes = await fetchAPI('/api/predict/betting-markets');

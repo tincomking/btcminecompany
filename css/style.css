@@ -2432,3 +2432,140 @@ canvas { max-width: 100%; }
 @media (max-width: 600px) {
   .mp-explain-card { padding: 14px; }
 }
+
+/* ── DERIVATIVES DASHBOARD ──────────────────────────────────────────────────── */
+.mp-deriv-gauges {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.mp-deriv-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+}
+.mp-deriv-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+.mp-deriv-value {
+  font-size: 22px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.mp-deriv-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.mp-deriv-zone {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+.mp-deriv-zone.zone-neutral { background: rgba(107,114,128,0.15); color: #9ca3af; }
+.mp-deriv-zone.zone-positive { background: rgba(34,197,94,0.12); color: #22c55e; }
+.mp-deriv-zone.zone-negative { background: rgba(239,68,68,0.12); color: #ef4444; }
+.mp-deriv-zone.zone-extreme-pos { background: rgba(34,197,94,0.25); color: #16a34a; }
+.mp-deriv-zone.zone-extreme-neg { background: rgba(239,68,68,0.25); color: #dc2626; }
+
+/* FR bar gauge */
+.mp-deriv-bar-wrap {
+  height: 6px;
+  background: var(--bg-main);
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+  margin-top: 6px;
+}
+.mp-deriv-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s, background 0.5s;
+  position: absolute;
+  left: 50%;
+}
+
+/* LS gauge canvas */
+#mp-deriv-ls-gauge {
+  display: block;
+  margin: 4px auto 0;
+}
+
+/* Taker buy/sell bar */
+.mp-deriv-taker-bar {
+  display: flex;
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+  margin: 8px 0 4px;
+}
+.mp-deriv-taker-buy {
+  background: #22c55e;
+  transition: width 0.5s;
+}
+.mp-deriv-taker-sell {
+  background: #ef4444;
+  transition: width 0.5s;
+}
+.mp-deriv-taker-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.mp-deriv-taker-buy-label { color: #22c55e; }
+.mp-deriv-taker-sell-label { color: #ef4444; }
+
+/* OI trend arrow */
+.mp-deriv-trend-up { color: #22c55e; }
+.mp-deriv-trend-down { color: #ef4444; }
+.mp-deriv-trend-flat { color: #9ca3af; }
+
+/* Charts */
+.mp-deriv-charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.mp-deriv-chart-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+}
+.mp-deriv-chart-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.mp-deriv-chart-wrap canvas {
+  width: 100% !important;
+  height: 200px !important;
+}
+
+/* LS bias badges */
+.mp-deriv-bias { font-weight: 600; }
+.mp-deriv-bias.bias-long { color: #22c55e; }
+.mp-deriv-bias.bias-short { color: #ef4444; }
+.mp-deriv-bias.bias-balanced { color: #9ca3af; }
+
+@media (max-width: 900px) {
+  .mp-deriv-gauges { grid-template-columns: repeat(2, 1fr); }
+  .mp-deriv-charts { grid-template-columns: 1fr; }
+}
+@media (max-width: 500px) {
+  .mp-deriv-gauges { grid-template-columns: 1fr; }
+}
