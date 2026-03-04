@@ -2646,6 +2646,11 @@ async function renderMarketPredict() {
     renderMPDerivatives(MARKET_PREDICT.derivatives);
   }
 
+  // Options Data (Deribit)
+  if (MARKET_PREDICT.options) {
+    renderMPOptions(MARKET_PREDICT.options);
+  }
+
   // On-chain Data
   if (MARKET_PREDICT.onchain) {
     renderMPOnchain(MARKET_PREDICT.onchain);
@@ -3326,6 +3331,117 @@ function renderMPFearGreed(data) {
       <div class="mp-fg-inline-val">${label}</div>
     </div>
     <div class="mp-fg-inline-spark">${sparkline}</div>`;
+}
+
+// ── OPTIONS DATA (DERIBIT) ───────────────────────────────────────────────────
+
+let _optionsIVChart = null;
+
+function renderMPOptions(data) {
+  const section = document.getElementById('mp-options-section');
+  if (!section) return;
+  if (!data || !data.index_price) { section.style.display = 'none'; return; }
+  section.style.display = '';
+
+  const cards = document.getElementById('mp-options-cards');
+  if (!cards) return;
+
+  const pcrColor = data.pcr_oi > 0.7 ? '#ef4444' : data.pcr_oi < 0.5 ? '#22c55e' : '#f59e0b';
+  const pcrLabel = data.pcr_oi > 0.7 ? (currentLang === 'zh' ? '看跌倾向' : 'Bearish bias')
+                 : data.pcr_oi < 0.5 ? (currentLang === 'zh' ? '看涨倾向' : 'Bullish bias')
+                 : (currentLang === 'zh' ? '中性' : 'Neutral');
+
+  const mpDist = data.max_pain && data.index_price
+    ? ((data.max_pain - data.index_price) / data.index_price * 100).toFixed(1)
+    : 0;
+  const mpColor = mpDist > 0 ? '#22c55e' : '#ef4444';
+
+  cards.innerHTML = `
+    <div class="mp-deriv-card">
+      <div class="mp-deriv-label">${t('mp.implied_vol')}</div>
+      <div class="mp-deriv-value" style="color:#a855f7;">${data.avg_iv?.toFixed(1) || '--'}%</div>
+      <div class="mp-deriv-sub">${t('mp.hist_vol')}: ${data.historical_volatility?.toFixed(1) || '--'}%</div>
+    </div>
+    <div class="mp-deriv-card">
+      <div class="mp-deriv-label">${t('mp.put_call_ratio')} (OI)</div>
+      <div class="mp-deriv-value" style="color:${pcrColor};">${data.pcr_oi?.toFixed(3) || '--'}</div>
+      <div class="mp-deriv-sub" style="color:${pcrColor};">${pcrLabel}</div>
+    </div>
+    <div class="mp-deriv-card">
+      <div class="mp-deriv-label">${t('mp.max_pain')}</div>
+      <div class="mp-deriv-value">$${data.max_pain?.toLocaleString() || '--'}</div>
+      <div class="mp-deriv-sub" style="color:${mpColor};">${mpDist > 0 ? '+' : ''}${mpDist}% ${currentLang === 'zh' ? '距现价' : 'from spot'}</div>
+    </div>
+    <div class="mp-deriv-card">
+      <div class="mp-deriv-label">${currentLang === 'zh' ? '期权合约数' : 'Instruments'}</div>
+      <div class="mp-deriv-value">${data.instruments_count?.toLocaleString() || '--'}</div>
+      <div class="mp-deriv-sub">Call OI: ${(data.total_call_oi || 0).toLocaleString('en-US', {maximumFractionDigits: 0})} BTC</div>
+    </div>
+  `;
+
+  // HV history chart
+  if (data.hv_history && data.hv_history.length > 0) {
+    renderOptionsIVChart(data);
+  }
+}
+
+function renderOptionsIVChart(data) {
+  const canvas = document.getElementById('mp-options-iv-chart');
+  if (!canvas) return;
+  if (_optionsIVChart) { _optionsIVChart.destroy(); _optionsIVChart = null; }
+
+  const hv = data.hv_history || [];
+  const labels = hv.map(h => {
+    const d = new Date(h[0]);
+    return d.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' });
+  });
+  const hvValues = hv.map(h => h[1]);
+
+  const cs = getComputedStyle(document.documentElement);
+  const gridColor = cs.getPropertyValue('--border').trim() || 'rgba(255,255,255,0.06)';
+  const tickColor = cs.getPropertyValue('--text-muted').trim() || '#666';
+
+  const datasets = [
+    {
+      label: t('mp.hist_vol'),
+      data: hvValues,
+      borderColor: '#f59e0b',
+      backgroundColor: 'rgba(245,158,11,0.1)',
+      fill: true,
+      pointRadius: 0,
+      borderWidth: 2,
+      tension: 0.3,
+    },
+  ];
+
+  // Add IV as horizontal line
+  if (data.avg_iv) {
+    datasets.push({
+      label: t('mp.implied_vol'),
+      data: Array(hvValues.length).fill(data.avg_iv),
+      borderColor: '#a855f7',
+      borderDash: [6, 3],
+      pointRadius: 0,
+      borderWidth: 2,
+    });
+  }
+
+  _optionsIVChart = new Chart(canvas, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, labels: { color: tickColor, font: { size: 10 }, boxWidth: 12 } },
+        tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(1) + '%' } },
+      },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 9 }, maxTicksLimit: 10 } },
+        y: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 10, family: 'JetBrains Mono' }, callback: v => v + '%' } },
+      },
+    },
+  });
 }
 
 // ── ON-CHAIN DATA ───────────────────────────────────────────────────────────

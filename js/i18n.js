@@ -289,6 +289,14 @@ const I18N = {
     'mp.buy': '买',
     'mp.sell': '卖',
 
+    // Options
+    'mp.options_title': 'BTC 期权数据',
+    'mp.iv_history': '隐含波动率 vs 历史波动率',
+    'mp.put_call_ratio': 'Put/Call 比',
+    'mp.implied_vol': '隐含波动率',
+    'mp.hist_vol': '历史波动率',
+    'mp.max_pain': 'Max Pain',
+
     // On-chain
     'mp.onchain_title': '链上数据',
     'mp.onchain_sub': '算力 · Mempool · 手续费 · 供应量',
@@ -585,6 +593,14 @@ const I18N = {
     'mp.bias_balanced': 'Balanced',
     'mp.buy': 'Buy',
     'mp.sell': 'Sell',
+
+    // Options
+    'mp.options_title': 'BTC Options Data',
+    'mp.iv_history': 'Implied Vol vs Historical Vol',
+    'mp.put_call_ratio': 'Put/Call Ratio',
+    'mp.implied_vol': 'Implied Volatility',
+    'mp.hist_vol': 'Historical Volatility',
+    'mp.max_pain': 'Max Pain',
 
     // On-chain
     'mp.onchain_title': 'On-chain Data',
