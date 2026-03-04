@@ -3172,19 +3172,20 @@ async function _renderMPChart() {
 
   const predHistory = MARKET_PREDICT.predictionHistory;
   if (predHistory && predHistory.predictions && predHistory.predictions.length > 0) {
-    // 1. 按时间排序，下采样到每2小时1个点
+    // 1. 按 target_timestamp 排序，下采样到每2小时1个点
+    //    用 target_timestamp 绘制使预测值与实际价格在同一时间点对比
     const sorted = predHistory.predictions
-      .filter(p => p.predicted_price && p.predicted_price > 0)
-      .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      .filter(p => p.predicted_price && p.predicted_price > 0 && p.target_timestamp)
+      .sort((a, b) => new Date(a.target_timestamp) - new Date(b.target_timestamp));
     const BUCKET_MS = 2 * 3600 * 1000;
     const bucketMap = new Map();
     sorted.forEach(p => {
-      const ts = new Date(p.timestamp).getTime();
+      const ts = new Date(p.target_timestamp).getTime();
       const bucket = Math.floor(ts / BUCKET_MS);
       bucketMap.set(bucket, p);
     });
     let pts = Array.from(bucketMap.values())
-      .map(p => ({ x: new Date(p.timestamp), y: p.predicted_price }))
+      .map(p => ({ x: new Date(p.target_timestamp), y: p.predicted_price }))
       .sort((a, b) => a.x - b.x);
     // 2. 双重移动平均平滑（两轮3点MA，等效于加权5点）
     const sma3 = arr => arr.map((pt, i) => {
@@ -3243,35 +3244,45 @@ async function _renderMPChart() {
 
   if (forecast) {
     const nowTs = histData.length > 0 ? histData[histData.length - 1].x : new Date();
+    const nowMs = nowTs.getTime();
     if (forecast.hourly_forecast) {
-      const combined = forecast.hourly_forecast.map(p => ({ x: new Date(p.timestamp), y: p.price }));
-      if (histData.length > 0) combined.unshift({ x: nowTs, y: histData[histData.length - 1].y });
-      datasets.push({
-        label: t('mp.combined'),
-        data: combined,
-        borderColor: '#f59e0b',
-        backgroundColor: 'rgba(245,158,11,0.04)',
-        borderWidth: 2,
-        borderDash: [6, 3],
-        pointRadius: 0,
-        fill: true,
-        tension: 0.3,
-        order: 0,
-      });
+      // Filter out stale forecast points that are already in the past
+      const futurePts = forecast.hourly_forecast
+        .filter(p => new Date(p.timestamp).getTime() >= nowMs)
+        .map(p => ({ x: new Date(p.timestamp), y: p.price }));
+      if (histData.length > 0 && futurePts.length > 0) futurePts.unshift({ x: nowTs, y: histData[histData.length - 1].y });
+      if (futurePts.length > 0) {
+        datasets.push({
+          label: t('mp.combined'),
+          data: futurePts,
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245,158,11,0.04)',
+          borderWidth: 2,
+          borderDash: [6, 3],
+          pointRadius: 0,
+          fill: true,
+          tension: 0.3,
+          order: 0,
+        });
+      }
     }
     if (forecast.hourly_model_only) {
-      const modelData = forecast.hourly_model_only.map(p => ({ x: new Date(p.timestamp), y: p.price }));
-      if (histData.length > 0) modelData.unshift({ x: nowTs, y: histData[histData.length - 1].y });
-      datasets.push({
-        label: t('mp.model_only'),
-        data: modelData,
-        borderColor: '#a78bfa',
-        borderWidth: 1.5,
-        borderDash: [4, 4],
-        pointRadius: 0,
-        tension: 0.3,
-        order: 1,
-      });
+      const futureModel = forecast.hourly_model_only
+        .filter(p => new Date(p.timestamp).getTime() >= nowMs)
+        .map(p => ({ x: new Date(p.timestamp), y: p.price }));
+      if (histData.length > 0 && futureModel.length > 0) futureModel.unshift({ x: nowTs, y: histData[histData.length - 1].y });
+      if (futureModel.length > 0) {
+        datasets.push({
+          label: t('mp.model_only'),
+          data: futureModel,
+          borderColor: '#a78bfa',
+          borderWidth: 1.5,
+          borderDash: [4, 4],
+          pointRadius: 0,
+          tension: 0.3,
+          order: 1,
+        });
+      }
     }
   }
 
