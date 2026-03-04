@@ -2624,6 +2624,7 @@ canvas { max-width: 100%; }
 }
 .mp-chart-cell {
   flex: 1;
+  min-width: 0;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -2638,12 +2639,12 @@ canvas { max-width: 100%; }
 }
 .mp-chart-cell canvas {
   width: 100% !important;
-  height: 140px !important;
+  height: 200px !important;
 }
 
 /* Micro Widgets */
 .mp-micro-widgets {
-  width: 180px;
+  width: 160px;
   flex-shrink: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
