@@ -495,29 +495,635 @@
   <!-- ─────────────────────── PAGE: MARKET PREDICT ─────────────────────── -->
   <div class="page" id="page-market-predict">
 
-    <!-- Help Modal (overlay) -->
+    <!-- Methodology Modal (overlay) -->
     <div class="mp-help-overlay" id="mp-help-overlay" style="display:none;" onclick="if(event.target===this)this.style.display='none';">
-      <div class="mp-help-modal">
+      <div class="mp-method-modal">
         <button class="mp-help-close" onclick="document.getElementById('mp-help-overlay').style.display='none';">&times;</button>
-        <h3 style="margin:0 0 16px;color:var(--text-primary);">预测机制说明</h3>
-        <div class="mp-help-content">
-          <div class="mp-help-item">
-            <strong>综合预测</strong>
-            <p>融合模型投票（70%权重）+ 押注市场信号（30%权重）。11个AI模型各自投票，再与Polymarket/Kalshi/Gemini真金白银共识结合。</p>
+        <h3 class="mp-method-title">币价预测系统 — 完整方法论</h3>
+
+        <!-- Tab Navigation -->
+        <div class="mp-method-tabs" id="mp-method-tabs">
+          <button class="mp-method-tab active" data-tab="tab-overview">系统架构</button>
+          <button class="mp-method-tab" data-tab="tab-data">数据采集</button>
+          <button class="mp-method-tab" data-tab="tab-features">特征工程</button>
+          <button class="mp-method-tab" data-tab="tab-models">11个模型</button>
+          <button class="mp-method-tab" data-tab="tab-ensemble">共识融合</button>
+          <button class="mp-method-tab" data-tab="tab-backtest">回测验证</button>
+          <button class="mp-method-tab" data-tab="tab-glossary">指标说明</button>
+        </div>
+
+        <!-- Tab: 系统架构 -->
+        <div class="mp-method-panel active" id="tab-overview">
+          <div class="mp-method-flow">
+            <div class="mp-flow-stage">
+              <div class="mp-flow-icon">1</div>
+              <div class="mp-flow-label">数据采集</div>
+              <div class="mp-flow-detail">5个采集器<br>6个数据源</div>
+            </div>
+            <div class="mp-flow-arrow">→</div>
+            <div class="mp-flow-stage">
+              <div class="mp-flow-icon">2</div>
+              <div class="mp-flow-label">特征工程</div>
+              <div class="mp-flow-detail">45+技术指标<br>宏观+情绪特征</div>
+            </div>
+            <div class="mp-flow-arrow">→</div>
+            <div class="mp-flow-stage">
+              <div class="mp-flow-icon">3</div>
+              <div class="mp-flow-label">模型预测</div>
+              <div class="mp-flow-detail">11个独立模型<br>3个时间维度</div>
+            </div>
+            <div class="mp-flow-arrow">→</div>
+            <div class="mp-flow-stage">
+              <div class="mp-flow-icon">4</div>
+              <div class="mp-flow-label">共识融合</div>
+              <div class="mp-flow-detail">Ensemble投票<br>+Polymarket调整</div>
+            </div>
+            <div class="mp-flow-arrow">→</div>
+            <div class="mp-flow-stage mp-flow-stage-out">
+              <div class="mp-flow-icon">5</div>
+              <div class="mp-flow-label">输出</div>
+              <div class="mp-flow-detail">方向/置信度<br>目标价/收益率</div>
+            </div>
           </div>
-          <div class="mp-help-item">
-            <strong>全模型（11个）</strong>
-            <p>ML(5): XGBoost/LightGBM/RF/SVR/Ridge | NN(1): MLP | TS(1): ARIMA | TA(4): EMA/RSI/MACD/Bollinger。输入：Binance K线 + 30指标 + F&G。</p>
+
+          <div class="mp-method-section">
+            <h4>预测维度</h4>
+            <table class="mp-method-tbl">
+              <tr><th>维度</th><th>含义</th><th>用途</th></tr>
+              <tr><td><span class="mp-tag mp-tag-blue">4H</span></td><td>未来4小时价格方向</td><td>超短线交易、日内波段</td></tr>
+              <tr><td><span class="mp-tag mp-tag-green">24H</span></td><td>未来24小时价格方向</td><td>日线交易、主力预测维度</td></tr>
+              <tr><td><span class="mp-tag mp-tag-purple">7D</span></td><td>未来7天价格方向</td><td>中线持仓、趋势判断</td></tr>
+            </table>
           </div>
-          <div class="mp-help-item">
-            <strong>预测市场（3平台）</strong>
-            <p>Polymarket（最大预测市场）、Kalshi（CFTC监管）、Gemini。按交易量加权。</p>
-          </div>
-          <div class="mp-help-item mp-help-disclaimer">
-            <strong>免责声明</strong>
-            <p>所有预测仅供参考，不构成投资建议。加密货币市场波动剧烈，任何模型都无法准确预测未来价格。</p>
+
+          <div class="mp-method-section">
+            <h4>核心公式</h4>
+            <div class="mp-method-formula">
+              <code>最终预测价格 = 当前价 × (1 + 模型预测收益率 + Polymarket调整)</code>
+              <p>其中 Polymarket调整 = clip((看涨分数 - 50) / 500 × 时间因子, -5%, +5%)</p>
+            </div>
           </div>
         </div>
+
+        <!-- Tab: 数据采集 -->
+        <div class="mp-method-panel" id="tab-data">
+          <div class="mp-method-section">
+            <h4>数据源一览</h4>
+            <table class="mp-method-tbl">
+              <tr><th>数据源</th><th>采集内容</th><th>频率</th><th>用途</th></tr>
+              <tr>
+                <td><span class="mp-tag mp-tag-yellow">Binance</span></td>
+                <td>BTC/USDT K线 (1H/4H/1D)、成交量、交易笔数</td>
+                <td>每小时</td>
+                <td>价格特征、技术指标计算基础</td>
+              </tr>
+              <tr>
+                <td><span class="mp-tag mp-tag-blue">Binance衍生品</span></td>
+                <td>资金费率、多空比、买卖比、持仓量、订单簿</td>
+                <td>每小时</td>
+                <td>衍生品情绪指标</td>
+              </tr>
+              <tr>
+                <td><span class="mp-tag mp-tag-red">Fear &amp; Greed</span></td>
+                <td>恐惧贪婪指数 (0-100)</td>
+                <td>每天</td>
+                <td>市场情绪特征</td>
+              </tr>
+              <tr>
+                <td><span class="mp-tag mp-tag-green">FRED/宏观</span></td>
+                <td>联邦基金利率、M2货币供应、纳指、S&amp;P500、美元指数、黄金</td>
+                <td>每天</td>
+                <td>宏观经济环境特征</td>
+              </tr>
+              <tr>
+                <td><span class="mp-tag mp-tag-purple">Polymarket</span></td>
+                <td>BTC相关预测市场（问题、YES价格、交易量、截止日）</td>
+                <td>实时</td>
+                <td>市场共识信号、预测调整</td>
+              </tr>
+              <tr>
+                <td><span class="mp-tag mp-tag-cyan">Deribit</span></td>
+                <td>BTC期权（隐含波动率、PCR、最大痛点）</td>
+                <td>每小时</td>
+                <td>期权市场情绪</td>
+              </tr>
+              <tr>
+                <td><span class="mp-tag mp-tag-orange">链上数据</span></td>
+                <td>全网算力、内存池、手续费</td>
+                <td>每小时</td>
+                <td>网络健康度指标</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="mp-method-section">
+            <h4>数据窗口</h4>
+            <table class="mp-method-tbl">
+              <tr><th>参数</th><th>值</th><th>说明</th></tr>
+              <tr><td>训练窗口</td><td>2000小时 (~83天)</td><td>滚动窗口，始终使用最近数据</td></tr>
+              <tr><td>K线历史</td><td>1H×500 / 4H×500 / 1D×365</td><td>不同粒度的价格历史</td></tr>
+              <tr><td>预测历史</td><td>最多2000条快照</td><td>用于图表叠加历史预测线</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab: 特征工程 -->
+        <div class="mp-method-panel" id="tab-features">
+          <div class="mp-method-section">
+            <h4>技术指标特征 (45+个)</h4>
+            <div class="mp-feat-grid">
+              <div class="mp-feat-group">
+                <div class="mp-feat-group-title">趋势指标</div>
+                <div class="mp-feat-list">
+                  <span class="mp-feat">EMA(7/25/99)</span>
+                  <span class="mp-feat">EMA交叉比</span>
+                  <span class="mp-feat">ADX</span>
+                </div>
+                <p class="mp-feat-desc">判断当前趋势方向和强度。EMA7>EMA25>EMA99=强上升趋势。</p>
+              </div>
+              <div class="mp-feat-group">
+                <div class="mp-feat-group-title">动量指标</div>
+                <div class="mp-feat-list">
+                  <span class="mp-feat">RSI(7/14)</span>
+                  <span class="mp-feat">Stoch K/D</span>
+                  <span class="mp-feat">Williams %R</span>
+                </div>
+                <p class="mp-feat-desc">衡量价格变化速度。RSI&lt;30=超卖（可能反弹），RSI&gt;70=超买（可能回调）。</p>
+              </div>
+              <div class="mp-feat-group">
+                <div class="mp-feat-group-title">波动率指标</div>
+                <div class="mp-feat-list">
+                  <span class="mp-feat">布林带(上/中/下)</span>
+                  <span class="mp-feat">BB宽度/位置</span>
+                  <span class="mp-feat">ATR / ATR%</span>
+                </div>
+                <p class="mp-feat-desc">衡量价格波动幅度。布林带收窄=即将突破，BB位置&lt;0.2=接近下轨。</p>
+              </div>
+              <div class="mp-feat-group">
+                <div class="mp-feat-group-title">成交量指标</div>
+                <div class="mp-feat-list">
+                  <span class="mp-feat">成交量比率</span>
+                  <span class="mp-feat">OBV能量潮</span>
+                  <span class="mp-feat">OBV变化率</span>
+                </div>
+                <p class="mp-feat-desc">量价配合验证。放量上涨=趋势健康，缩量上涨=动能不足。</p>
+              </div>
+              <div class="mp-feat-group">
+                <div class="mp-feat-group-title">MACD衍生</div>
+                <div class="mp-feat-list">
+                  <span class="mp-feat">MACD/Signal</span>
+                  <span class="mp-feat">MACD柱状</span>
+                  <span class="mp-feat">归一化版本</span>
+                </div>
+                <p class="mp-feat-desc">MACD金叉（MACD上穿Signal）=看涨信号，死叉=看跌信号。</p>
+              </div>
+              <div class="mp-feat-group">
+                <div class="mp-feat-group-title">价格变化</div>
+                <div class="mp-feat-list">
+                  <span class="mp-feat">收益率(1/4/12/24H)</span>
+                  <span class="mp-feat">K线形态(影线比)</span>
+                  <span class="mp-feat">24H波动率</span>
+                </div>
+                <p class="mp-feat-desc">多时间尺度的价格变化速率和K线形态特征。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mp-method-section">
+            <h4>宏观经济特征</h4>
+            <div class="mp-feat-grid">
+              <div class="mp-feat-group">
+                <div class="mp-feat-group-title">美联储</div>
+                <div class="mp-feat-list">
+                  <span class="mp-feat">目标利率</span>
+                  <span class="mp-feat">隐含利率</span>
+                  <span class="mp-feat">降息预期</span>
+                </div>
+                <p class="mp-feat-desc">降息预期 = 目标利率 - 期货隐含利率。正值=市场预期降息，利好BTC。</p>
+              </div>
+              <div class="mp-feat-group">
+                <div class="mp-feat-group-title">流动性</div>
+                <div class="mp-feat-list">
+                  <span class="mp-feat">M2货币供应</span>
+                  <span class="mp-feat">M2同比增速</span>
+                  <span class="mp-feat">4周变化率</span>
+                </div>
+                <p class="mp-feat-desc">M2扩张→流动性充裕→风险资产受益→BTC上涨。</p>
+              </div>
+              <div class="mp-feat-group">
+                <div class="mp-feat-group-title">风险偏好</div>
+                <div class="mp-feat-list">
+                  <span class="mp-feat">纳指/S&amp;P500收益率</span>
+                  <span class="mp-feat">美元指数</span>
+                  <span class="mp-feat">黄金/BTC比值</span>
+                </div>
+                <p class="mp-feat-desc">美股上涨+美元走弱=Risk-on环境，通常利好BTC。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mp-method-section">
+            <h4>目标变量</h4>
+            <div class="mp-method-formula">
+              <code>target_return_N = (close[t+N] - close[t]) / close[t]</code>
+              <code>target_dir_N = 1 if target_return_N &gt; 0 else 0</code>
+              <p>N ∈ {1, 4, 12, 24, 48, 72, 168, 336, 720} 小时，覆盖1小时到30天。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: 11个模型 -->
+        <div class="mp-method-panel" id="tab-models">
+          <div class="mp-method-section">
+            <h4>机器学习模型 (5个)</h4>
+            <table class="mp-method-tbl mp-method-tbl-models">
+              <tr><th>模型</th><th>算法</th><th>核心参数</th><th>特点</th></tr>
+              <tr>
+                <td><span class="mp-tag mp-tag-blue">XGBoost</span></td>
+                <td>极端梯度提升</td>
+                <td>200棵树, 深度6, lr=0.05</td>
+                <td>高精度，自动处理缺失值，特征重要性排序</td>
+              </tr>
+              <tr>
+                <td><span class="mp-tag mp-tag-blue">LightGBM</span></td>
+                <td>轻量梯度提升(微软)</td>
+                <td>200棵树, 深度6, lr=0.05</td>
+                <td>训练速度快，内存效率高，大数据集友好</td>
+              </tr>
+              <tr>
+                <td><span class="mp-tag mp-tag-blue">Random Forest</span></td>
+                <td>随机森林</td>
+                <td>200棵树, 深度10, 并行</td>
+                <td>抗过拟合，不同随机子集投票</td>
+              </tr>
+              <tr>
+                <td><span class="mp-tag mp-tag-blue">SVR</span></td>
+                <td>支持向量机(RBF核)</td>
+                <td>数据限500条, 标准化</td>
+                <td>适合非线性边界，小样本表现好</td>
+              </tr>
+              <tr>
+                <td><span class="mp-tag mp-tag-blue">Ridge</span></td>
+                <td>岭回归(L2正则)</td>
+                <td>alpha=1.0</td>
+                <td>线性基准模型，计算快速，防止多重共线性</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="mp-method-section">
+            <h4>神经网络模型 (2个)</h4>
+            <table class="mp-method-tbl mp-method-tbl-models">
+              <tr><th>模型</th><th>算法</th><th>核心参数</th><th>特点</th></tr>
+              <tr>
+                <td><span class="mp-tag mp-tag-green">MLP</span></td>
+                <td>多层感知器</td>
+                <td>隐藏层(64,32), 早停</td>
+                <td>捕捉非线性关系，训练速度快于深度网络</td>
+              </tr>
+              <tr>
+                <td><span class="mp-tag mp-tag-green">LSTM+XGB</span></td>
+                <td>混合: LSTM特征+XGBoost</td>
+                <td>回看72H, hidden=32, 20轮</td>
+                <td>LSTM提取时序特征(16维)→拼接原始特征→XGBoost预测</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="mp-method-section">
+            <h4>时间序列模型 (1个)</h4>
+            <table class="mp-method-tbl mp-method-tbl-models">
+              <tr><th>模型</th><th>算法</th><th>核心参数</th><th>特点</th></tr>
+              <tr>
+                <td><span class="mp-tag mp-tag-cyan">ARIMA</span></td>
+                <td>自回归移动平均</td>
+                <td>ARIMA(5,1,0), 限500条</td>
+                <td>经典统计模型，直接对价格序列建模，无需特征工程</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="mp-method-section">
+            <h4>技术分析策略 (3个)</h4>
+            <table class="mp-method-tbl mp-method-tbl-models">
+              <tr><th>策略</th><th>规则</th><th>看涨条件</th><th>看跌条件</th></tr>
+              <tr>
+                <td><span class="mp-tag mp-tag-orange">EMA交叉</span></td>
+                <td>三线排列判断</td>
+                <td>EMA7&gt;EMA25&gt;EMA99 且 价格&gt;EMA7</td>
+                <td>EMA7&lt;EMA25&lt;EMA99 且 价格&lt;EMA7</td>
+              </tr>
+              <tr>
+                <td><span class="mp-tag mp-tag-orange">RSI</span></td>
+                <td>超买超卖</td>
+                <td>RSI&lt;30 (超卖反弹)</td>
+                <td>RSI&gt;70 (超买回调)</td>
+              </tr>
+              <tr>
+                <td><span class="mp-tag mp-tag-orange">MACD</span></td>
+                <td>金叉死叉</td>
+                <td>MACD&gt;Signal 且 柱状&gt;0</td>
+                <td>MACD&lt;Signal 且 柱状&lt;0</td>
+              </tr>
+              <tr>
+                <td><span class="mp-tag mp-tag-orange">布林带</span></td>
+                <td>通道位置</td>
+                <td>价格在下轨附近 (位置&lt;0.2)</td>
+                <td>价格在上轨附近 (位置&gt;0.8)</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="mp-method-section">
+            <h4>模型输出格式</h4>
+            <div class="mp-method-formula">
+              <code>每个模型输出 → { direction: UP/DOWN, confidence: 0-100%, expected_return: ±%, target_price: $ }</code>
+              <p>分类器预测方向(UP/DOWN)，回归器预测收益率(%)，两者结合得到置信度和目标价格。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: 共识融合 -->
+        <div class="mp-method-panel" id="tab-ensemble">
+          <div class="mp-method-section">
+            <h4>Step 1: Ensemble加权投票</h4>
+            <div class="mp-method-flow mp-method-flow-vert">
+              <div class="mp-ens-step">
+                <div class="mp-ens-num">1</div>
+                <div class="mp-ens-content">
+                  <strong>收集投票</strong>
+                  <p>11个模型各自给出方向(UP/DOWN)和置信度(0-100%)</p>
+                </div>
+              </div>
+              <div class="mp-ens-step">
+                <div class="mp-ens-num">2</div>
+                <div class="mp-ens-content">
+                  <strong>加权累计</strong>
+                  <div class="mp-method-formula" style="margin-top:6px;">
+                    <code>votes_up += confidence / 100  (如果方向=UP)</code>
+                    <code>votes_down += confidence / 100  (如果方向=DOWN)</code>
+                  </div>
+                </div>
+              </div>
+              <div class="mp-ens-step">
+                <div class="mp-ens-num">3</div>
+                <div class="mp-ens-content">
+                  <strong>计算共识</strong>
+                  <div class="mp-method-formula" style="margin-top:6px;">
+                    <code>方向 = UP if votes_up &gt; votes_down else DOWN</code>
+                    <code>看涨概率 = votes_up / (votes_up + votes_down) × 100%</code>
+                    <code>置信度 = min(100, |看涨概率 - 50| × 2 + 50)</code>
+                  </div>
+                </div>
+              </div>
+              <div class="mp-ens-step">
+                <div class="mp-ens-num">4</div>
+                <div class="mp-ens-content">
+                  <strong>预期收益</strong>
+                  <div class="mp-method-formula" style="margin-top:6px;">
+                    <code>expected_return = clip(mean(各模型收益率), -10%, +10%)</code>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mp-method-section">
+            <h4>Step 2: Polymarket信号调整</h4>
+            <div class="mp-method-flow mp-method-flow-vert">
+              <div class="mp-ens-step">
+                <div class="mp-ens-num">A</div>
+                <div class="mp-ens-content">
+                  <strong>解析市场</strong>
+                  <p>从Polymarket获取BTC相关市场，提取价格目标、YES概率、交易量、到期日</p>
+                </div>
+              </div>
+              <div class="mp-ens-step">
+                <div class="mp-ens-num">B</div>
+                <div class="mp-ens-content">
+                  <strong>计算权重</strong>
+                  <div class="mp-method-formula" style="margin-top:6px;">
+                    <code>时间权重 = min(1.0, 30天/距到期天数)  — 越近期越重要</code>
+                    <code>资金量权重 = log₁₀(交易量) - 4  — 资金越多越可信</code>
+                    <code>综合权重 = 时间权重 × 资金量权重</code>
+                  </div>
+                </div>
+              </div>
+              <div class="mp-ens-step">
+                <div class="mp-ens-num">C</div>
+                <div class="mp-ens-content">
+                  <strong>看涨评分</strong>
+                  <div class="mp-method-formula" style="margin-top:6px;">
+                    <code>如果目标价 &gt; 当前价: bullish += 权重 × YES概率</code>
+                    <code>如果目标价 &lt; 当前价: bullish -= 权重 × (1 - YES概率)</code>
+                    <code>看涨分数 = 50 + (加权看涨 / 总权重 × 100)  — 范围0-100</code>
+                  </div>
+                </div>
+              </div>
+              <div class="mp-ens-step">
+                <div class="mp-ens-num">D</div>
+                <div class="mp-ens-content">
+                  <strong>调整预测</strong>
+                  <div class="mp-method-formula" style="margin-top:6px;">
+                    <code>调整幅度 = clip((看涨分数 - 50) / 500, -5%, +5%)</code>
+                    <code>最终收益率 = 模型收益率 + 调整幅度 × min(预测小时/24, 3.0)</code>
+                    <code>最终价格 = 当前价 × (1 + 最终收益率)</code>
+                  </div>
+                  <p style="margin-top:6px;font-size:11px;color:var(--text-muted);">示例：看涨分数75 → 调整=(75-50)/500=+5% → 24H预测上调5%</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mp-method-section">
+            <h4>图表预测线说明</h4>
+            <table class="mp-method-tbl">
+              <tr><th>线条</th><th>颜色</th><th>数据来源</th></tr>
+              <tr><td>历史价格</td><td><span style="color:#3b82f6;">■</span> 蓝色实线</td><td>Binance真实成交价</td></tr>
+              <tr><td>历史预测</td><td><span style="color:#d4a017;">■</span> 金色虚线+点</td><td>过去每次预测的目标价快照</td></tr>
+              <tr><td>押注共识</td><td><span style="color:#22c55e;">■</span> 绿色虚线</td><td>Polymarket加权共识价格</td></tr>
+              <tr><td>当前预测</td><td><span style="color:#ef4444;">■</span> 红色加粗线</td><td>最新Ensemble+PM融合预测</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab: 回测验证 -->
+        <div class="mp-method-panel" id="tab-backtest">
+          <div class="mp-method-section">
+            <h4>Walk-Forward 滚动回测</h4>
+            <div class="mp-bt-flow">
+              <div class="mp-bt-diagram">
+                <div class="mp-bt-row">
+                  <div class="mp-bt-block mp-bt-train">训练段 (2000H ≈ 83天)</div>
+                  <div class="mp-bt-block mp-bt-gap">隔离</div>
+                  <div class="mp-bt-block mp-bt-test">测试</div>
+                </div>
+                <div class="mp-bt-row" style="margin-left:40px;">
+                  <div class="mp-bt-block mp-bt-train">训练段 (2000H) →滑动168H</div>
+                  <div class="mp-bt-block mp-bt-gap">隔离</div>
+                  <div class="mp-bt-block mp-bt-test">测试</div>
+                </div>
+                <div class="mp-bt-row" style="margin-left:80px;">
+                  <div class="mp-bt-block mp-bt-train">训练段 (2000H) →滑动168H</div>
+                  <div class="mp-bt-block mp-bt-gap">隔离</div>
+                  <div class="mp-bt-block mp-bt-test">测试</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mp-method-section">
+            <h4>回测参数</h4>
+            <table class="mp-method-tbl">
+              <tr><th>参数</th><th>值</th><th>说明</th></tr>
+              <tr><td>训练窗口</td><td>2000小时</td><td>约83天的历史数据用于训练</td></tr>
+              <tr><td>滑动步长</td><td>168小时 (7天)</td><td>每7天生成一个新的测试点</td></tr>
+              <tr><td>隔离期</td><td>= 预测周期</td><td>防止数据泄露（24H预测则隔离24H）</td></tr>
+              <tr><td>手续费</td><td>0.1% × 2 = 0.2%</td><td>模拟真实交易成本（来回）</td></tr>
+            </table>
+          </div>
+
+          <div class="mp-method-section">
+            <h4>评估指标</h4>
+            <table class="mp-method-tbl">
+              <tr><th>指标</th><th>计算方式</th><th>含义</th></tr>
+              <tr>
+                <td><strong>准确率</strong></td>
+                <td><code>正确预测数 / 总预测数</code></td>
+                <td>方向预测的对错比例，&gt;50%即有预测能力</td>
+              </tr>
+              <tr>
+                <td><strong>夏普比率</strong></td>
+                <td><code>(平均收益 / 收益标准差) × √(8760/H)</code></td>
+                <td>风险调整收益，&gt;1优秀，&gt;2卓越</td>
+              </tr>
+              <tr>
+                <td><strong>累计收益</strong></td>
+                <td><code>∏(1 + rᵢ) - 1</code></td>
+                <td>按预测方向交易的总回报率</td>
+              </tr>
+            </table>
+            <div class="mp-method-formula" style="margin-top:10px;">
+              <p><strong>模拟交易逻辑：</strong>每个测试点，如果模型预测UP→做多，预测DOWN→做空，扣除0.2%往返手续费，按实际涨跌计算盈亏。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: 指标说明 -->
+        <div class="mp-method-panel" id="tab-glossary">
+          <div class="mp-method-section">
+            <h4>衍生品指标</h4>
+            <table class="mp-method-tbl">
+              <tr><th>指标</th><th>全称</th><th>含义</th><th>信号解读</th></tr>
+              <tr>
+                <td><strong>资金费率 (FR)</strong></td>
+                <td>Funding Rate</td>
+                <td>永续合约多头定期支付给空头的费用（或反向）</td>
+                <td>正费率=多头付费=市场偏多，极高费率(&gt;0.05%)=可能回调</td>
+              </tr>
+              <tr>
+                <td><strong>多空比 (L/S)</strong></td>
+                <td>Long/Short Ratio</td>
+                <td>持有多头仓位的账户数 / 空头账户数</td>
+                <td>&gt;1=多头主导，&gt;2=极端偏多（反向指标，可能见顶）</td>
+              </tr>
+              <tr>
+                <td><strong>买卖比</strong></td>
+                <td>Taker Buy/Sell Ratio</td>
+                <td>主动买入成交量 / 主动卖出成交量</td>
+                <td>&gt;1=买方强势（主动吃卖单），&lt;1=卖方强势</td>
+              </tr>
+              <tr>
+                <td><strong>持仓量 (OI)</strong></td>
+                <td>Open Interest</td>
+                <td>所有未平仓合约的总价值</td>
+                <td>上升=新资金流入，下降=资金撤出。配合价格上涨+OI上升=健康趋势</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="mp-method-section">
+            <h4>订单簿指标</h4>
+            <table class="mp-method-tbl">
+              <tr><th>指标</th><th>含义</th><th>信号解读</th></tr>
+              <tr>
+                <td><strong>价差 (Spread)</strong></td>
+                <td>最优买价和最优卖价之间的差距</td>
+                <td>小=流动性好，大=流动性差或剧烈波动</td>
+              </tr>
+              <tr>
+                <td><strong>失衡度 (Imbalance)</strong></td>
+                <td>(买单量-卖单量) / (买单量+卖单量)</td>
+                <td>&gt;0.1=买盘主导（短期看涨），&lt;-0.1=卖盘主导</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="mp-method-section">
+            <h4>期权指标</h4>
+            <table class="mp-method-tbl">
+              <tr><th>指标</th><th>全称</th><th>含义</th><th>信号解读</th></tr>
+              <tr>
+                <td><strong>IV</strong></td>
+                <td>Implied Volatility</td>
+                <td>期权市场对BTC未来波动率的定价</td>
+                <td>高IV=预期大波动(不确定方向)，低IV=预期平稳</td>
+              </tr>
+              <tr>
+                <td><strong>PCR</strong></td>
+                <td>Put/Call Ratio</td>
+                <td>看跌期权持仓量 / 看涨期权持仓量</td>
+                <td>&gt;0.7=偏空(更多人买保险)，&lt;0.5=偏多</td>
+              </tr>
+              <tr>
+                <td><strong>MaxPain</strong></td>
+                <td>最大痛点</td>
+                <td>让最多期权买家亏损的价格点</td>
+                <td>到期日价格倾向靠拢MaxPain（做市商操控理论）</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="mp-method-section">
+            <h4>链上指标</h4>
+            <table class="mp-method-tbl">
+              <tr><th>指标</th><th>含义</th><th>信号解读</th></tr>
+              <tr>
+                <td><strong>HR (算力)</strong></td>
+                <td>全网比特币挖矿算力 (EH/s)</td>
+                <td>持续上升=矿工看好未来收益=长期看涨，骤降=矿工关机/监管风险</td>
+              </tr>
+              <tr>
+                <td><strong>Mempool</strong></td>
+                <td>待确认交易数量和大小</td>
+                <td>拥堵=链上活跃度高=需求旺盛，空池=使用率低</td>
+              </tr>
+              <tr>
+                <td><strong>Fee (手续费)</strong></td>
+                <td>最快确认所需的手续费率 (sat/vB)</td>
+                <td>高=网络繁忙(可能是大行情)，低=网络空闲</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="mp-method-section">
+            <h4>其他指标</h4>
+            <table class="mp-method-tbl">
+              <tr><th>指标</th><th>含义</th><th>范围</th></tr>
+              <tr>
+                <td><strong>恐惧贪婪指数</strong></td>
+                <td>综合衡量市场情绪（波动率、交易量、社交媒体、调查等）</td>
+                <td>0-24 极度恐惧 | 25-49 恐惧 | 50 中性 | 51-74 贪婪 | 75-100 极度贪婪</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="mp-help-item mp-help-disclaimer">
+            <strong>免责声明</strong>
+            <p>所有预测仅供参考，不构成投资建议。加密货币市场波动剧烈，任何模型都无法准确预测未来价格。过去的回测表现不代表未来收益。</p>
+          </div>
+        </div>
+
       </div>
     </div>
 

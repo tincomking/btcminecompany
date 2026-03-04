@@ -2690,6 +2690,27 @@ async function renderMarketPredict() {
       }
     };
   }
+
+  // Init methodology tabs
+  initMethodTabs();
+}
+
+function initMethodTabs() {
+  const tabsEl = document.getElementById('mp-method-tabs');
+  if (!tabsEl || tabsEl.dataset.init) return;
+  tabsEl.dataset.init = '1';
+  tabsEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.mp-method-tab');
+    if (!btn) return;
+    const tabId = btn.dataset.tab;
+    tabsEl.querySelectorAll('.mp-method-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    const modal = tabsEl.closest('.mp-method-modal');
+    if (!modal) return;
+    modal.querySelectorAll('.mp-method-panel').forEach(p => p.classList.remove('active'));
+    const panel = document.getElementById(tabId);
+    if (panel) panel.classList.add('active');
+  });
 }
 
 function renderMPCard(key, pred) {
