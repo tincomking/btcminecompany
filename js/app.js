@@ -3062,19 +3062,36 @@ async function _renderMPChart() {
 
   const predHistory = MARKET_PREDICT.predictionHistory;
   if (predHistory && predHistory.predictions && predHistory.predictions.length > 0) {
-    const predData = predHistory.predictions
+    // 1. 按时间排序，下采样到每2小时1个点（取窗口内最后一条）
+    const sorted = predHistory.predictions
       .filter(p => p.predicted_price && p.predicted_price > 0)
-      .map(p => ({ x: new Date(p.timestamp), y: p.predicted_price }));
+      .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    const BUCKET_MS = 2 * 3600 * 1000; // 2小时
+    const bucketMap = new Map();
+    sorted.forEach(p => {
+      const t = new Date(p.timestamp).getTime();
+      const bucket = Math.floor(t / BUCKET_MS);
+      bucketMap.set(bucket, p); // 同一桶内后面的覆盖前面的
+    });
+    // 2. 将预测点绘制在目标时间(预测发起+24h)，这样能和实际价格线对比
+    const HORIZON_MS = 24 * 3600 * 1000;
+    const predData = Array.from(bucketMap.values())
+      .map(p => ({
+        x: new Date(new Date(p.timestamp).getTime() + HORIZON_MS),
+        y: p.predicted_price,
+      }))
+      .sort((a, b) => a.x - b.x);
     if (predData.length > 0) {
       datasets.push({
-        label: '历史预测',
+        label: t('mp.hist_pred') || '历史预测',
         data: predData,
         borderColor: '#d4a017',
-        borderWidth: 1.5,
-        borderDash: [5, 3],
-        pointRadius: 2,
+        borderWidth: 2,
+        borderDash: [6, 4],
+        pointRadius: 3,
         pointBackgroundColor: '#d4a017',
-        tension: 0.2,
+        tension: 0.4,
+        cubicInterpolationMode: 'monotone',
         order: 4,
       });
     }
