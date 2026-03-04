@@ -2646,6 +2646,11 @@ async function renderMarketPredict() {
     renderMPDerivatives(MARKET_PREDICT.derivatives);
   }
 
+  // Orderbook Depth
+  if (MARKET_PREDICT.orderbook) {
+    renderMPOrderbook(MARKET_PREDICT.orderbook);
+  }
+
   // Options Data (Deribit)
   if (MARKET_PREDICT.options) {
     renderMPOptions(MARKET_PREDICT.options);
@@ -3331,6 +3336,115 @@ function renderMPFearGreed(data) {
       <div class="mp-fg-inline-val">${label}</div>
     </div>
     <div class="mp-fg-inline-spark">${sparkline}</div>`;
+}
+
+// ── ORDERBOOK DEPTH ─────────────────────────────────────────────────────────
+
+let _obChart = null;
+
+function renderMPOrderbook(data) {
+  const section = document.getElementById('mp-orderbook-section');
+  if (!section) return;
+  if (!data || !data.bids || !data.asks) { section.style.display = 'none'; return; }
+  section.style.display = '';
+
+  // Stats
+  const statsEl = document.getElementById('mp-ob-stats');
+  if (statsEl) {
+    const imbColor = data.imbalance > 0.1 ? '#22c55e' : data.imbalance < -0.1 ? '#ef4444' : '#9ca3af';
+    const imbLabel = data.imbalance > 0.1 ? (currentLang === 'zh' ? '买盘主导' : 'Bid dominant')
+                   : data.imbalance < -0.1 ? (currentLang === 'zh' ? '卖盘主导' : 'Ask dominant')
+                   : (currentLang === 'zh' ? '均衡' : 'Balanced');
+    statsEl.innerHTML = `
+      <div class="mp-ob-stat">
+        <div class="mp-ob-stat-label">${t('mp.ob_spread')}</div>
+        <div class="mp-ob-stat-value">$${data.spread}</div>
+      </div>
+      <div class="mp-ob-stat">
+        <div class="mp-ob-stat-label">${t('mp.ob_imbalance')}</div>
+        <div class="mp-ob-stat-value" style="color:${imbColor};">${(data.imbalance * 100).toFixed(1)}%</div>
+        <div style="font-size:10px;color:${imbColor};">${imbLabel}</div>
+      </div>
+      <div class="mp-ob-stat">
+        <div class="mp-ob-stat-label">${t('mp.ob_bid_depth')}</div>
+        <div class="mp-ob-stat-value" style="color:#22c55e;">${data.total_bid_qty?.toFixed(2)} BTC</div>
+      </div>
+      <div class="mp-ob-stat">
+        <div class="mp-ob-stat-label">${t('mp.ob_ask_depth')}</div>
+        <div class="mp-ob-stat-value" style="color:#ef4444;">${data.total_ask_qty?.toFixed(2)} BTC</div>
+      </div>
+    `;
+  }
+
+  // Depth chart: horizontal bars (bids left green, asks right red)
+  const canvas = document.getElementById('mp-ob-chart');
+  if (!canvas) return;
+  if (_obChart) { _obChart.destroy(); _obChart = null; }
+
+  // Merge bids and asks into a single view centered around best bid/ask
+  const bids = (data.bids || []).slice(0, 15).reverse(); // lowest to highest
+  const asks = (data.asks || []).slice(0, 15); // lowest to highest
+
+  const allPrices = [...bids.map(b => b[0]), ...asks.map(a => a[0])];
+  const labels = allPrices.map(p => '$' + p.toLocaleString('en-US', { maximumFractionDigits: 0 }));
+
+  const bidData = bids.map(b => -b[1]); // negative for left side
+  const askData = asks.map(a => a[1]);
+  const values = [...bidData, ...askData];
+  const colors = values.map(v => v < 0 ? 'rgba(34,197,94,0.7)' : 'rgba(239,68,68,0.7)');
+
+  // Highlight walls
+  const wallThreshold = data.wall_threshold || 0;
+  const borderColors = values.map(v => Math.abs(v) > wallThreshold ? (v < 0 ? '#16a34a' : '#dc2626') : 'transparent');
+  const borderWidths = values.map(v => Math.abs(v) > wallThreshold ? 2 : 0);
+
+  const cs = getComputedStyle(document.documentElement);
+  const gridColor = cs.getPropertyValue('--border').trim() || 'rgba(255,255,255,0.06)';
+  const tickColor = cs.getPropertyValue('--text-muted').trim() || '#666';
+
+  _obChart = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors,
+        borderColor: borderColors,
+        borderWidth: borderWidths,
+        borderRadius: 2,
+      }],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = Math.abs(ctx.parsed.x);
+              return `${v.toFixed(4)} BTC`;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: { color: gridColor },
+          ticks: {
+            color: tickColor,
+            font: { size: 10, family: 'JetBrains Mono' },
+            callback: v => Math.abs(v).toFixed(2),
+          },
+        },
+        y: {
+          grid: { display: false },
+          ticks: { color: tickColor, font: { size: 9, family: 'JetBrains Mono' } },
+        },
+      },
+    },
+  });
 }
 
 // ── OPTIONS DATA (DERIBIT) ───────────────────────────────────────────────────

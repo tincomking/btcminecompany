@@ -289,6 +289,13 @@ const I18N = {
     'mp.buy': '买',
     'mp.sell': '卖',
 
+    // Orderbook
+    'mp.orderbook_title': '订单簿深度',
+    'mp.ob_spread': '买卖价差',
+    'mp.ob_imbalance': '买卖失衡',
+    'mp.ob_bid_depth': '买盘深度',
+    'mp.ob_ask_depth': '卖盘深度',
+
     // Options
     'mp.options_title': 'BTC 期权数据',
     'mp.iv_history': '隐含波动率 vs 历史波动率',
@@ -593,6 +600,13 @@ const I18N = {
     'mp.bias_balanced': 'Balanced',
     'mp.buy': 'Buy',
     'mp.sell': 'Sell',
+
+    // Orderbook
+    'mp.orderbook_title': 'Order Book Depth',
+    'mp.ob_spread': 'Spread',
+    'mp.ob_imbalance': 'Imbalance',
+    'mp.ob_bid_depth': 'Bid Depth',
+    'mp.ob_ask_depth': 'Ask Depth',
 
     // Options
     'mp.options_title': 'BTC Options Data',
