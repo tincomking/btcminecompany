@@ -585,12 +585,14 @@
       <div class="mp-deriv-compact">
         <div class="mp-deriv-mini" id="mp-deriv-fr">
           <div class="mp-deriv-label" data-i18n="mp.funding_rate">资金费率</div>
+          <div class="mp-deriv-desc">多头付空头费用，正=看涨倾向</div>
           <div class="mp-deriv-value" id="mp-deriv-fr-val">--</div>
           <div class="mp-deriv-zone" id="mp-deriv-fr-zone"></div>
           <div class="mp-deriv-bar-wrap"><div class="mp-deriv-bar" id="mp-deriv-fr-bar"></div></div>
         </div>
         <div class="mp-deriv-mini" id="mp-deriv-ls">
           <div class="mp-deriv-label" data-i18n="mp.long_short">多空比</div>
+          <div class="mp-deriv-desc">多头/空头账户比，&gt;1=多头主导</div>
           <div class="mp-deriv-value" id="mp-deriv-ls-val">--</div>
           <div class="mp-deriv-sub" id="mp-deriv-ls-pct"></div>
           <div class="mp-deriv-ls-bar">
@@ -600,6 +602,7 @@
         </div>
         <div class="mp-deriv-mini" id="mp-deriv-taker">
           <div class="mp-deriv-label" data-i18n="mp.taker_ratio">买卖比</div>
+          <div class="mp-deriv-desc">主动买/卖量比，&gt;1=买方强势</div>
           <div class="mp-deriv-value" id="mp-deriv-taker-val">--</div>
           <div class="mp-deriv-taker-bar">
             <div class="mp-deriv-taker-buy" id="mp-deriv-taker-buy"></div>
@@ -612,12 +615,14 @@
         </div>
         <div class="mp-deriv-mini" id="mp-deriv-oi">
           <div class="mp-deriv-label" data-i18n="mp.open_interest">持仓量</div>
+          <div class="mp-deriv-desc">未平仓合约总量，增=新资金流入</div>
           <div class="mp-deriv-value" id="mp-deriv-oi-val">--</div>
           <div class="mp-deriv-sub" id="mp-deriv-oi-trend"></div>
         </div>
       </div>
       <div class="mp-ob-compact" id="mp-orderbook-section" style="display:none;">
         <div class="mp-deriv-label" data-i18n="mp.orderbook_title">订单簿</div>
+        <div class="mp-deriv-desc">买卖挂单深度，反映短期供需力量</div>
         <div id="mp-ob-stats"></div>
       </div>
     </div>

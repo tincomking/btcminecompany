@@ -3359,12 +3359,14 @@ function renderMPMicroWidgets(optionsData, onchainData) {
       label: 'IV',
       value: optionsData.avg_iv ? optionsData.avg_iv.toFixed(1) + '%' : '--',
       sub: t('mp.implied_vol'),
+      desc: '隐含波动率，市场对未来波动的预期',
       color: '#a855f7',
     });
     widgets.push({
       label: 'PCR',
       value: optionsData.pcr_oi ? optionsData.pcr_oi.toFixed(3) : '--',
       sub: optionsData.pcr_oi > 0.7 ? '看跌' : optionsData.pcr_oi < 0.5 ? '看涨' : '中性',
+      desc: '看跌/看涨期权持仓比，>0.7偏空',
       color: optionsData.pcr_oi > 0.7 ? '#ef4444' : optionsData.pcr_oi < 0.5 ? '#22c55e' : '#f59e0b',
     });
     widgets.push({
@@ -3372,6 +3374,7 @@ function renderMPMicroWidgets(optionsData, onchainData) {
       value: '$' + (optionsData.max_pain || 0).toLocaleString('en-US', { maximumFractionDigits: 0 }),
       sub: optionsData.max_pain && optionsData.index_price ?
         ((optionsData.max_pain - optionsData.index_price) / optionsData.index_price * 100).toFixed(1) + '%' : '',
+      desc: '期权最大痛点，到期日价格倾向靠拢',
       color: '#f59e0b',
     });
   }
@@ -3385,18 +3388,21 @@ function renderMPMicroWidgets(optionsData, onchainData) {
       label: 'HR',
       value: typeof get('hashrate_eh') === 'number' ? get('hashrate_eh').toLocaleString() : get('hashrate_eh'),
       sub: 'EH/s',
+      desc: '全网算力，反映矿工信心和网络安全',
       color: '#3b82f6',
     });
     widgets.push({
       label: 'Mempool',
       value: typeof get('mempool_count') === 'number' ? (get('mempool_count') / 1000).toFixed(0) + 'K' : get('mempool_count'),
       sub: typeof get('mempool_vsize_mb') === 'number' ? get('mempool_vsize_mb').toFixed(0) + 'MB' : '',
+      desc: '待确认交易池，拥堵=链上活跃',
       color: '#06b6d4',
     });
     widgets.push({
       label: 'Fee',
       value: typeof get('fee_fastest') === 'number' ? get('fee_fastest') : '--',
       sub: 'sat/vB',
+      desc: '最快确认手续费，高=网络繁忙',
       color: '#f97316',
     });
   }
@@ -3412,6 +3418,7 @@ function renderMPMicroWidgets(optionsData, onchainData) {
   container.innerHTML = widgets.map(w => `
     <div class="mp-micro-widget">
       <div class="mp-micro-label">${w.label}</div>
+      ${w.desc ? `<div class="mp-deriv-desc">${w.desc}</div>` : ''}
       <div class="mp-micro-value" style="color:${w.color};">${w.value}</div>
       ${w.sub ? `<div class="mp-micro-sub">${w.sub}</div>` : ''}
     </div>
