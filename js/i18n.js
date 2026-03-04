@@ -288,6 +288,16 @@ const I18N = {
     'mp.bias_balanced': '均衡',
     'mp.buy': '买',
     'mp.sell': '卖',
+
+    // Consensus
+    'mp.consensus_title': '信号共识',
+    'mp.consensus_sub': '全模型 × 全时间框架 共识热力图',
+    'mp.consensus_strong': '强共识',
+    'mp.consensus_divergent': '信号分歧',
+    'mp.consensus_all_bull': '所有时间框架一致看涨',
+    'mp.consensus_all_bear': '所有时间框架一致看跌',
+    'mp.consensus_mixed': '不同时间框架信号不一致，谨慎操作',
+    'mp.consensus_bull_pct': '看涨比例',
   },
 
   en: {
@@ -562,6 +572,16 @@ const I18N = {
     'mp.bias_balanced': 'Balanced',
     'mp.buy': 'Buy',
     'mp.sell': 'Sell',
+
+    // Consensus
+    'mp.consensus_title': 'Signal Consensus',
+    'mp.consensus_sub': 'All Models × All Timeframes Heatmap',
+    'mp.consensus_strong': 'Strong Consensus',
+    'mp.consensus_divergent': 'Signal Divergence',
+    'mp.consensus_all_bull': 'All timeframes unanimously bullish',
+    'mp.consensus_all_bear': 'All timeframes unanimously bearish',
+    'mp.consensus_mixed': 'Mixed signals across timeframes — exercise caution',
+    'mp.consensus_bull_pct': 'Bull %',
   }
 };
 

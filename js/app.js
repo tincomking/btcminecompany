@@ -2649,6 +2649,8 @@ async function renderMarketPredict() {
   // Models
   if (models && models.predictions) {
     renderMPModels(models.predictions);
+    // Consensus panel (uses same models data)
+    renderMPConsensus(models.predictions);
   }
 
   // Betting Markets (multi-platform or polymarket fallback)
@@ -3314,6 +3316,171 @@ function renderMPFearGreed(data) {
       <div class="mp-fg-inline-val">${label}</div>
     </div>
     <div class="mp-fg-inline-spark">${sparkline}</div>`;
+}
+
+// ── SIGNAL CONSENSUS PANEL ───────────────────────────────────────────────────
+
+function renderMPConsensus(predictions) {
+  const section = document.getElementById('mp-consensus-section');
+  if (!section) return;
+  if (!predictions) { section.style.display = 'none'; return; }
+
+  const horizons = ['4h', '24h', '168h'];
+  const available = horizons.filter(h => predictions[h]);
+  if (available.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = '';
+
+  renderConsensusHeatmap(predictions, available);
+  renderConsensusMeter(predictions, available);
+  renderConsensusAlignment(predictions, available);
+}
+
+function renderConsensusHeatmap(predictions, horizons) {
+  const canvas = document.getElementById('mp-consensus-heatmap');
+  if (!canvas) return;
+
+  // Collect all models across horizons
+  const modelSet = new Set();
+  horizons.forEach(h => {
+    Object.entries(predictions[h] || {}).forEach(([key, m]) => {
+      if (key !== 'ensemble') modelSet.add(key);
+    });
+  });
+  const models = Array.from(modelSet);
+  // Add ensemble at top
+  models.unshift('ensemble');
+
+  const horizonLabels = { '4h': '4H', '24h': '24H', '168h': '7D' };
+  const cellW = 80, cellH = 32, labelW = 140, headerH = 30, pad = 10;
+  const w = labelW + horizons.length * cellW + pad * 2;
+  const h = headerH + models.length * cellH + pad * 2;
+  canvas.width = w;
+  canvas.height = h;
+  canvas.style.minHeight = h + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, w, h);
+
+  const cs = getComputedStyle(document.documentElement);
+  const textPrimary = cs.getPropertyValue('--text-primary').trim() || '#e5e7eb';
+  const textMuted = cs.getPropertyValue('--text-muted').trim() || '#6b7280';
+
+  // Header row
+  ctx.font = '11px JetBrains Mono, monospace';
+  ctx.fillStyle = textMuted;
+  ctx.textAlign = 'center';
+  horizons.forEach((hz, i) => {
+    ctx.fillText(horizonLabels[hz] || hz, labelW + i * cellW + cellW / 2 + pad, pad + headerH - 8);
+  });
+
+  // Rows
+  models.forEach((modelKey, row) => {
+    const y = pad + headerH + row * cellH;
+    // Model label
+    const modelData = predictions[horizons[0]]?.[modelKey] || predictions[horizons[1]]?.[modelKey] || {};
+    const name = modelData.name || modelKey;
+    ctx.font = modelKey === 'ensemble' ? 'bold 11px sans-serif' : '11px sans-serif';
+    ctx.fillStyle = textPrimary;
+    ctx.textAlign = 'right';
+    ctx.fillText(name.length > 18 ? name.slice(0, 16) + '..' : name, labelW + pad - 6, y + cellH / 2 + 4);
+
+    // Cells
+    horizons.forEach((hz, col) => {
+      const m = predictions[hz]?.[modelKey];
+      const x = labelW + col * cellW + pad;
+      const cx = x + cellW / 2;
+
+      if (!m) {
+        // No data
+        ctx.fillStyle = 'rgba(107,114,128,0.1)';
+        ctx.fillRect(x + 2, y + 2, cellW - 4, cellH - 4);
+        return;
+      }
+
+      const isUp = m.direction === 'UP';
+      const conf = (m.confidence || 50) / 100;
+      const alpha = 0.15 + conf * 0.6;
+
+      // Cell background
+      ctx.fillStyle = isUp
+        ? `rgba(34,197,94,${alpha})`
+        : `rgba(239,68,68,${alpha})`;
+      ctx.beginPath();
+      ctx.roundRect(x + 2, y + 2, cellW - 4, cellH - 4, 4);
+      ctx.fill();
+
+      // Text: confidence %
+      ctx.font = 'bold 11px JetBrains Mono, monospace';
+      ctx.fillStyle = isUp ? '#22c55e' : '#ef4444';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${isUp ? '▲' : '▼'} ${m.confidence}%`, cx, y + cellH / 2 + 4);
+    });
+  });
+}
+
+function renderConsensusMeter(predictions, horizons) {
+  const container = document.getElementById('mp-consensus-meters');
+  if (!container) return;
+
+  const horizonLabels = { '4h': '4H', '24h': '24H', '168h': '7D' };
+
+  container.innerHTML = horizons.map(hz => {
+    const models = predictions[hz];
+    if (!models) return '';
+    const entries = Object.entries(models).filter(([k]) => k !== 'ensemble');
+    const bullCount = entries.filter(([, m]) => m.direction === 'UP').length;
+    const total = entries.length || 1;
+    const bullPct = (bullCount / total * 100).toFixed(0);
+    const bearPct = (100 - bullPct).toFixed(0);
+
+    return `<div class="mp-consensus-meter">
+      <div class="mp-consensus-meter-label">${horizonLabels[hz] || hz} ${t('mp.consensus_bull_pct')}</div>
+      <div class="mp-consensus-meter-bar-wrap">
+        <div class="mp-consensus-meter-bar" style="width:${bullPct}%"></div>
+      </div>
+      <div class="mp-consensus-meter-info">
+        <span class="mp-consensus-meter-bull">${bullCount}/${total} ${currentLang === 'zh' ? '看涨' : 'Bull'} (${bullPct}%)</span>
+        <span class="mp-consensus-meter-bear">${total - bullCount}/${total} ${currentLang === 'zh' ? '看跌' : 'Bear'} (${bearPct}%)</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderConsensusAlignment(predictions, horizons) {
+  const el = document.getElementById('mp-consensus-alignment');
+  if (!el) return;
+
+  // Check if all horizons agree on direction (using ensemble)
+  const directions = horizons.map(hz => {
+    const ens = predictions[hz]?.ensemble;
+    return ens ? ens.direction : null;
+  }).filter(Boolean);
+
+  const allUp = directions.every(d => d === 'UP');
+  const allDown = directions.every(d => d === 'DOWN');
+  const aligned = allUp || allDown;
+
+  el.className = 'mp-consensus-alignment ' + (aligned ? 'align-strong' : 'align-divergent');
+
+  if (allUp) {
+    el.innerHTML = `<div class="mp-consensus-align-icon" style="color:#22c55e;">▲▲▲</div>
+      <div class="mp-consensus-align-text" style="color:#22c55e;">${t('mp.consensus_strong')}</div>
+      <div class="mp-consensus-align-detail">${t('mp.consensus_all_bull')}</div>`;
+  } else if (allDown) {
+    el.innerHTML = `<div class="mp-consensus-align-icon" style="color:#ef4444;">▼▼▼</div>
+      <div class="mp-consensus-align-text" style="color:#ef4444;">${t('mp.consensus_strong')}</div>
+      <div class="mp-consensus-align-detail">${t('mp.consensus_all_bear')}</div>`;
+  } else {
+    const detail = horizons.map(hz => {
+      const ens = predictions[hz]?.ensemble;
+      if (!ens) return '';
+      const isUp = ens.direction === 'UP';
+      return `<span style="color:${isUp ? '#22c55e' : '#ef4444'};font-weight:600;">${hz.replace('h', 'H')}: ${isUp ? '▲' : '▼'}</span>`;
+    }).filter(Boolean).join('  ');
+    el.innerHTML = `<div class="mp-consensus-align-icon" style="color:#f59e0b;">◆</div>
+      <div class="mp-consensus-align-text" style="color:#f59e0b;">${t('mp.consensus_divergent')}</div>
+      <div class="mp-consensus-align-detail">${t('mp.consensus_mixed')}<br>${detail}</div>`;
+  }
 }
 
 // ── DERIVATIVES DASHBOARD ────────────────────────────────────────────────────
