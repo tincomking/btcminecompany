@@ -2721,6 +2721,7 @@ canvas { max-width: 100%; }
   gap: 6px;
   margin-bottom: 6px;
   align-items: stretch;
+  min-height: 220px;
 }
 .mp-chart-cell {
   flex: 1;
@@ -2740,10 +2741,17 @@ canvas { max-width: 100%; }
   text-transform: uppercase;
   flex-shrink: 0;
 }
-.mp-chart-cell canvas {
-  width: 100% !important;
+.mp-chart-cell-canvas-wrap {
+  position: relative;
   flex: 1;
   min-height: 0;
+}
+.mp-chart-cell-canvas-wrap canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 /* Micro Widgets */
