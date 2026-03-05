@@ -4064,6 +4064,10 @@ function renderDerivFRChart(frHistory) {
 
   const cc = chartColors();
 
+  // Dynamic Y-axis range: pad 40% beyond data extremes so bars look substantial
+  const maxV = Math.max(...values.map(Math.abs), 0.001);
+  const yPad = maxV * 1.4;
+
   _derivFRChart = new Chart(canvas, {
     type: 'bar',
     data: { labels, datasets: [{ data: values, backgroundColor: colors, borderRadius: 2 }] },
@@ -4075,15 +4079,17 @@ function renderDerivFRChart(frHistory) {
         tooltip: { backgroundColor: cc.tooltip.bg, borderColor: cc.tooltip.border, borderWidth: 1, titleColor: cc.tooltip.title, bodyColor: cc.tooltip.body, callbacks: { label: ctx => `${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y.toFixed(4)}%` } },
         annotation: {
           annotations: {
-            posLine: { type: 'line', yMin: 0.03, yMax: 0.03, borderColor: 'rgba(34,197,94,0.4)', borderDash: [4,4], borderWidth: 1 },
-            negLine: { type: 'line', yMin: -0.03, yMax: -0.03, borderColor: 'rgba(239,68,68,0.4)', borderDash: [4,4], borderWidth: 1 },
             zeroLine: { type: 'line', yMin: 0, yMax: 0, borderColor: 'rgba(255,255,255,0.2)', borderWidth: 1 },
           },
         },
       },
       scales: {
         x: { grid: { color: cc.grid }, ticks: { color: cc.tick, font: { size: 8 }, maxRotation: 45, maxTicksLimit: 8 } },
-        y: { grid: { color: cc.grid }, ticks: { color: cc.tick, font: { size: 9, family: 'JetBrains Mono' }, callback: v => v.toFixed(3) + '%' } },
+        y: {
+          min: -yPad, max: yPad,
+          grid: { color: cc.grid },
+          ticks: { color: cc.tick, font: { size: 9, family: 'JetBrains Mono' }, callback: v => v.toFixed(4) + '%' },
+        },
       },
     },
   });
