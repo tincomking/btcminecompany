@@ -4,6 +4,17 @@
 
 'use strict';
 
+// ── VERSION (auto-generated from date) ────────────────────────────────────
+const APP_BUILD = '2026-03-05';
+(() => {
+  const d = APP_BUILD.split('-');
+  const ver = `v2.${d[1]}${d[2]}`;
+  document.addEventListener('DOMContentLoaded', () => {
+    const el = document.getElementById('app-version');
+    if (el) el.textContent = ver;
+  });
+})();
+
 // ── ANALYSIS MODELS REGISTRY ──────────────────────────────────────────────
 if (typeof ANALYSIS_MODELS === 'undefined') window.ANALYSIS_MODELS = {};
 

@@ -390,11 +390,11 @@ const I18N = {
     'mp.bearish_short': '看跌',
 
     // Fear & Greed labels
-    'mp.fg_extreme_fear': '极恐',
+    'mp.fg_extreme_fear': '极度恐惧',
     'mp.fg_fear': '恐惧',
     'mp.fg_neutral': '中性',
     'mp.fg_greed': '贪婪',
-    'mp.fg_extreme_greed': '极贪',
+    'mp.fg_extreme_greed': '极度贪婪',
 
     // Widget descriptions
     'mp.desc_iv': '隐含波动率，市场对未来波动的预期',

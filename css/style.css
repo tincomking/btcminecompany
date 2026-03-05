@@ -2968,18 +2968,20 @@ canvas { max-width: 100%; }
   gap: 4px;
 }
 .mp-fg-mini-badge {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
+  min-width: 26px;
+  height: 22px;
+  border-radius: 11px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   font-family: 'JetBrains Mono', monospace;
+  padding: 0 5px;
 }
 .mp-fg-mini-label {
-  font-size: 10px;
+  font-size: 11px;
+  font-weight: 500;
   color: var(--text-secondary);
 }
 .mp-fg-mini-spark {
