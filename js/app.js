@@ -4,14 +4,12 @@
 
 'use strict';
 
-// ── VERSION (auto-generated from date) ────────────────────────────────────
-const APP_BUILD = '2026-03-05';
+// ── VERSION ───────────────────────────────────────────────────────────────
+const APP_VERSION = 'v2.0305J';
 (() => {
-  const d = APP_BUILD.split('-');
-  const ver = `v2.${d[1]}${d[2]}`;
   document.addEventListener('DOMContentLoaded', () => {
     const el = document.getElementById('app-version');
-    if (el) el.textContent = ver;
+    if (el) el.textContent = APP_VERSION;
   });
 })();
 
