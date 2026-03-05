@@ -2720,16 +2720,17 @@ canvas { max-width: 100%; }
   display: flex;
   gap: 6px;
   margin-bottom: 6px;
+  align-items: stretch;
 }
 .mp-chart-cell {
   flex: 1;
   min-width: 0;
-  max-height: 230px;
-  overflow: hidden;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 10px;
+  display: flex;
+  flex-direction: column;
 }
 .mp-chart-cell-title {
   font-size: 10px;
@@ -2737,10 +2738,12 @@ canvas { max-width: 100%; }
   color: var(--text-muted);
   margin-bottom: 6px;
   text-transform: uppercase;
+  flex-shrink: 0;
 }
 .mp-chart-cell canvas {
   width: 100% !important;
-  height: 170px !important;
+  flex: 1;
+  min-height: 0;
 }
 
 /* Micro Widgets */
