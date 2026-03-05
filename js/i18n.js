@@ -382,6 +382,30 @@ const I18N = {
     'mp.net_outflow': '净流出 (看涨)',
     'mp.net_inflow': '净流入 (看跌)',
 
+    // Market Predict labels
+    'mp.hist_price': '历史价格',
+    'mp.bullish_arrow': '看涨 ▲',
+    'mp.bearish_arrow': '看跌 ▼',
+    'mp.bullish_short': '看涨',
+    'mp.bearish_short': '看跌',
+
+    // Fear & Greed labels
+    'mp.fg_extreme_fear': '极恐',
+    'mp.fg_fear': '恐惧',
+    'mp.fg_neutral': '中性',
+    'mp.fg_greed': '贪婪',
+    'mp.fg_extreme_greed': '极贪',
+
+    // Widget descriptions
+    'mp.desc_iv': '隐含波动率，市场对未来波动的预期',
+    'mp.desc_pcr': '看跌/看涨期权持仓比，>0.7偏空',
+    'mp.desc_maxpain': '期权最大痛点，到期日价格倾向靠拢',
+    'mp.desc_strike': '期权OI最集中行权价，磁吸效应',
+    'mp.desc_hashrate': '全网算力，反映矿工信心和网络安全',
+    'mp.desc_mempool': '待确认交易池，拥堵=链上活跃',
+    'mp.desc_fee': '最快确认手续费，高=网络繁忙',
+    'mp.desc_whale': '24h交易所净流量，流出=囤币看涨',
+
     // News
     'news.read_full': '查看全文',
   },
@@ -751,6 +775,30 @@ const I18N = {
     'mp.strike_conc': 'Strike Concentration',
     'mp.net_outflow': 'Net Outflow (Bullish)',
     'mp.net_inflow': 'Net Inflow (Bearish)',
+
+    // Market Predict labels
+    'mp.hist_price': 'Historical Price',
+    'mp.bullish_arrow': 'Bullish ▲',
+    'mp.bearish_arrow': 'Bearish ▼',
+    'mp.bullish_short': 'Bull',
+    'mp.bearish_short': 'Bear',
+
+    // Fear & Greed labels
+    'mp.fg_extreme_fear': 'Extreme Fear',
+    'mp.fg_fear': 'Fear',
+    'mp.fg_neutral': 'Neutral',
+    'mp.fg_greed': 'Greed',
+    'mp.fg_extreme_greed': 'Extreme Greed',
+
+    // Widget descriptions
+    'mp.desc_iv': 'Implied volatility — market expectation of future price swings',
+    'mp.desc_pcr': 'Put/Call OI ratio — >0.7 bearish bias',
+    'mp.desc_maxpain': 'Options max pain — price gravitates toward at expiry',
+    'mp.desc_strike': 'Highest OI strike price — magnetic effect on price',
+    'mp.desc_hashrate': 'Network hashrate — reflects miner confidence & security',
+    'mp.desc_mempool': 'Unconfirmed txn pool — congestion = on-chain activity',
+    'mp.desc_fee': 'Fastest confirmation fee — high = busy network',
+    'mp.desc_whale': '24h net exchange flow — outflow = accumulation (bullish)',
 
     // News
     'news.read_full': 'Read Full Article',

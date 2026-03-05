@@ -45,7 +45,8 @@ const fmt = {
   date: (s) => {
     if (!s) return '—';
     const d = new Date(s);
-    return d.toLocaleDateString('zh-CN', { year:'numeric', month:'2-digit', day:'2-digit' });
+    const locale = typeof currentLang !== 'undefined' && currentLang === 'en' ? 'en-US' : 'zh-CN';
+    return d.toLocaleDateString(locale, { year:'numeric', month:'2-digit', day:'2-digit' });
   },
   daysFrom: (dateStr) => {
     if (!dateStr) return null;
@@ -236,6 +237,7 @@ document.querySelectorAll('.intro-card[data-goto]').forEach(card => {
     if (page === 'sentiment') renderSentiment();
     if (page === 'analysis') renderAnalysis();
     if (page === 'predictions') renderPredictions();
+    if (page === 'market-predict') renderMarketPredict();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 });
@@ -935,7 +937,7 @@ function openFinancialDetail(key, showFull) {
   document.getElementById('finDetailModal').classList.add('open');
 }
 
-function fmtVal(v) { return v != null ? (v < 0 ? '' : '') + v.toFixed(1) : '—'; }
+function fmtVal(v) { return v != null ? v.toFixed(1) : '—'; }
 function fmtPctVal(v) { return v != null ? (v > 0 ? '+' : '') + v.toFixed(1) + '%' : '—'; }
 
 function renderFinPagination(total, totalPages) {
@@ -1135,7 +1137,7 @@ function renderRevenueChart() {
       },
       scales: {
         x: { ticks: { color: cc.tick, font: { size: 11, family: 'JetBrains Mono' } }, grid: { color: cc.grid } },
-        y: { ticks: { color: cc.tick, font: { size: 10 }, callback: v => `$${v}M` }, grid: { color: cc.grid } }
+        y: { ticks: { color: cc.tick, font: { size: 10, family: 'JetBrains Mono' }, callback: v => `$${v}M` }, grid: { color: cc.grid } }
       }
     }
   });
@@ -1367,7 +1369,7 @@ function renderBtcProductionChart(selectedMonth) {
       },
       scales: {
         x: { ticks: { color: cc2.tick, font: { size: 11, family: 'JetBrains Mono' } }, grid: { color: cc2.grid } },
-        y: { ticks: { color: cc2.tick, font: { size: 10 } }, grid: { color: cc2.grid } }
+        y: { ticks: { color: cc2.tick, font: { size: 10, family: 'JetBrains Mono' } }, grid: { color: cc2.grid } }
       }
     }
   });
@@ -1380,6 +1382,7 @@ function setupOpsFilters() {
     sel.addEventListener('change', () => {
       renderOpsTable(sel.value);
       renderBtcProductionChart(sel.value);
+      updateOpsHighlights(sel.value);
     });
   }
 }
@@ -1493,7 +1496,8 @@ function renderNewsList() {
 
   list.innerHTML = data.map(n => {
     const pubDate = new Date(n.published_at);
-    const dateLabel = pubDate.toLocaleDateString('zh-CN', { year:'numeric', month:'2-digit', day:'2-digit' });
+    const dateLocale = currentLang === 'en' ? 'en-US' : 'zh-CN';
+    const dateLabel = pubDate.toLocaleDateString(dateLocale, { year:'numeric', month:'2-digit', day:'2-digit' });
     const sentDot = n.sentiment === 'positive' ? 'dot-positive' : n.sentiment === 'negative' ? 'dot-negative' : '';
 
     return `
@@ -1649,7 +1653,7 @@ function renderRatingsTable() {
         ${targetDelta != null ? `<span style="font-size:9px;color:${targetDelta>=0?'var(--green)':'var(--red)'};">${targetDelta>=0?'↑':'↓'}${Math.abs(targetDelta).toFixed(0)}%</span>` : ''}
       </td>
       <td>${actionLabel(r.action)}</td>
-      <td class="td-mono" style="color:var(--text-muted);">${r.date}</td>
+      <td class="td-mono" style="color:var(--text-muted);">${r.date || '—'}</td>
       <td><span class="note-link" onclick="openRatingDetail(${start + idx})" style="cursor:pointer;color:var(--accent-blue);font-size:10px;max-width:180px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.note ? r.note.substring(0, 50) + (r.note.length > 50 ? '…' : '') : '—'}</span></td>
     </tr>`;
   }).join('');
@@ -1704,7 +1708,7 @@ function openRatingDetail(globalIdx) {
       <div class="rating-detail-item"><div class="rating-detail-label">${t('th.rating') || 'Rating'}</div><div class="rating-detail-value"><span class="rating-badge ${ratingClass(r.rating_normalized)}">${r.rating}</span></div></div>
       <div class="rating-detail-item"><div class="rating-detail-label">${t('th.action') || 'Action'}</div><div class="rating-detail-value">${actionLabel(r.action)}</div></div>
       <div class="rating-detail-item"><div class="rating-detail-label">${t('th.target_price') || 'Target'}</div><div class="rating-detail-value">${r.target_price_usd ? '$' + r.target_price_usd.toFixed(2) : '—'}${r.prev_target_price_usd ? ' <span style="font-size:11px;color:var(--text-muted);">(prev: $' + r.prev_target_price_usd.toFixed(2) + ')</span>' : ''}</div></div>
-      <div class="rating-detail-item"><div class="rating-detail-label">${t('th.date') || 'Date'}</div><div class="rating-detail-value">${r.date}</div></div>
+      <div class="rating-detail-item"><div class="rating-detail-label">${t('th.date') || 'Date'}</div><div class="rating-detail-value">${r.date || '—'}</div></div>
       <div class="rating-detail-item"><div class="rating-detail-label">${t('js.source') || 'Source'}</div><div class="rating-detail-value">${r.source_url ? `<a href="${r.source_url}" target="_blank" rel="noopener" style="color:var(--accent-blue);text-decoration:underline;">${r.analyst_firm}</a>` : (r.analyst_firm || '—')}</div></div>
     </div>
     <div style="margin-top:16px;">
@@ -1842,22 +1846,22 @@ function renderSocialSentiment() {
           <div class="sentiment-bar-row">
             <span class="sentiment-bar-label">${t('js.bull_rate')}</span>
             <div class="sentiment-bar-track">
-              <div class="sentiment-bar-fill bar-bull" style="width:${s.stocktwits_bullish_pct}%"></div>
+              <div class="sentiment-bar-fill bar-bull" style="width:${s.stocktwits_bullish_pct || 0}%"></div>
             </div>
-            <span class="sentiment-bar-val">${s.stocktwits_bullish_pct}%</span>
+            <span class="sentiment-bar-val">${s.stocktwits_bullish_pct != null ? s.stocktwits_bullish_pct + '%' : '—'}</span>
           </div>
           <div class="sentiment-bar-row">
             <span class="sentiment-bar-label">${t('js.social_heat')}</span>
             <div class="sentiment-bar-track">
-              <div class="sentiment-bar-fill bar-social" style="width:${Math.min(100,(s.twitter_x_mentions_24h/40))}%"></div>
+              <div class="sentiment-bar-fill bar-social" style="width:${Math.min(100,((s.twitter_x_mentions_24h || 0)/40))}%"></div>
             </div>
-            <span class="sentiment-bar-val">${s.twitter_x_mentions_24h.toLocaleString()}</span>
+            <span class="sentiment-bar-val">${s.twitter_x_mentions_24h != null ? s.twitter_x_mentions_24h.toLocaleString() : '—'}</span>
           </div>
         </div>
         <div style="margin-top:8px;display:flex;gap:12px;font-size:10px;color:var(--text-muted);">
-          <span><a href="https://www.reddit.com/search/?q=${s.ticker}" target="_blank" rel="noopener" style="color:var(--accent-blue);text-decoration:none;">Reddit</a>: <span style="color:var(--text-secondary);">${s.reddit_mentions_24h}</span></span>
-          <span><a href="https://x.com/search?q=%24${s.ticker}" target="_blank" rel="noopener" style="color:var(--accent-blue);text-decoration:none;">X/Twitter</a>: <span style="color:var(--text-secondary);">${s.twitter_x_mentions_24h.toLocaleString()}</span></span>
-          <span><a href="https://stocktwits.com/symbol/${s.ticker}" target="_blank" rel="noopener" style="color:var(--accent-blue);text-decoration:none;">StockTwits</a>: <span style="color:${s.stocktwits_bullish_pct>=60?'var(--green)':'var(--text-secondary)'};">${s.stocktwits_bullish_pct}% ${t('js.bullish')}</span></span>
+          <span><a href="https://www.reddit.com/search/?q=${s.ticker}" target="_blank" rel="noopener" style="color:var(--accent-blue);text-decoration:none;">Reddit</a>: <span style="color:var(--text-secondary);">${s.reddit_mentions_24h != null ? s.reddit_mentions_24h : '—'}</span></span>
+          <span><a href="https://x.com/search?q=%24${s.ticker}" target="_blank" rel="noopener" style="color:var(--accent-blue);text-decoration:none;">X/Twitter</a>: <span style="color:var(--text-secondary);">${s.twitter_x_mentions_24h != null ? s.twitter_x_mentions_24h.toLocaleString() : '—'}</span></span>
+          <span><a href="https://stocktwits.com/symbol/${s.ticker}" target="_blank" rel="noopener" style="color:var(--accent-blue);text-decoration:none;">StockTwits</a>: <span style="color:${(s.stocktwits_bullish_pct||0)>=60?'var(--green)':'var(--text-secondary)'};">${s.stocktwits_bullish_pct != null ? s.stocktwits_bullish_pct + '% ' + t('js.bullish') : '—'}</span></span>
         </div>
       </div>`;
   }).join('');
@@ -2975,7 +2979,7 @@ async function renderMarketPredict() {
     if (main) {
       const isUp = main.direction === 'UP';
       const arrowEl = document.getElementById('mp-arrow');
-      arrowEl.textContent = isUp ? '看涨 ▲' : '看跌 ▼';
+      arrowEl.textContent = isUp ? (t('mp.bullish_arrow') || '看涨 ▲') : (t('mp.bearish_arrow') || '看跌 ▼');
       arrowEl.className = 'mp-arrow ' + (isUp ? 'mp-up' : 'mp-down');
       document.getElementById('mp-conf-text').textContent =
         `${main.confidence}% | ${main.expected_return >= 0 ? '+' : ''}${main.expected_return}%`;
@@ -2983,8 +2987,9 @@ async function renderMarketPredict() {
     const genAt = latest.generated_at;
     if (genAt) {
       const d = new Date(genAt);
+      const updLocale = currentLang === 'en' ? 'en-US' : 'zh-CN';
       document.getElementById('mp-updated').textContent =
-        d.toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Singapore' });
+        d.toLocaleString(updLocale, { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Singapore' });
     }
     // Mini Cards
     renderMPCard('4h', latest['4h']);
@@ -3158,7 +3163,7 @@ async function _renderMPChart() {
   const histData = await fetchBinanceHistory(_mpCurrentRange);
   if (histData.length > 0) {
     datasets.push({
-      label: '历史价格',
+      label: t('mp.hist_price') || '历史价格',
       data: histData,
       borderColor: '#58a6ff',
       backgroundColor: 'rgba(88,166,255,0.04)',
@@ -3361,7 +3366,7 @@ function renderMPModelsAccordion(predictions) {
   const topDir = topModel ? (topModel[1].direction === 'UP' ? '▲' : '▼') : '';
 
   if (summaryEl) {
-    summaryEl.innerHTML = `${t('mp.all_models')} (${totalCount}) ▼ | <span style="color:${bullCount > totalCount / 2 ? '#22c55e' : '#ef4444'}">${bullCount}/${totalCount} ${currentLang === 'zh' ? '看涨' : 'Bull'}</span> | Top: ${topName} ${topConf}%${topDir}`;
+    summaryEl.innerHTML = `${t('mp.all_models')} (${totalCount}) ▼ | <span style="color:${bullCount > totalCount / 2 ? '#22c55e' : '#ef4444'}">${bullCount}/${totalCount} ${t('mp.bullish_short') || 'Bull'}</span> | Top: ${topName} ${topConf}%${topDir}`;
   }
 
   // Table with backtest data merged
@@ -3711,12 +3716,12 @@ function renderMPFearGreedInline(data) {
 
   const latest = data.data[0];
   const val = latest.value;
-  let cls = 'mp-fg-neutral', label = '中性';
-  if (val <= 25) { cls = 'mp-fg-extreme-fear'; label = '极恐'; }
-  else if (val <= 40) { cls = 'mp-fg-fear'; label = '恐惧'; }
-  else if (val <= 60) { cls = 'mp-fg-neutral'; label = '中性'; }
-  else if (val <= 75) { cls = 'mp-fg-greed'; label = '贪婪'; }
-  else { cls = 'mp-fg-extreme-greed'; label = '极贪'; }
+  let cls = 'mp-fg-neutral', label = t('mp.fg_neutral') || '中性';
+  if (val <= 25) { cls = 'mp-fg-extreme-fear'; label = t('mp.fg_extreme_fear') || '极恐'; }
+  else if (val <= 40) { cls = 'mp-fg-fear'; label = t('mp.fg_fear') || '恐惧'; }
+  else if (val <= 60) { cls = 'mp-fg-neutral'; label = t('mp.fg_neutral') || '中性'; }
+  else if (val <= 75) { cls = 'mp-fg-greed'; label = t('mp.fg_greed') || '贪婪'; }
+  else { cls = 'mp-fg-extreme-greed'; label = t('mp.fg_extreme_greed') || '极贪'; }
 
   const history = data.data.slice(0, 7).reverse();
   const spark = history.map(d => {
@@ -3800,14 +3805,14 @@ function renderMPMicroWidgets(optionsData, onchainData) {
       label: 'IV',
       value: optionsData.avg_iv ? optionsData.avg_iv.toFixed(1) + '%' : '--',
       sub: t('mp.implied_vol'),
-      desc: '隐含波动率，市场对未来波动的预期',
+      desc: t('mp.desc_iv') || '隐含波动率，市场对未来波动的预期',
       color: '#a855f7',
     });
     widgets.push({
       label: 'PCR',
       value: optionsData.pcr_oi ? optionsData.pcr_oi.toFixed(3) : '--',
-      sub: optionsData.pcr_oi > 0.7 ? '看跌' : optionsData.pcr_oi < 0.5 ? '看涨' : '中性',
-      desc: '看跌/看涨期权持仓比，>0.7偏空',
+      sub: optionsData.pcr_oi > 0.7 ? (t('mp.bearish_short') || '看跌') : optionsData.pcr_oi < 0.5 ? (t('mp.bullish_short') || '看涨') : (t('mp.fg_neutral') || '中性'),
+      desc: t('mp.desc_pcr') || '看跌/看涨期权持仓比，>0.7偏空',
       color: optionsData.pcr_oi > 0.7 ? '#ef4444' : optionsData.pcr_oi < 0.5 ? '#22c55e' : '#f59e0b',
     });
     widgets.push({
@@ -3815,7 +3820,7 @@ function renderMPMicroWidgets(optionsData, onchainData) {
       value: '$' + (optionsData.max_pain || 0).toLocaleString('en-US', { maximumFractionDigits: 0 }),
       sub: optionsData.max_pain && optionsData.index_price ?
         ((optionsData.max_pain - optionsData.index_price) / optionsData.index_price * 100).toFixed(1) + '%' : '',
-      desc: '期权最大痛点，到期日价格倾向靠拢',
+      desc: t('mp.desc_maxpain') || '期权最大痛点，到期日价格倾向靠拢',
       color: '#f59e0b',
     });
     if (optionsData.strike_concentration && optionsData.strike_concentration.length) {
@@ -3824,7 +3829,7 @@ function renderMPMicroWidgets(optionsData, onchainData) {
         label: 'Strike',
         value: '$' + top.strike.toLocaleString(),
         sub: 'OI: ' + top.total_oi.toLocaleString(),
-        desc: '期权OI最集中行权价，磁吸效应',
+        desc: t('mp.desc_strike') || '期权OI最集中行权价，磁吸效应',
         color: '#a855f7',
       });
     }
@@ -3839,21 +3844,21 @@ function renderMPMicroWidgets(optionsData, onchainData) {
       label: 'HR',
       value: typeof get('hashrate_eh') === 'number' ? get('hashrate_eh').toLocaleString() : get('hashrate_eh'),
       sub: 'EH/s',
-      desc: '全网算力，反映矿工信心和网络安全',
+      desc: t('mp.desc_hashrate') || '全网算力，反映矿工信心和网络安全',
       color: '#3b82f6',
     });
     widgets.push({
       label: 'Mempool',
       value: typeof get('mempool_count') === 'number' ? (get('mempool_count') / 1000).toFixed(0) + 'K' : get('mempool_count'),
       sub: typeof get('mempool_vsize_mb') === 'number' ? get('mempool_vsize_mb').toFixed(0) + 'MB' : '',
-      desc: '待确认交易池，拥堵=链上活跃',
+      desc: t('mp.desc_mempool') || '待确认交易池，拥堵=链上活跃',
       color: '#06b6d4',
     });
     widgets.push({
       label: 'Fee',
       value: typeof get('fee_fastest') === 'number' ? get('fee_fastest') : '--',
       sub: 'sat/vB',
-      desc: '最快确认手续费，高=网络繁忙',
+      desc: t('mp.desc_fee') || '最快确认手续费，高=网络繁忙',
       color: '#f97316',
     });
   }
@@ -3866,7 +3871,7 @@ function renderMPMicroWidgets(optionsData, onchainData) {
       label: 'Whale',
       value: (netFlow > 0 ? '+' : '') + netFlow.toLocaleString() + ' BTC',
       sub: netFlow < 0 ? t('mp.net_outflow') : t('mp.net_inflow'),
-      desc: '24h交易所净流量，流出=囤币看涨',
+      desc: t('mp.desc_whale') || '24h交易所净流量，流出=囤币看涨',
       color: netFlow < 0 ? '#22c55e' : '#ef4444',
     });
   }
@@ -4024,17 +4029,16 @@ function renderDerivFRChart(frHistory) {
 
   if (_derivFRChart) { _derivFRChart.destroy(); _derivFRChart = null; }
 
+  const dateLocale = currentLang === 'en' ? 'en-US' : 'zh-CN';
   const labels = frHistory.map(d => {
     const dt = new Date(d.timestamp);
-    return dt.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) + ' '
-         + dt.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
+    return dt.toLocaleDateString(dateLocale, { month: 'numeric', day: 'numeric' }) + ' '
+         + dt.toLocaleTimeString(dateLocale, { hour: '2-digit', minute: '2-digit', hour12: false });
   });
   const values = frHistory.map(d => d.value * 100);
   const colors = values.map(v => v >= 0 ? 'rgba(34,197,94,0.8)' : 'rgba(239,68,68,0.8)');
 
-  const cs = getComputedStyle(document.documentElement);
-  const gridColor = cs.getPropertyValue('--border').trim() || 'rgba(255,255,255,0.06)';
-  const tickColor = cs.getPropertyValue('--text-muted').trim() || '#666';
+  const cc = chartColors();
 
   _derivFRChart = new Chart(canvas, {
     type: 'bar',
@@ -4044,7 +4048,7 @@ function renderDerivFRChart(frHistory) {
       maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { label: ctx => `${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y.toFixed(4)}%` } },
+        tooltip: { backgroundColor: cc.tooltip.bg, borderColor: cc.tooltip.border, borderWidth: 1, titleColor: cc.tooltip.title, bodyColor: cc.tooltip.body, callbacks: { label: ctx => `${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y.toFixed(4)}%` } },
         annotation: {
           annotations: {
             posLine: { type: 'line', yMin: 0.03, yMax: 0.03, borderColor: 'rgba(34,197,94,0.4)', borderDash: [4,4], borderWidth: 1 },
@@ -4054,8 +4058,8 @@ function renderDerivFRChart(frHistory) {
         },
       },
       scales: {
-        x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 8 }, maxRotation: 45, maxTicksLimit: 8 } },
-        y: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 9, family: 'JetBrains Mono' }, callback: v => v.toFixed(3) + '%' } },
+        x: { grid: { color: cc.grid }, ticks: { color: cc.tick, font: { size: 8 }, maxRotation: 45, maxTicksLimit: 8 } },
+        y: { grid: { color: cc.grid }, ticks: { color: cc.tick, font: { size: 9, family: 'JetBrains Mono' }, callback: v => v.toFixed(3) + '%' } },
       },
     },
   });
@@ -4068,15 +4072,14 @@ function renderDerivOIChart(oiHistory, priceHistory) {
   if (_derivOIChart) { _derivOIChart.destroy(); _derivOIChart = null; }
 
   const primary = priceHistory.length ? priceHistory : oiHistory;
+  const dateLocaleOI = currentLang === 'en' ? 'en-US' : 'zh-CN';
   const labels = primary.map(d => {
     const dt = new Date(d.timestamp);
-    return dt.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) + ' '
-         + dt.toLocaleTimeString('zh-CN', { hour: '2-digit', hour12: false });
+    return dt.toLocaleDateString(dateLocaleOI, { month: 'numeric', day: 'numeric' }) + ' '
+         + dt.toLocaleTimeString(dateLocaleOI, { hour: '2-digit', hour12: false });
   });
 
-  const cs = getComputedStyle(document.documentElement);
-  const gridColor = cs.getPropertyValue('--border').trim() || 'rgba(255,255,255,0.06)';
-  const tickColor = cs.getPropertyValue('--text-muted').trim() || '#666';
+  const cc = chartColors();
 
   const datasets = [];
   if (oiHistory.length) {
@@ -4105,8 +4108,9 @@ function renderDerivOIChart(oiHistory, priceHistory) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { display: true, labels: { color: tickColor, font: { size: 9 }, boxWidth: 10 } },
+        legend: { display: true, labels: { color: cc.legend, font: { size: 9 }, boxWidth: 10 } },
         tooltip: {
+          backgroundColor: cc.tooltip.bg, borderColor: cc.tooltip.border, borderWidth: 1, titleColor: cc.tooltip.title, bodyColor: cc.tooltip.body,
           callbacks: {
             label: ctx => ctx.dataset.yAxisID === 'y1'
               ? `$${ctx.parsed.y.toLocaleString('en-US', { maximumFractionDigits: 0 })}`
@@ -4115,9 +4119,9 @@ function renderDerivOIChart(oiHistory, priceHistory) {
         },
       },
       scales: {
-        x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 8 }, maxRotation: 45, maxTicksLimit: 8 } },
+        x: { grid: { color: cc.grid }, ticks: { color: cc.tick, font: { size: 8 }, maxRotation: 45, maxTicksLimit: 8 } },
         y: {
-          position: 'left', grid: { color: gridColor },
+          position: 'left', grid: { color: cc.grid },
           ticks: { color: '#f59e0b', font: { size: 9, family: 'JetBrains Mono' }, callback: v => (v / 1000).toFixed(0) + 'K' },
         },
         y1: {
