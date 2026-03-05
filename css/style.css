@@ -2724,6 +2724,8 @@ canvas { max-width: 100%; }
 .mp-chart-cell {
   flex: 1;
   min-width: 0;
+  max-height: 230px;
+  overflow: hidden;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -2738,7 +2740,7 @@ canvas { max-width: 100%; }
 }
 .mp-chart-cell canvas {
   width: 100% !important;
-  height: 200px !important;
+  height: 170px !important;
 }
 
 /* Micro Widgets */
