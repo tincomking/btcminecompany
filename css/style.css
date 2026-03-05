@@ -2404,7 +2404,7 @@ canvas { max-width: 100%; }
 .mp-chart-area {
   flex: 1;
   min-width: 0;
-  height: 320px;
+  height: 420px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -2982,7 +2982,7 @@ canvas { max-width: 100%; }
 }
 @media (max-width: 1024px) {
   .mp-main-row { flex-direction: column; }
-  .mp-chart-area { height: 280px; }
+  .mp-chart-area { height: 360px; }
   .mp-side-col {
     width: 100%;
     flex-direction: row;

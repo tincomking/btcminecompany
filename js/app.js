@@ -3294,6 +3294,17 @@ async function _renderMPChart() {
   const timeUnit = { '7d': 'hour', '30d': 'day', '90d': 'day', '180d': 'week', '1y': 'month' }[_mpCurrentRange] || 'day';
   const nowLine = histData.length > 0 ? histData[histData.length - 1].x : null;
 
+  // Dynamic Y-axis bounds: collect all Y values and add 3% buffer
+  const allYVals = datasets.flatMap(ds => (ds.data || []).map(p => p.y)).filter(v => v != null && !isNaN(v));
+  let yAxisOpts = { grid: { color: cc.grid }, ticks: { color: cc.tick, font: { size: 9, family: 'JetBrains Mono' }, callback: v => '$' + v.toLocaleString() } };
+  if (allYVals.length > 0) {
+    const yMin = Math.min(...allYVals);
+    const yMax = Math.max(...allYVals);
+    const yPad = Math.max((yMax - yMin) * 0.03, 50);
+    yAxisOpts.min = Math.floor(yMin - yPad);
+    yAxisOpts.max = Math.ceil(yMax + yPad);
+  }
+
   mpForecastChart = new Chart(ctx, {
     type: 'line',
     data: { datasets },
@@ -3333,10 +3344,7 @@ async function _renderMPChart() {
           grid: { color: cc.grid },
           ticks: { color: cc.tick, font: { size: 9 }, maxTicksLimit: 8 },
         },
-        y: {
-          grid: { color: cc.grid },
-          ticks: { color: cc.tick, font: { size: 9, family: 'JetBrains Mono' }, callback: v => '$' + v.toLocaleString() },
-        }
+        y: yAxisOpts,
       },
       interaction: { intersect: false, mode: 'index' },
     },
