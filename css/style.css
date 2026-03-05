@@ -1260,6 +1260,9 @@ footer {
   padding: 20px;
   margin-bottom: 20px;
 }
+.chart-container canvas {
+  max-height: 280px;
+}
 
 .chart-title {
   font-size: 11px;

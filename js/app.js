@@ -1124,6 +1124,7 @@ function renderRevenueChart() {
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         legend: { labels: { color: cc.legend, font: { size: 11, family: 'Inter' } } },
         tooltip: {
@@ -1358,6 +1359,7 @@ function renderBtcProductionChart(selectedMonth) {
     data: { labels: periodLabels, datasets },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { labels: { color: cc2.legend, font: { size: 11, family: 'Inter' }, usePointStyle: true } },
@@ -2299,6 +2301,7 @@ function renderMonteCarloChart(result) {
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { labels: { color: cc.legend, font: { size: 11, family: 'Inter' }, usePointStyle: true } },
@@ -2657,6 +2660,7 @@ function renderConsensus() {
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           legend: { labels: { color: cc.legend, font: { size: 11, family: 'Inter' }, usePointStyle: true } },
           tooltip: {
@@ -2903,6 +2907,7 @@ function runFitting(method) {
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         legend: { labels: { color: cc.legend, font: { size: 11, family: 'Inter' }, usePointStyle: true } },
         tooltip: {
