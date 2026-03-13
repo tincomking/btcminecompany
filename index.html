@@ -214,8 +214,8 @@
             <th class="td-right" data-sort="ebitda" data-tip="调整后EBITDA（USD百万），剔除非经常性项目后的运营盈利能力。是矿企最常用的运营盈利指标，比净利润更能反映真实运营状况。">Adj. EBITDA (M)</th>
             <th class="td-right" data-tip="调整后EBITDA同比增速。正值表示运营盈利能力提升。">EBITDA YoY</th>
             <th class="td-right" data-i18n="th.eps" data-tip="每股摊薄收益（EPS）。净利润除以摊薄后流通股数。正值表示盈利，负值表示亏损。">EPS（摊薄）</th>
-            <th data-i18n="th.status">财报状态</th>
-            <th data-i18n="th.report_date">财报日期</th>
+            <th data-i18n="th.status" data-tip="财报是否已发布：已披露=数据来自实际SEC文件，预估=基于历史规律估算的发布时间">财报状态</th>
+            <th data-i18n="th.report_date" data-tip="财报实际发布日期（或预计发布日期）。FUFU为开曼群岛注册公司，向SEC提交20-F（年报）和6-K（季报/半年报）">财报日期</th>
             <th style="width:50px;"></th>
           </tr>
         </thead>
@@ -287,7 +287,7 @@
             <th class="td-right" data-i18n="th.power_cap" data-tip="可用电力上限（兆瓦，MW）。决定算力扩展的物理上限，电力资源是矿企核心护城河。">电力容量 (MW)</th>
             <th class="td-right" data-i18n="th.efficiency" data-tip="整体矿机平均能耗效率（焦耳/T算力）。越低越省电越有成本优势。&lt;22 J/TH为优秀（绿色显示）。">机队效率 (J/TH)</th>
             <th class="td-right" data-i18n="th.power_cost" data-tip="平均每度电成本（美分/千瓦时）。直接影响挖矿盈利能力，越低越有竞争优势。&lt;4¢/kWh为行业领先（绿色显示）。">电价 (¢/kWh)</th>
-            <th data-i18n="th.source">来源</th>
+            <th data-i18n="th.source" data-tip="数据来源文件链接：点击可跳转至SEC EDGAR官方文件（8-K/6-K），数据由Ollama AI从原文提取">来源</th>
           </tr>
         </thead>
         <tbody id="opsBody"></tbody>

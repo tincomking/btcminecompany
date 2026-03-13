@@ -2432,9 +2432,9 @@ function renderPlatformPredictions() {
 
   const yearColors = ['rgba(59,130,246,0.05)', 'rgba(16,185,129,0.05)', 'rgba(245,158,11,0.05)', 'rgba(139,92,246,0.05)', 'rgba(6,182,212,0.05)', 'rgba(239,68,68,0.05)'];
   thead.innerHTML = `<tr>
-    <th>${t('pred.source')}</th>
-    <th style="font-size:10px;">${t('pred.methodology')}</th>
-    ${years.map((y, i) => `<th class="td-right" colspan="3" style="text-align:center;background:${yearColors[i]};">${y}<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-muted);font-weight:400;"><span>${t('pred.low')}</span><span>${t('pred.high')}</span><span>${t('pred.avg')}</span></div></th>`).join('')}
+    <th data-tip="${currentLang === 'zh' ? '预测来源机构：涵盖主流加密分析平台、银行及研究机构的BTC价格预测' : 'Forecast source: covers major crypto analytics platforms, banks, and research firms'}">${t('pred.source')}</th>
+    <th style="font-size:10px;" data-tip="${currentLang === 'zh' ? '预测使用的分析方法：链上分析、技术分析、基本面模型、期货市场等' : 'Methodology used: on-chain analysis, technical analysis, fundamental models, futures markets, etc.'}">${t('pred.methodology')}</th>
+    ${years.map((y, i) => `<th class="td-right" colspan="3" style="text-align:center;background:${yearColors[i]};" data-tip="${currentLang === 'zh' ? y + '年BTC价格预测区间，从左到右为：低位/高位/平均目标价（USD）' : y + ' BTC price forecast range: Low / High / Average target price (USD)'}">${y}<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-muted);font-weight:400;"><span>${t('pred.low')}</span><span>${t('pred.high')}</span><span>${t('pred.avg')}</span></div></th>`).join('')}
   </tr>`;
 
   tbody.innerHTML = data.map(src => {
@@ -2588,10 +2588,10 @@ function renderInstitutionalPredictions() {
   const tbody = document.getElementById('institutionPredBody');
 
   thead.innerHTML = `<tr>
-    <th>${t('pred.source')}</th>
-    <th>${t('pred.analyst')}</th>
-    <th>${t('pred.type')}</th>
-    ${years.map(y => `<th class="td-right">${y}</th>`).join('')}
+    <th data-tip="${currentLang === 'zh' ? '机构名称：来自投行、资管公司、对冲基金等专业机构的BTC年度目标价' : 'Institution: annual BTC target prices from investment banks, asset managers, hedge funds'}">${t('pred.source')}</th>
+    <th data-tip="${currentLang === 'zh' ? '发布此预测的具体分析师姓名' : 'Name of the analyst who published this forecast'}">${t('pred.analyst')}</th>
+    <th data-tip="${currentLang === 'zh' ? '预测类型：目标价（单一价位）或情景分析（熊/基/牛三种情景）' : 'Forecast type: single target price, or scenario analysis (bear/base/bull)'}">${t('pred.type')}</th>
+    ${years.map(y => `<th class="td-right" data-tip="${currentLang === 'zh' ? y + '年底BTC目标价预测（USD），多情景时分别显示熊/基/牛' : y + ' year-end BTC price target (USD); multiple scenarios shown as Bear/Base/Bull'}">${y}</th>`).join('')}
   </tr>`;
 
   tbody.innerHTML = data.filter(src => {
@@ -3725,11 +3725,11 @@ function renderMPBettingTable(data) {
   // Table header
   if (headEl) {
     headEl.innerHTML = `<tr>
-      <th class="mp-bt-q">${t('mp.betting_question')}</th>
-      <th class="td-right">Yes</th>
-      <th class="td-right">No</th>
-      <th class="td-right">Vol</th>
-      <th class="td-right">${t('mp.betting_expire')}</th>
+      <th class="mp-bt-q" data-tip="${currentLang === 'zh' ? '预测市场问题：来自Polymarket/Kalshi的BTC价格相关预测合约，括号内显示目标价位' : 'Prediction market question from Polymarket/Kalshi about BTC price outcomes'}">${t('mp.betting_question')}</th>
+      <th class="td-right" data-tip="${currentLang === 'zh' ? '市场参与者认为事件会发生（Yes）的概率，即当前成交价×100%' : 'Market-implied probability the event occurs (Yes price × 100%)'}">${currentLang === 'zh' ? '做多概率' : 'Yes %'}</th>
+      <th class="td-right" data-tip="${currentLang === 'zh' ? '市场参与者认为事件不发生（No）的概率 = 100% - Yes%' : 'Market-implied probability event does NOT occur = 100% - Yes%'}">${currentLang === 'zh' ? '做空概率' : 'No %'}</th>
+      <th class="td-right" data-tip="${currentLang === 'zh' ? '市场总成交量（USD），越高说明该合约流动性越好，价格越可靠' : 'Total traded volume (USD). Higher = more liquid market = more reliable price signal'}">${currentLang === 'zh' ? '成交量' : 'Volume'}</th>
+      <th class="td-right" data-tip="${currentLang === 'zh' ? '合约到期时间，到期后根据结果结算（Yes或No）' : 'Contract expiry date, settled based on outcome at expiration'}">${t('mp.betting_expire')}</th>
     </tr>`;
   }
 
