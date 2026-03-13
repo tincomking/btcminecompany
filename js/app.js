@@ -464,7 +464,7 @@ function renderCompanyGrid(sortBy = 'mktcap') {
         </div>
 
         <div class="company-metrics">
-          <div class="metric-block">
+          <div class="metric-block" data-tip="${currentLang === 'zh' ? '最近报告期营收（USD百万），后接同比增速' : 'Latest reported revenue (USD M) with YoY growth'}">
             <div class="metric-label">${t('js.latest_revenue')}</div>
             <div class="metric-value">${(() => {
               if (fin && fin.revenue_usd_m != null) return fmt.usd(fin.revenue_usd_m);
@@ -473,7 +473,7 @@ function renderCompanyGrid(sortBy = 'mktcap') {
             })()}</div>
             <div class="metric-yoy">${fin ? fmt.pct(fin.revenue_yoy_pct, fin.revenue_yoy_pct != null ? 'yoy' : null) : ''}</div>
           </div>
-          <div class="metric-block">
+          <div class="metric-block" data-tip="${currentLang === 'zh' ? '最近期净利润（USD百万）。绿色=盈利，红色=亏损。矿企净利润受BTC价格和资产减值影响大。' : 'Latest net income (USD M). Green=profit, Red=loss. Heavily influenced by BTC price and impairments.'}">
             <div class="metric-label">${t('th.net_income')}</div>
             <div class="metric-value">${(() => {
               if (fin && fin.net_income_usd_m != null) return `<span class="${fin.net_income_usd_m >= 0 ? 'text-green' : 'text-red'}">${fmt.usd(fin.net_income_usd_m)}</span>`;
@@ -483,7 +483,7 @@ function renderCompanyGrid(sortBy = 'mktcap') {
             })()}</div>
             <div class="metric-yoy">${fin ? fmt.pct(fin.net_income_yoy_pct, fin.net_income_yoy_pct != null ? 'yoy' : null) : ''}</div>
           </div>
-          <div class="metric-block">
+          <div class="metric-block" data-tip="${currentLang === 'zh' ? '调整后EBITDA（USD百万），剔除非现金和非经常性项目后的运营盈利能力，是矿企最常用的盈利指标。' : 'Adjusted EBITDA (USD M). Operating profitability ex non-cash and non-recurring items. Primary profitability metric for miners.'}">
             <div class="metric-label">Adj. EBITDA</div>
             <div class="metric-value">${(() => {
               if (fin && fin.adjusted_ebitda_usd_m != null) return fmt.usd(fin.adjusted_ebitda_usd_m);
@@ -492,7 +492,7 @@ function renderCompanyGrid(sortBy = 'mktcap') {
             })()}</div>
             <div class="metric-yoy">${fin ? fmt.pct(fin.adjusted_ebitda_yoy_pct, fin.adjusted_ebitda_yoy_pct != null ? 'yoy' : null) : ''}</div>
           </div>
-          <div class="metric-block">
+          <div class="metric-block" data-tip="${currentLang === 'zh' ? '最新披露的BTC持仓数量（枚）。代表公司对BTC价格的直接敞口，不卖出策略反映对后市的看涨判断。' : 'Latest disclosed BTC holdings. Represents direct BTC price exposure. HODLing strategy reflects bullish conviction.'}">
             <div class="metric-label">${t('js.btc_holding')}</div>
             <div class="metric-value">${(() => {
               const opsRecs = OPERATIONAL.filter(o => o.ticker === co.ticker && o.btc_held > 0)
@@ -513,7 +513,7 @@ function renderCompanyGrid(sortBy = 'mktcap') {
               return t('js.btc_unit');
             })()}</div>
           </div>
-          <div class="metric-block">
+          <div class="metric-block" data-tip="${currentLang === 'zh' ? '企业价值/算力（$M/EH），矿企核心估值倍数。反映每单位算力的市场定价。<$1M/EH偏便宜，>$3M/EH偏贵。' : 'Enterprise Value / Hashrate ($M/EH). Core miner valuation metric. <$1M/EH cheap, >$3M/EH expensive.'}">
             <div class="metric-label">${t('js.ev_eh')}</div>
             <div class="metric-value">${(() => {
               const eveh = calcEVEH(co);
@@ -563,18 +563,43 @@ function renderCompTable() {
   const tbody = document.getElementById('compTableBody');
   if (!thead || !tbody) return;
 
+  const compTips = currentLang === 'zh' ? {
+    ticker: '股票代码',
+    market_cap: '股票总市值 = 股价 × 流通股数，反映市场对公司的整体估值',
+    ev: '企业价值 = 市值 + 总债务 - 现金。比市值更全面，考虑了负债情况，是并购定价的基础指标。',
+    revenue: '最近报告期的总营收（USD百万）。矿企收入主要来自挖矿奖励和托管服务。',
+    ebitda: '调整后EBITDA（USD百万）。剔除非经常性项目后的运营盈利能力，是矿企最常用的盈利指标。',
+    pe: '市盈率 = 股价/EPS。衡量每1美元盈利需支付多少。矿企因亏损常见，PE参考价值有限。',
+    ev_revenue: 'EV/营收倍数。越低代表越便宜，可与同行对比。<1x极低估，1-3x合理，>5x偏高。',
+    ev_ebitda: 'EV/EBITDA倍数，常用并购估值倍数。越低越便宜，矿企合理区间约5-15x。',
+    ev_eh: '企业价值/算力（$M/EH），矿企核心估值指标。反映每单位算力的市场定价。<$1M/EH偏便宜，>$3M/EH偏贵。',
+    hashrate: '当前运营算力（EH/s，ExaHash每秒）。决定BTC产出量，是矿企最核心的生产指标。',
+    efficiency: '矿机能耗效率（焦耳/T算力）。越低越省电越有竞争力，反映矿机新旧程度。',
+  } : {
+    ticker: 'Stock ticker symbol',
+    market_cap: 'Market Cap = Price × Shares. Reflects market valuation of the company.',
+    ev: 'Enterprise Value = Market Cap + Debt - Cash. More comprehensive than market cap, accounts for leverage.',
+    revenue: 'Latest reported total revenue (USD M). Miners earn primarily from block rewards and hosting.',
+    ebitda: 'Adjusted EBITDA (USD M). Operating profitability ex non-recurring items. Key metric for miners.',
+    pe: 'Price/Earnings ratio. Limited use for miners as many report losses.',
+    ev_revenue: 'EV/Revenue multiple. Lower = cheaper. <1x deep value, 1-3x fair, >5x expensive.',
+    ev_ebitda: 'EV/EBITDA multiple. Common M&A valuation metric. Fair range ~5-15x for miners.',
+    ev_eh: 'Enterprise Value per EH/s ($M/EH). Core miner valuation metric. <$1M/EH cheap, >$3M/EH expensive.',
+    hashrate: 'Current operational hashrate (EH/s). Determines BTC output, the core production metric.',
+    efficiency: 'Fleet efficiency (J/TH). Lower = more power-efficient = more competitive.',
+  };
   const cols = [
-    { key: 'ticker', label: t('comp.ticker'), align: 'left', sortable: true },
-    { key: 'market_cap', label: t('comp.market_cap'), align: 'right', sortable: true },
-    { key: 'ev', label: t('comp.ev'), align: 'right', sortable: true },
-    { key: 'revenue', label: t('comp.revenue'), align: 'right', sortable: true },
-    { key: 'ebitda', label: t('comp.ebitda'), align: 'right', sortable: true },
-    { key: 'pe', label: t('comp.pe'), align: 'right', sortable: true },
-    { key: 'ev_revenue', label: t('comp.ev_revenue'), align: 'right', sortable: true },
-    { key: 'ev_ebitda', label: t('comp.ev_ebitda'), align: 'right', sortable: true },
-    { key: 'ev_eh', label: t('comp.ev_eh'), align: 'right', sortable: true },
-    { key: 'hashrate', label: t('comp.hashrate'), align: 'right', sortable: true },
-    { key: 'efficiency', label: t('comp.efficiency'), align: 'right', sortable: true },
+    { key: 'ticker', label: t('comp.ticker'), align: 'left', sortable: true, tip: compTips.ticker },
+    { key: 'market_cap', label: t('comp.market_cap'), align: 'right', sortable: true, tip: compTips.market_cap },
+    { key: 'ev', label: t('comp.ev'), align: 'right', sortable: true, tip: compTips.ev },
+    { key: 'revenue', label: t('comp.revenue'), align: 'right', sortable: true, tip: compTips.revenue },
+    { key: 'ebitda', label: t('comp.ebitda'), align: 'right', sortable: true, tip: compTips.ebitda },
+    { key: 'pe', label: t('comp.pe'), align: 'right', sortable: true, tip: compTips.pe },
+    { key: 'ev_revenue', label: t('comp.ev_revenue'), align: 'right', sortable: true, tip: compTips.ev_revenue },
+    { key: 'ev_ebitda', label: t('comp.ev_ebitda'), align: 'right', sortable: true, tip: compTips.ev_ebitda },
+    { key: 'ev_eh', label: t('comp.ev_eh'), align: 'right', sortable: true, tip: compTips.ev_eh },
+    { key: 'hashrate', label: t('comp.hashrate'), align: 'right', sortable: true, tip: compTips.hashrate },
+    { key: 'efficiency', label: t('comp.efficiency'), align: 'right', sortable: true, tip: compTips.efficiency },
   ];
 
   // Build data rows
@@ -616,9 +641,10 @@ function renderCompTable() {
 
   // Render header
   thead.innerHTML = '<tr>' + cols.map(c => {
-    const cls = c.align === 'right' ? ' class="td-right comp-sortable"' : ' class="comp-sortable"';
     const arrow = compSortCol === c.key ? (compSortAsc ? ' sort-asc' : ' sort-desc') : '';
-    return `<th${cls} data-comp-sort="${c.key}"${arrow ? ` class="${(c.align === 'right' ? 'td-right comp-sortable ' : 'comp-sortable ') + arrow.trim()}"` : ''}>${c.label}</th>`;
+    const baseClass = (c.align === 'right' ? 'td-right ' : '') + 'comp-sortable' + (arrow ? ' ' + arrow.trim() : '');
+    const tipAttr = c.tip ? ` data-tip="${c.tip.replace(/"/g, '&quot;')}"` : '';
+    return `<th class="${baseClass}" data-comp-sort="${c.key}"${tipAttr}>${c.label}</th>`;
   }).join('') + '</tr>';
 
   // Fix sort class
@@ -2048,6 +2074,21 @@ function renderAnalysisSummary() {
     jones: 'Jones DA',
     montecarlo: 'Monte Carlo',
   };
+  const modelTips = currentLang === 'zh' ? {
+    altman: 'Altman Z-score 破产预警模型。Z>2.99安全，1.81-2.99灰色区，<1.81高危。矿企因高波动，分数偏低属正常。',
+    piotroski: 'Piotroski F-score 财务健康度（0-9分）。评估盈利、杠杆、运营效率九个维度。≥7分健康，≤2分弱。',
+    beneish: 'Beneish M-score 盈余操纵检测。M>-1.78 疑似财务造假，M<-1.78 相对可信。',
+    kmv: 'KMV模型违约距离（DD）。DD越大越安全，反映公司资产价值与违约点的距离（以标准差为单位）。',
+    jones: 'Jones模型应计项目分析。检测非现金应计比例，高应计可能暗示盈余管理。',
+    montecarlo: 'Monte Carlo营收模拟置信区间。基于历史波动率1000次随机模拟，反映未来12个月营收的不确定性范围。',
+  } : {
+    altman: 'Altman Z-score bankruptcy predictor. Z>2.99 safe, 1.81-2.99 grey zone, <1.81 distressed. Miners typically score low due to volatility.',
+    piotroski: 'Piotroski F-score financial health (0-9). Evaluates profitability, leverage, and operating efficiency. ≥7 strong, ≤2 weak.',
+    beneish: 'Beneish M-score earnings manipulation detector. M>-1.78 possible manipulation, M<-1.78 likely clean.',
+    kmv: 'KMV default distance (DD). Higher DD = safer, measures distance between asset value and default point in standard deviations.',
+    jones: 'Jones model accruals analysis. Detects non-cash accrual ratio — high accruals may indicate earnings management.',
+    montecarlo: 'Monte Carlo revenue simulation confidence interval. 1000 random paths from historical volatility, showing 12-month revenue uncertainty range.',
+  };
 
   // Collect all tickers
   const tickerSet = new Set();
@@ -2073,8 +2114,8 @@ function renderAnalysisSummary() {
 
   thead.innerHTML = `<tr>
     <th>${t('th.company')}</th>
-    ${modelKeys.map(k => `<th class="td-right">${modelLabels[k]}</th>`).join('')}
-    <th class="td-right">${t('analysis.composite_rating')}</th>
+    ${modelKeys.map(k => `<th class="td-right" data-tip="${(modelTips[k] || '').replace(/"/g, '&quot;')}">${modelLabels[k]}</th>`).join('')}
+    <th class="td-right" data-tip="${currentLang === 'zh' ? '六大量化模型的加权综合评分：A=优秀，B=良好，C=一般，D=警示。' : 'Weighted composite score from all six quantitative models: A=Excellent, B=Good, C=Average, D=Warning.'}">${t('analysis.composite_rating')}</th>
   </tr>`;
 
   tbody.innerHTML = tickers.map(ticker => {
@@ -3398,13 +3439,26 @@ function renderMPModelsAccordion(predictions) {
   const catLabels = { ml: 'ML', nn: 'NN', ts: 'TS', ta: 'TA', ensemble: 'ENS' };
   const catOrder = { ensemble: 0, ml: 1, nn: 2, ts: 3, ta: 4 };
 
+  const mpModelTips = currentLang === 'zh' ? {
+    dir: '预测方向：▲看涨（UP）/ ▼看跌（DOWN）',
+    conf: '模型对该方向的信心水平（0-100%），越高越确定',
+    ret: '预期价格变动幅度（%），正值=涨，负值=跌',
+    acc: '历史回测准确率。>55%绿色，<45%红色，50%为随机水平',
+    sharpe: '回测夏普比率。>0.5优秀，负值表示风险调整后亏损',
+  } : {
+    dir: 'Prediction direction: ▲Bullish (UP) / ▼Bearish (DOWN)',
+    conf: 'Model confidence in that direction (0-100%). Higher = more certain.',
+    ret: 'Expected price change (%): positive = up, negative = down',
+    acc: 'Historical backtest accuracy. >55% green, <45% red, 50% = random.',
+    sharpe: 'Backtest Sharpe ratio. >0.5 excellent, negative = risk-adjusted loss.',
+  };
   thead.innerHTML = `<tr>
     <th>${t('mp.model')}</th>
-    <th>${t('mp.direction')}</th>
-    <th class="td-right">${t('mp.confidence')}</th>
-    <th class="td-right">${t('mp.return')}</th>
-    <th class="td-right">${t('mp.bt_accuracy')}</th>
-    <th class="td-right">${t('mp.bt_sharpe')}</th>
+    <th data-tip="${mpModelTips.dir}">${t('mp.direction')}</th>
+    <th class="td-right" data-tip="${mpModelTips.conf}">${t('mp.confidence')}</th>
+    <th class="td-right" data-tip="${mpModelTips.ret}">${t('mp.return')}</th>
+    <th class="td-right" data-tip="${mpModelTips.acc}">${t('mp.bt_accuracy')}</th>
+    <th class="td-right" data-tip="${mpModelTips.sharpe}">${t('mp.bt_sharpe')}</th>
   </tr>`;
 
   const sorted = entries.sort((a, b) => (catOrder[a[1].category] ?? 5) - (catOrder[b[1].category] ?? 5));

@@ -110,32 +110,32 @@
 
     <!-- Aggregate Stats Bar -->
     <div class="stats-bar" id="statsBar">
-      <div class="stat-item">
+      <div class="stat-item" data-tip="监测到的美股上市比特币矿业公司数量">
         <div class="stat-label" data-i18n="stats.tracked">追踪公司</div>
         <div class="stat-value" id="stat-companies">12</div>
         <div class="stat-sub" data-i18n="stats.tracked_sub">US上市矿商</div>
       </div>
-      <div class="stat-item">
+      <div class="stat-item" data-tip="所有追踪公司的合计市值（股价 × 流通股数之和）">
         <div class="stat-label" data-i18n="stats.mktcap">总市值</div>
         <div class="stat-value" id="stat-mktcap">$19.6B</div>
         <div class="stat-sub" data-i18n="stats.mktcap_sub">合并市值</div>
       </div>
-      <div class="stat-item">
+      <div class="stat-item" data-tip="各公司合计BTC持仓量，来自最新财报/运营报告披露。矿企持BTC是对BTC价格的直接敞口。">
         <div class="stat-label" data-i18n="stats.btc_held">合并持仓 BTC</div>
         <div class="stat-value" id="stat-btc">73,421</div>
         <div class="stat-sub" data-i18n="stats.btc_held_sub">各公司合计持有</div>
       </div>
-      <div class="stat-item">
+      <div class="stat-item" data-tip="各公司合计运营算力（EH/s），来自最新月度运营报告。算力是矿企核心生产资源。">
         <div class="stat-label" data-i18n="stats.hashrate">合并算力</div>
         <div class="stat-value" id="stat-hashrate">168 EH/s</div>
         <div class="stat-sub" data-i18n="stats.hashrate_sub">10月 运营算力</div>
       </div>
-      <div class="stat-item">
+      <div class="stat-item" data-tip="各公司最新月度BTC产量合计。反映行业整体挖矿产出，受全网难度和各公司算力影响。">
         <div class="stat-label" data-i18n="stats.monthly">合并月产量</div>
         <div class="stat-value" id="stat-btcmined">3,282</div>
         <div class="stat-sub" data-i18n="stats.monthly_sub">BTC / 2024年10月</div>
       </div>
-      <div class="stat-item">
+      <div class="stat-item" data-tip="企业价值/算力（$M/EH）行业均值，用于评估算力定价贵贱。&lt;$1M/EH偏便宜，&gt;$3M/EH偏贵。">
         <div class="stat-label" data-i18n="stats.avg_ev_eh">行业平均 EV/EH</div>
         <div class="stat-value" id="stat-avg-eveh">—</div>
         <div class="stat-sub" data-i18n="stats.avg_ev_eh_sub">企业价值/算力</div>
@@ -207,13 +207,13 @@
           <tr>
             <th data-i18n="th.company">公司</th>
             <th data-i18n="th.period">报告期</th>
-            <th class="td-right" data-sort="revenue" data-i18n="th.revenue">营收 (M)</th>
-            <th class="td-right" data-i18n="th.revenue_yoy">营收 YoY</th>
-            <th class="td-right" data-sort="net_income" data-i18n="th.net_income">净利润 (M)</th>
-            <th class="td-right" data-i18n="th.net_income_yoy">净利润 YoY</th>
-            <th class="td-right" data-sort="ebitda">Adj. EBITDA (M)</th>
-            <th class="td-right">EBITDA YoY</th>
-            <th class="td-right" data-i18n="th.eps">EPS（摊薄）</th>
+            <th class="td-right" data-sort="revenue" data-i18n="th.revenue" data-tip="季度/年度总营收（USD百万）。矿企主要来自挖矿奖励和托管服务收入。同比增速反映业务扩张速度。">营收 (M)</th>
+            <th class="td-right" data-i18n="th.revenue_yoy" data-tip="营收同比增速（Year-over-Year）。正值表示业务增长，负值表示收缩。">营收 YoY</th>
+            <th class="td-right" data-sort="net_income" data-i18n="th.net_income" data-tip="最终净利润（USD百万），包含利息、税收、一次性项目。正值绿色/负值红色。矿企因BTC价格波动，净利润波动较大。">净利润 (M)</th>
+            <th class="td-right" data-i18n="th.net_income_yoy" data-tip="净利润同比增速。矿企净利润波动大，主要受BTC价格和减值损失影响，参考价值有限。">净利润 YoY</th>
+            <th class="td-right" data-sort="ebitda" data-tip="调整后EBITDA（USD百万），剔除非经常性项目后的运营盈利能力。是矿企最常用的运营盈利指标，比净利润更能反映真实运营状况。">Adj. EBITDA (M)</th>
+            <th class="td-right" data-tip="调整后EBITDA同比增速。正值表示运营盈利能力提升。">EBITDA YoY</th>
+            <th class="td-right" data-i18n="th.eps" data-tip="每股摊薄收益（EPS）。净利润除以摊薄后流通股数。正值表示盈利，负值表示亏损。">EPS（摊薄）</th>
             <th data-i18n="th.status">财报状态</th>
             <th data-i18n="th.report_date">财报日期</th>
             <th style="width:50px;"></th>
@@ -278,15 +278,15 @@
         <thead>
           <tr>
             <th data-i18n="th.company">公司</th>
-            <th data-i18n="th.period">报告期</th>
-            <th class="td-right" data-i18n="th.btc_mined">BTC产量</th>
-            <th class="td-right" data-i18n="th.btc_held">BTC持仓</th>
-            <th class="td-right" data-i18n="th.btc_sold">BTC销售</th>
-            <th class="td-right" data-i18n="th.hashrate">算力 (EH/s)</th>
-            <th class="td-right" data-i18n="th.installed_cap">装机算力 (EH/s)</th>
-            <th class="td-right" data-i18n="th.power_cap">电力容量 (MW)</th>
-            <th class="td-right" data-i18n="th.efficiency">机队效率 (J/TH)</th>
-            <th class="td-right" data-i18n="th.power_cost">电价 (¢/kWh)</th>
+            <th data-i18n="th.period" data-tip="数据对应的月份，来自公司月度运营报告（8-K/6-K）">报告期</th>
+            <th class="td-right" data-i18n="th.btc_mined" data-tip="当月实际挖出的BTC数量。反映实际生产效率，受算力大小和全网难度共同影响。">BTC产量</th>
+            <th class="td-right" data-i18n="th.btc_held" data-tip="月末账面持有BTC数量。不卖出表示公司对后市看涨，是矿企重要的资产储备策略。">BTC持仓</th>
+            <th class="td-right" data-i18n="th.btc_sold" data-tip="当月出售的BTC数量（绿色=0表示未卖出）。反映公司的变现策略：卖出覆盖运营成本，或全部持有以博升值。">BTC销售</th>
+            <th class="td-right" data-i18n="th.hashrate" data-tip="当月平均运营算力（EH/s，即ExaHash每秒）。是矿企核心生产指标，决定BTC产出量。">算力 (EH/s)</th>
+            <th class="td-right" data-i18n="th.installed_cap" data-tip="已安装的最大算力（EH/s）。利用率=实际算力/装机算力，反映设备实际运行比例。">装机算力 (EH/s)</th>
+            <th class="td-right" data-i18n="th.power_cap" data-tip="可用电力上限（兆瓦，MW）。决定算力扩展的物理上限，电力资源是矿企核心护城河。">电力容量 (MW)</th>
+            <th class="td-right" data-i18n="th.efficiency" data-tip="整体矿机平均能耗效率（焦耳/T算力）。越低越省电越有成本优势。&lt;22 J/TH为优秀（绿色显示）。">机队效率 (J/TH)</th>
+            <th class="td-right" data-i18n="th.power_cost" data-tip="平均每度电成本（美分/千瓦时）。直接影响挖矿盈利能力，越低越有竞争优势。&lt;4¢/kWh为行业领先（绿色显示）。">电价 (¢/kWh)</th>
             <th data-i18n="th.source">来源</th>
           </tr>
         </thead>
@@ -370,9 +370,9 @@
               <tr>
                 <th data-i18n="th.company">公司</th>
                 <th data-i18n="th.firm">机构</th>
-                <th data-i18n="th.rating">评级</th>
-                <th class="td-right" data-i18n="th.target_price">目标价</th>
-                <th data-i18n="th.action">变动</th>
+                <th data-i18n="th.rating" data-tip="卖方分析师评级：买入/持有/卖出。基于机构研究员对公司基本面和估值的综合判断。">评级</th>
+                <th class="td-right" data-i18n="th.target_price" data-tip="分析师给出的12个月目标股价（USD）。与现价对比可计算上涨/下跌空间。">目标价</th>
+                <th data-i18n="th.action" data-tip="评级变动方向：上调/下调/维持/首次覆盖。上调通常对股价有正面催化作用。">变动</th>
                 <th data-i18n="th.date">日期</th>
                 <th data-i18n="th.notes">备注</th>
               </tr>
@@ -398,10 +398,10 @@
             <thead>
               <tr>
                 <th data-i18n="th.company">公司</th>
-                <th class="td-right" data-i18n="th.current_price">现价</th>
-                <th class="td-right" data-i18n="th.avg_target">平均目标价</th>
-                <th class="td-right" data-i18n="th.upside">上涨空间</th>
-                <th data-i18n="th.rating">评级</th>
+                <th class="td-right" data-i18n="th.current_price" data-tip="当前股票市场价格（USD）">现价</th>
+                <th class="td-right" data-i18n="th.avg_target" data-tip="所有有效目标价的算术平均值（USD）。多家机构覆盖时更具参考价值。">平均目标价</th>
+                <th class="td-right" data-i18n="th.upside" data-tip="（平均目标价 - 现价）/ 现价。正值表示上涨空间，负值表示下跌风险。">上涨空间</th>
+                <th data-i18n="th.rating" data-tip="综合所有分析师评级的主流判断：买入/持有/卖出。">评级</th>
               </tr>
             </thead>
             <tbody id="targetPriceBody"></tbody>
