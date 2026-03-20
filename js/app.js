@@ -1436,6 +1436,19 @@ function renderNews() {
   setupNewsFilters();
 }
 
+function formatEconTime(timeStr) {
+  // 输入: "08:30" (美东时间 ET)，输出: "08:30 ET / 20:30 北京" 或 "08:30 ET / 20:30 BJ"
+  if (!timeStr || !timeStr.includes(':')) return timeStr || '';
+  const [h, m] = timeStr.split(':').map(Number);
+  // ET → 北京时间: +13h (EDT) 或 +12h (EST)，简化用 +12
+  const bjH = (h + 12) % 24;
+  const bjTime = `${String(bjH).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+  if (currentLang === 'zh') {
+    return `${timeStr} ET / ${bjTime} 北京`;
+  }
+  return `${timeStr} ET / ${bjTime} BJ`;
+}
+
 function renderEconCalendar() {
   const el = document.getElementById('econCalendarWidget');
   if (!el) return;
@@ -1499,7 +1512,7 @@ function renderEconCalendar() {
         <div class="econ-cal-event-main">
           ${impactIcon(ev.impact)}
           <span class="econ-cal-event-name">${name}</span>
-          <span class="econ-cal-event-time">${ev.time} ${ev.tz}</span>
+          <span class="econ-cal-event-time">${ev.time ? formatEconTime(ev.time) : ''}</span>
         </div>`;
       if (ev.previous || ev.forecast) {
         html += `<div class="econ-cal-event-data">`;
