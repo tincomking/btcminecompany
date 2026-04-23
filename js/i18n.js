@@ -9,6 +9,7 @@ const I18N = {
     'nav.financials': '财务数据',
     'nav.operations': '运营披露',
     'nav.news': '新闻动态',
+    'nav.media': '舆情分析',
     'nav.sentiment': '市场情绪',
 
     // Stats bar
@@ -416,6 +417,7 @@ const I18N = {
     'nav.financials': 'Financials',
     'nav.operations': 'Operations',
     'nav.news': 'News',
+    'nav.media': 'Media & Social',
     'nav.sentiment': 'Sentiment',
 
     'stats.tracked': 'Tracked',

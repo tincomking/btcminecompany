@@ -40,6 +40,7 @@
     <button class="nav-tab" data-page="financials" data-i18n="nav.financials">财务数据</button>
     <button class="nav-tab" data-page="operations" data-i18n="nav.operations">运营披露</button>
     <button class="nav-tab" data-page="news" data-i18n="nav.news">新闻动态</button>
+    <button class="nav-tab" data-page="media" data-i18n="nav.media">舆情分析</button>
     <button class="nav-tab" data-page="sentiment" data-i18n="nav.sentiment">市场情绪</button>
     <button class="nav-tab" data-page="analysis" data-i18n="nav.analysis">财务分析</button>
     <button class="nav-tab" data-page="predictions" data-i18n="nav.predictions">币价机构预测</button>
@@ -342,6 +343,156 @@
         <div class="card" id="newsCategoryBars"></div>
       </div>
     </div>
+  </div>
+
+  <!-- ─────────────────────── PAGE: MEDIA (舆情分析) ─────────────────────── -->
+  <div class="page" id="page-media">
+    <div class="section-header mb-16">
+      <div class="section-title">舆情分析 <span style="font-size:11px;color:#6b7280;font-weight:400;margin-left:8px;">IR &amp; PR 视角 · 媒体 + 社交覆盖</span></div>
+      <div style="display:flex;gap:10px;align-items:center;font-size:12px;color:#9ca3af;">
+        <label>时间范围</label>
+        <select id="mediaHours" class="filter-select" style="min-width:80px;">
+          <option value="24">24小时</option>
+          <option value="72">3天</option>
+          <option value="168" selected>7天</option>
+          <option value="720">30天</option>
+        </select>
+        <span id="mediaTotal" class="text-muted text-mono"></span>
+      </div>
+    </div>
+
+    <div id="mediaCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:24px;">
+      <div class="text-muted">加载中...</div>
+    </div>
+
+    <div class="two-col mb-24" style="grid-template-columns:1fr 2fr;gap:20px;">
+      <div>
+        <div class="section-header mb-16">
+          <div class="section-title" style="font-size:13px;">来源分布</div>
+          <span class="text-muted text-mono" style="font-size:10px;">按声量排序</span>
+        </div>
+        <div id="mediaSources" class="table-wrapper"><div class="text-muted">加载中...</div></div>
+      </div>
+      <div>
+        <div class="section-header mb-16">
+          <div class="section-title" style="font-size:13px;">实时报道流</div>
+          <select id="mediaTickerFilter" class="filter-select" style="font-size:11px;">
+            <option value="">全部公司</option>
+            <option value="FUFU">BitFuFu ($FUFU)</option>
+            <option value="BTDR">Bitdeer ($BTDR)</option>
+            <option value="IREN">Iris Energy ($IREN)</option>
+            <option value="MARA">Marathon ($MARA)</option>
+            <option value="CLSK">CleanSpark ($CLSK)</option>
+            <option value="RIOT">Riot ($RIOT)</option>
+            <option value="CAN">Canaan ($CAN)</option>
+            <option value="CANG">Cango ($CANG)</option>
+          </select>
+        </div>
+        <div id="mediaFeed" style="max-height:70vh;overflow-y:auto;padding-right:4px;"><div class="text-muted">加载中...</div></div>
+      </div>
+    </div>
+
+    <script>
+    (function(){
+      var API = 'https://api.btcmine.info';
+      var TIER_COLOR = {1:'#60a5fa', 2:'#9ca3af', 3:'#6b7280'};
+      var state = {hours: 168, ticker: ''};
+
+      async function fetchJSON(path){
+        var res = await fetch(API + path, { signal: AbortSignal.timeout(12000) });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return await res.json();
+      }
+      function fmtRel(iso){
+        if (!iso) return '-';
+        var d = new Date(iso), diff = (Date.now() - d.getTime())/1000;
+        if (diff < 60) return '刚刚';
+        if (diff < 3600) return Math.floor(diff/60) + '分钟前';
+        if (diff < 86400) return Math.floor(diff/3600) + '小时前';
+        if (diff < 86400*7) return Math.floor(diff/86400) + '天前';
+        return d.toLocaleDateString('zh-CN');
+      }
+      function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+      async function renderCards(){
+        try {
+          var d = await fetchJSON('/api/btcmine/media/overview?hours=' + state.hours);
+          document.getElementById('mediaTotal').textContent = '共 ' + d.total_mentions + ' 条相关报道';
+          document.getElementById('mediaCards').innerHTML = d.tickers.map(function(t){
+            var active = state.ticker === t.ticker ? 'border-color:#60a5fa;box-shadow:0 0 0 1px #60a5fa;' : '';
+            return '<div class="media-card" data-ticker="'+t.ticker+'" style="cursor:pointer;padding:12px;background:#1f2937;border:1px solid #374151;border-radius:8px;transition:all .15s;'+active+'">'+
+              '<div style="display:flex;justify-content:space-between;align-items:baseline;"><span style="font-size:12px;color:#d1d5db;">'+esc(t.name)+'</span><span style="font-size:10px;color:#6b7280;font-family:monospace;">$'+t.ticker+'</span></div>'+
+              '<div style="font-size:22px;font-weight:600;color:#f3f4f6;margin:4px 0 2px 0;">'+t.mentions+'</div>'+
+              '<div style="font-size:10px;color:#6b7280;">'+t.sov_pct+'% SoV</div>'+
+              '<div style="font-size:10px;color:#9ca3af;margin-top:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(t.top_source||'-')+'</div>'+
+              '<div style="font-size:10px;color:#6b7280;margin-top:2px;">'+fmtRel(t.latest_ts)+'</div>'+
+            '</div>';
+          }).join('');
+          document.querySelectorAll('.media-card').forEach(function(el){
+            el.addEventListener('click', function(){
+              state.ticker = (state.ticker === el.dataset.ticker) ? '' : el.dataset.ticker;
+              document.getElementById('mediaTickerFilter').value = state.ticker;
+              renderCards(); renderFeed();
+            });
+          });
+        } catch (e) {
+          document.getElementById('mediaCards').innerHTML = '<div style="color:#ef4444;">加载失败: ' + esc(e.message) + '</div>';
+        }
+      }
+
+      async function renderSources(){
+        try {
+          var d = await fetchJSON('/api/btcmine/media/sources?hours=' + state.hours);
+          var rows = d.sources.slice(0, 30).map(function(s){
+            return '<tr>'+
+              '<td style="padding:4px 6px;"><span style="color:'+(TIER_COLOR[s.source_tier]||'#6b7280')+';font-weight:600;font-size:11px;">T'+(s.source_tier||3)+'</span></td>'+
+              '<td style="padding:4px 6px;color:#e5e7eb;font-size:12px;">'+esc(s.source_name)+'</td>'+
+              '<td style="padding:4px 6px;text-align:right;color:#f3f4f6;font-family:monospace;font-size:12px;">'+s.cnt+'</td>'+
+              '<td style="padding:4px 6px;color:#6b7280;font-size:10px;white-space:nowrap;">'+fmtRel(s.latest)+'</td>'+
+            '</tr>';
+          }).join('');
+          document.getElementById('mediaSources').innerHTML =
+            '<table class="comp-table" style="width:100%;font-size:11px;"><thead><tr style="background:#111827;"><th style="padding:6px;text-align:left;">Tier</th><th style="padding:6px;text-align:left;">来源</th><th style="padding:6px;text-align:right;">声量</th><th style="padding:6px;text-align:left;">最近</th></tr></thead><tbody>'+rows+'</tbody></table>';
+        } catch (e) {
+          document.getElementById('mediaSources').innerHTML = '<div style="color:#ef4444;">加载失败</div>';
+        }
+      }
+
+      async function renderFeed(){
+        var el = document.getElementById('mediaFeed');
+        el.innerHTML = '<div class="text-muted">加载中...</div>';
+        try {
+          var qs = 'hours=' + state.hours + (state.ticker ? '&ticker=' + state.ticker : '') + '&limit=100';
+          var d = await fetchJSON('/api/btcmine/media/feed?' + qs);
+          if (!d.items.length) { el.innerHTML = '<div class="text-muted">暂无数据</div>'; return; }
+          el.innerHTML = d.items.map(function(m){
+            var tks = (m.tickers||[]).map(function(x){ return '$'+x; }).join(' ');
+            return '<div style="padding:10px 0;border-bottom:1px solid #374151;">'+
+              '<div style="display:flex;gap:8px;align-items:baseline;font-size:10px;color:#6b7280;margin-bottom:4px;">'+
+                '<span style="color:'+(TIER_COLOR[m.source_tier]||'#6b7280')+';font-weight:600;">T'+(m.source_tier||3)+'</span>'+
+                '<span>'+esc(m.source_name)+'</span><span>·</span><span>'+fmtRel(m.ts)+'</span>'+
+                '<span style="margin-left:auto;color:#9ca3af;">'+esc(tks)+'</span>'+
+              '</div>'+
+              '<a href="'+esc(m.url||'#')+'" target="_blank" rel="noopener" style="color:#e5e7eb;text-decoration:none;font-size:13px;line-height:1.45;display:block;">'+esc((m.title||'(无标题)').substring(0,220))+'</a>'+
+            '</div>';
+          }).join('');
+        } catch (e) {
+          el.innerHTML = '<div style="color:#ef4444;">加载失败: ' + esc(e.message) + '</div>';
+        }
+      }
+
+      function refreshAll(){ renderCards(); renderSources(); renderFeed(); }
+
+      document.getElementById('mediaHours').addEventListener('change', function(e){ state.hours = parseInt(e.target.value); refreshAll(); });
+      document.getElementById('mediaTickerFilter').addEventListener('change', function(e){ state.ticker = e.target.value; renderCards(); renderFeed(); });
+
+      var initialized = false;
+      function init(){ if (initialized) return; initialized = true; refreshAll(); }
+      var navBtn = document.querySelector('[data-page="media"]');
+      if (navBtn) navBtn.addEventListener('click', init);
+      if (document.querySelector('#page-media.active')) init();
+    })();
+    </script>
   </div>
 
   <!-- ─────────────────────── PAGE: SENTIMENT ─────────────────────── -->
