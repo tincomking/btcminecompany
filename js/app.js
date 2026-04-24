@@ -5,7 +5,7 @@
 'use strict';
 
 // ── VERSION ───────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.0305K';
+const APP_VERSION = 'v2.0424A';
 (() => {
   document.addEventListener('DOMContentLoaded', () => {
     const el = document.getElementById('app-version');
