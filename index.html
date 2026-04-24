@@ -345,7 +345,7 @@
     </div>
   </div>
 
-  <!-- ─────────────────────── PAGE: MEDIA (舆情分析) v2.0424G ─────────────────────── -->
+  <!-- ─────────────────────── PAGE: MEDIA (舆情分析) v2.0425A — Mention-style QuickChart + Heatmap + WordCloud + Reports + Alerts + IG ─────────────────────── -->
   <div class="page" id="page-media">
     <div class="section-header mb-16">
       <div class="section-title">舆情分析
@@ -395,6 +395,179 @@
         <div class="text-muted">加载中...</div>
       </div>
     </section>
+
+    <!-- ═══════════ MODULE: quickchart (feat-027 Mention-style QuickChart) ═══════════ -->
+    <section data-module="quickchart" class="media-module mb-24">
+      <div class="section-header mb-16">
+        <div class="section-title" style="font-size:13px;">🔍 QuickChart 自由探索
+          <span data-tip="像 Mention.com 那样自由组装查询：选 公司 / 指标 / 分组维度 / 图表类型，右侧筛选数据源、语言、情感、国家、话题、#Tag。所有图都是实时算出来的；满意的话可以保存成报表，拿链接分享。" style="color:var(--text-muted);cursor:help;font-size:11px;margin-left:4px;">ⓘ</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button type="button" id="qcCsvExport" class="filter-btn" style="padding:4px 10px;font-size:11px;" title="导出当前筛选结果为 CSV">⬇ CSV</button>
+          <button type="button" id="qcSaveReport" class="filter-btn" style="padding:4px 10px;font-size:11px;" title="把当前查询保存为命名报表，生成分享链接">💾 存为报表</button>
+        </div>
+      </div>
+
+      <!-- Chip query bar: [Brand(s)] IN [Metric] BY [Segment] AS [Chart] -->
+      <div id="qcQueryBar" style="background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:8px;padding:10px 12px;margin-bottom:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <div class="qc-chip-group" id="qcBrandChips" style="display:flex;gap:4px;flex-wrap:wrap;" data-tip="点公司名开关，白色描边=被选中；不选表示不限公司。"></div>
+        <span class="qc-conn">IN</span>
+        <select id="qcMetric" class="qc-select" data-tip="要计算的数值：Volume=条数、Reach=潜在触达、Sentiment=平均情感、Positive/Negative Pct=正/负情感占比、Engagement=点赞+评论数"></select>
+        <span class="qc-conn">BY</span>
+        <select id="qcSegment" class="qc-select" data-tip="分组维度：None=一条总线、Source=按平台拆、Ticker=按公司拆、Sentiment=按情感色拆、Emotion=按细分情绪（joy/anger/…）、Lang=按语言、Country=按国家、Topic=按话题标签、Hashtag=按 #标签、Hour of Day/DOW=按小时/按周几、Author=按作者"></select>
+        <span class="qc-conn">AS</span>
+        <select id="qcChart" class="qc-select" data-tip="图表类型：Line=折线、Bar=柱状、Stacked Bar=堆叠柱、Area=面积、Pie=饼、Doughnut=环、Radar=雷达（多公司对比用）、Heatmap=热力格、Table=纯表格"></select>
+        <span style="flex:1;"></span>
+        <select id="qcInterval" class="qc-select" data-tip="时间粒度：None=不分时段聚合一个值、Hourly=按小时、Daily=按天、Weekly=按周、Monthly=按月"></select>
+        <div id="qcHoursChips" style="display:inline-flex;gap:4px;">
+          <button type="button" class="qc-time-chip" data-qc-hours="24">24h</button>
+          <button type="button" class="qc-time-chip" data-qc-hours="72">3d</button>
+          <button type="button" class="qc-time-chip active" data-qc-hours="168">7d</button>
+          <button type="button" class="qc-time-chip" data-qc-hours="720">30d</button>
+          <button type="button" class="qc-time-chip" data-qc-hours="2160">90d</button>
+        </div>
+      </div>
+
+      <div class="two-col" style="grid-template-columns:3fr 1fr;gap:16px;">
+        <!-- Main chart + table fallback -->
+        <div>
+          <div style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:12px;position:relative;min-height:360px;">
+            <canvas id="qcChartCanvas" height="300"></canvas>
+            <div id="qcTableWrap" style="display:none;overflow:auto;max-height:420px;"></div>
+            <div id="qcEmpty" style="position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:var(--text-muted);font-size:12px;">无数据</div>
+            <div id="qcLoading" style="position:absolute;top:6px;right:10px;color:var(--text-muted);font-size:10px;">加载中...</div>
+          </div>
+        </div>
+        <!-- Filter sidebar (Mention-style) -->
+        <aside style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:12px;font-size:11px;max-height:500px;overflow-y:auto;">
+          <div style="font-weight:600;color:var(--text-primary);margin-bottom:8px;">筛选条件</div>
+
+          <div style="margin-bottom:12px;">
+            <div class="qc-label">数据源 <span data-tip="勾选的平台会进入查询，未勾=不限。点图标切换。" style="color:var(--text-muted);cursor:help;">ⓘ</span></div>
+            <div id="qcSourceChips" style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;"></div>
+          </div>
+
+          <div style="margin-bottom:12px;">
+            <div class="qc-label">情感</div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">
+              <label class="qc-check"><input type="checkbox" data-qc-sent="positive"/> <span style="color:var(--green);">正面</span></label>
+              <label class="qc-check"><input type="checkbox" data-qc-sent="neutral"/> <span style="color:var(--text-secondary);">中性</span></label>
+              <label class="qc-check"><input type="checkbox" data-qc-sent="negative"/> <span style="color:var(--red);">负面</span></label>
+            </div>
+          </div>
+
+          <div style="margin-bottom:12px;">
+            <div class="qc-label">情绪 (Emotion) <span data-tip="比 Sentiment 更细的情感分类：joy 喜悦、anger 愤怒、fear 恐惧、sadness 悲伤、surprise 惊讶。由 Ollama 多标签提取。部分历史数据可能无 emotion。" style="color:var(--text-muted);cursor:help;">ⓘ</span></div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">
+              <label class="qc-check"><input type="checkbox" data-qc-emo="joy"/> 🙂 joy</label>
+              <label class="qc-check"><input type="checkbox" data-qc-emo="anger"/> 😠 anger</label>
+              <label class="qc-check"><input type="checkbox" data-qc-emo="fear"/> 😨 fear</label>
+              <label class="qc-check"><input type="checkbox" data-qc-emo="sadness"/> 😢 sadness</label>
+              <label class="qc-check"><input type="checkbox" data-qc-emo="surprise"/> 😲 surprise</label>
+            </div>
+          </div>
+
+          <div style="margin-bottom:12px;">
+            <div class="qc-label">语言</div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">
+              <label class="qc-check"><input type="checkbox" data-qc-lang="en"/> EN</label>
+              <label class="qc-check"><input type="checkbox" data-qc-lang="zh"/> 中文</label>
+              <label class="qc-check"><input type="checkbox" data-qc-lang="ja"/> 日本語</label>
+            </div>
+          </div>
+
+          <div style="margin-bottom:12px;">
+            <div class="qc-label">国家</div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">
+              <label class="qc-check"><input type="checkbox" data-qc-cn="US"/> 🇺🇸 US</label>
+              <label class="qc-check"><input type="checkbox" data-qc-cn="GB"/> 🇬🇧 GB</label>
+              <label class="qc-check"><input type="checkbox" data-qc-cn="HK"/> 🇭🇰 HK</label>
+              <label class="qc-check"><input type="checkbox" data-qc-cn="SG"/> 🇸🇬 SG</label>
+              <label class="qc-check"><input type="checkbox" data-qc-cn="JP"/> 🇯🇵 JP</label>
+              <label class="qc-check"><input type="checkbox" data-qc-cn="IN"/> 🇮🇳 IN</label>
+            </div>
+          </div>
+
+          <div style="margin-bottom:12px;">
+            <div class="qc-label">#Hashtag</div>
+            <input type="text" id="qcHashtag" placeholder="#Bitcoin" class="qc-input" />
+          </div>
+
+          <div style="margin-bottom:4px;">
+            <div class="qc-label">全文关键词</div>
+            <input type="text" id="qcQuery" placeholder="例: earnings" class="qc-input" />
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- MODULE: heatmap (feat-029 Time-of-activity) -->
+    <section data-module="heatmap" class="media-module mb-24">
+      <div class="section-header mb-16">
+        <div class="section-title" style="font-size:13px;">🕒 活跃时段热力图 (7×24)
+          <span data-tip="7 天 × 24 小时格子，单元格颜色越深表示那段时间的声量越大。帮你判断哪天哪个时段发稿/监听最密集——IR/PR 定发稿时间的参考。时间按 UTC。" style="color:var(--text-muted);cursor:help;font-size:11px;margin-left:4px;">ⓘ</span>
+        </div>
+        <div style="display:flex;gap:4px;align-items:center;">
+          <span class="text-muted text-mono" style="font-size:10px;" id="heatmapHint">近 7 天</span>
+        </div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:14px;overflow-x:auto;">
+        <div id="heatmapGrid" style="display:inline-block;font-size:10px;"></div>
+      </div>
+    </section>
+
+    <!-- MODULE: wordcloud (feat-028 Word cloud / key phrases) -->
+    <section data-module="wordcloud" class="media-module mb-24">
+      <div class="section-header mb-16">
+        <div class="section-title" style="font-size:13px;">☁ 关键词云
+          <span data-tip="对所有内容的标题+正文做 tokenize、去停用词后统计的高频词。字号越大出现越多。按当前时间窗口+公司筛选实时算。" style="color:var(--text-muted);cursor:help;font-size:11px;margin-left:4px;">ⓘ</span>
+        </div>
+      </div>
+      <div id="wordcloudBox" style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:16px;min-height:120px;line-height:1.8;"></div>
+    </section>
+
+    <!-- MODULE: reports (feat-030 Saved reports) -->
+    <section data-module="reports" class="media-module mb-24">
+      <div class="section-header mb-16">
+        <div class="section-title" style="font-size:13px;">💾 我的报表
+          <span data-tip="保存过的 QuickChart 查询。点卡片直接 apply 回 QuickChart。勾选 Public 的会得到公开链接 /#media/r/&lt;slug&gt;。" style="color:var(--text-muted);cursor:help;font-size:11px;margin-left:4px;">ⓘ</span>
+        </div>
+      </div>
+      <div id="reportsList" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;"></div>
+    </section>
+
+    <!-- MODULE: alerts (feat-032 Alert rules) -->
+    <section data-module="alerts" class="media-module mb-24">
+      <div class="section-header mb-16">
+        <div class="section-title" style="font-size:13px;">🔔 监听规则 (Alerts)
+          <span data-tip="自定义关键词监听：一旦有匹配的新内容就在此列表 +1。支持 AND/OR/NOT boolean（e.g. bitcoin AND (MARA OR RIOT) NOT ETF）。" style="color:var(--text-muted);cursor:help;font-size:11px;margin-left:4px;">ⓘ</span>
+        </div>
+        <button type="button" id="alertsNew" class="filter-btn" style="padding:4px 10px;font-size:11px;">+ 新建规则</button>
+      </div>
+      <div id="alertsList" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;"></div>
+    </section>
+
+    <style>
+      .qc-chip-group { }
+      .qc-brand-chip { padding:3px 8px;font-size:10px;border:1px solid var(--border-default);border-radius:12px;cursor:pointer;font-family:monospace;color:var(--text-secondary);background:transparent; }
+      .qc-brand-chip.active { color:white; border-color:transparent; }
+      .qc-conn { font-size:10px;color:var(--text-muted);font-weight:600;letter-spacing:0.05em; }
+      .qc-select { background:var(--bg-card);border:1px solid var(--border-default);color:var(--text-primary);font-size:11px;padding:4px 8px;border-radius:6px;min-width:90px;cursor:pointer; }
+      .qc-time-chip { background:transparent;border:1px solid var(--border-default);color:var(--text-secondary);font-size:10px;padding:3px 8px;border-radius:10px;cursor:pointer; }
+      .qc-time-chip.active { background:var(--accent-blue);color:white;border-color:transparent; }
+      .qc-label { color:var(--text-muted);font-size:10px;font-weight:500;letter-spacing:0.05em;text-transform:uppercase; }
+      .qc-check { display:inline-flex;gap:4px;align-items:center;padding:2px 6px;background:var(--bg-elevated);border-radius:10px;cursor:pointer;font-size:10px; }
+      .qc-check input { accent-color:var(--accent-blue);width:11px;height:11px; }
+      .qc-source-chip { display:inline-flex;gap:4px;align-items:center;padding:3px 8px;font-size:10px;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:12px;cursor:pointer;user-select:none; }
+      .qc-source-chip.active { background:var(--accent-blue);color:white;border-color:transparent; }
+      .qc-source-chip .srclogo { width:12px;height:12px;display:inline-block; }
+      .qc-input { width:100%;background:var(--bg-elevated);border:1px solid var(--border-default);color:var(--text-primary);font-size:11px;padding:4px 8px;border-radius:6px;box-sizing:border-box; }
+      .heatmap-cell { display:inline-block;width:16px;height:16px;margin:1px;border-radius:2px;vertical-align:top; }
+      .wc-word { display:inline-block;margin:3px 6px;color:var(--text-primary);cursor:pointer; }
+      .report-card { background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:10px 12px;cursor:pointer; }
+      .report-card:hover { border-color:var(--accent-blue); }
+      .alert-card { background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:10px 12px; }
+    </style>
 
     <!-- MODULE: sentiment-reach (Sentiment doughnut + Reach distribution) -->
     <section data-module="sentiment-reach" class="media-module">
@@ -1128,6 +1301,537 @@
         renderSources();
         renderKol();
         renderFeed();
+        // feat-027 onwards (Mention-style rebuild)
+        renderQuickChart();
+        renderHeatmap();
+        renderWordcloud();
+        renderReportsList();
+        renderAlertRules();
+      }
+
+      // ═══════════════════════════════════════════════════════════════
+      // feat-027 QuickChart — Mention-style chip-syntax query builder
+      // ═══════════════════════════════════════════════════════════════
+      var qcState = {
+        brands: [],             // [] = all
+        metric: 'volume',
+        segment: 'source_type',
+        chart: 'line',
+        interval: 'daily',
+        hours: 168,
+        sources: [],
+        sentiment: [],
+        emotions: [],
+        languages: [],
+        countries: [],
+        hashtag: '',
+        q: '',
+      };
+      var qcChart = null;
+      var QC_METRICS = [
+        {key:'volume',         label:'声量 (Volume)'},
+        {key:'reach',          label:'触达 (Reach)'},
+        {key:'sentiment_avg',  label:'平均情感'},
+        {key:'positive_count', label:'正面条数'},
+        {key:'negative_count', label:'负面条数'},
+        {key:'positive_pct',   label:'正面率 %'},
+        {key:'negative_pct',   label:'负面率 %'},
+        {key:'engagement',     label:'互动量 (like+cmt)'},
+      ];
+      var QC_SEGMENTS = [
+        {key:'none',         label:'不分组 (总量)'},
+        {key:'source_type',  label:'按平台 (Source)'},
+        {key:'ticker',       label:'按公司 (Ticker)'},
+        {key:'sentiment',    label:'按情感 (Sentiment)'},
+        {key:'emotion',      label:'按情绪 (Emotion)'},
+        {key:'lang',         label:'按语言 (Lang)'},
+        {key:'country',      label:'按国家 (Country)'},
+        {key:'topic',        label:'按话题 (Topic)'},
+        {key:'hashtag',      label:'按 #Hashtag'},
+        {key:'source_tier',  label:'按 tier (T1–T4)'},
+        {key:'hour_of_day',  label:'按小时 (0–23)'},
+        {key:'day_of_week',  label:'按周几 (0=周日)'},
+        {key:'author',       label:'按作者'},
+      ];
+      var QC_CHARTS = [
+        {key:'line',        label:'折线'},
+        {key:'bar',         label:'柱状'},
+        {key:'stacked_bar', label:'堆叠柱'},
+        {key:'area',        label:'面积'},
+        {key:'pie',         label:'饼图'},
+        {key:'doughnut',    label:'环形'},
+        {key:'radar',       label:'雷达'},
+        {key:'horizontal_bar', label:'横向柱'},
+        {key:'table',       label:'表格'},
+      ];
+      var QC_INTERVALS = [
+        {key:'none',    label:'不分时'},
+        {key:'hourly',  label:'每小时'},
+        {key:'daily',   label:'每天'},
+        {key:'weekly',  label:'每周'},
+        {key:'monthly', label:'每月'},
+      ];
+      var QC_SOURCES = [
+        {key:'news',      name:'新闻',   logo:'📰'},
+        {key:'twitter',   name:'X',     logo:'𝕏'},
+        {key:'reddit',    name:'Reddit',logo:'🟠'},
+        {key:'youtube',   name:'YT',    logo:'▶'},
+        {key:'facebook',  name:'FB',    logo:'f'},
+        {key:'instagram', name:'IG',    logo:'📷'},
+        {key:'blog',      name:'Blog',  logo:'✍'},
+        {key:'seekingalpha', name:'SA', logo:'α'},
+      ];
+
+      function qcBuildUI(){
+        var mSel = document.getElementById('qcMetric');
+        var sSel = document.getElementById('qcSegment');
+        var cSel = document.getElementById('qcChart');
+        var iSel = document.getElementById('qcInterval');
+        if (mSel && !mSel.options.length) mSel.innerHTML = QC_METRICS.map(function(m){ return '<option value="'+m.key+'">'+esc(m.label)+'</option>'; }).join('');
+        if (sSel && !sSel.options.length) sSel.innerHTML = QC_SEGMENTS.map(function(m){ return '<option value="'+m.key+'">'+esc(m.label)+'</option>'; }).join('');
+        if (cSel && !cSel.options.length) cSel.innerHTML = QC_CHARTS.map(function(m){ return '<option value="'+m.key+'">'+esc(m.label)+'</option>'; }).join('');
+        if (iSel && !iSel.options.length) iSel.innerHTML = QC_INTERVALS.map(function(m){ return '<option value="'+m.key+'">'+esc(m.label)+'</option>'; }).join('');
+        if (mSel) mSel.value = qcState.metric;
+        if (sSel) sSel.value = qcState.segment;
+        if (cSel) cSel.value = qcState.chart;
+        if (iSel) iSel.value = qcState.interval;
+        // Brand chips
+        var br = document.getElementById('qcBrandChips');
+        if (br && !br.children.length) {
+          br.innerHTML = ['FUFU','BTDR','IREN','MARA','CLSK','RIOT','CAN','CANG'].map(function(tk){
+            return '<button type="button" class="qc-brand-chip" data-qc-brand="'+tk+'" style="border-color:'+TICKER_COLORS[tk]+';">$'+tk+'</button>';
+          }).join('');
+          br.querySelectorAll('[data-qc-brand]').forEach(function(btn){
+            btn.addEventListener('click', function(){
+              var tk = btn.getAttribute('data-qc-brand');
+              var i = qcState.brands.indexOf(tk);
+              if (i !== -1) qcState.brands.splice(i,1); else qcState.brands.push(tk);
+              qcUpdateBrandChips();
+              renderQuickChart();
+            });
+          });
+        }
+        qcUpdateBrandChips();
+        // Source logo chips
+        var sc = document.getElementById('qcSourceChips');
+        if (sc && !sc.children.length) {
+          sc.innerHTML = QC_SOURCES.map(function(s){
+            return '<span class="qc-source-chip" data-qc-source="'+s.key+'" title="'+esc(s.name)+'"><span class="srclogo">'+s.logo+'</span> '+s.name+'</span>';
+          }).join('');
+          sc.querySelectorAll('[data-qc-source]').forEach(function(chip){
+            chip.addEventListener('click', function(){
+              var k = chip.getAttribute('data-qc-source');
+              var i = qcState.sources.indexOf(k);
+              if (i !== -1) qcState.sources.splice(i, 1); else qcState.sources.push(k);
+              qcUpdateSourceChips();
+              renderQuickChart();
+            });
+          });
+        }
+        qcUpdateSourceChips();
+        // Hours chips
+        document.querySelectorAll('#qcHoursChips .qc-time-chip').forEach(function(b){
+          if (b._qcWired) return; b._qcWired = true;
+          b.addEventListener('click', function(){
+            qcState.hours = parseInt(b.dataset.qcHours) || 168;
+            document.querySelectorAll('#qcHoursChips .qc-time-chip').forEach(function(x){ x.classList.toggle('active', x === b); });
+            renderQuickChart();
+          });
+        });
+      }
+      function qcUpdateBrandChips(){
+        document.querySelectorAll('#qcBrandChips [data-qc-brand]').forEach(function(el){
+          var tk = el.getAttribute('data-qc-brand');
+          var on = qcState.brands.indexOf(tk) !== -1;
+          el.classList.toggle('active', on);
+          el.style.background = on ? (TICKER_COLORS[tk] || 'var(--accent-blue)') : 'transparent';
+        });
+      }
+      function qcUpdateSourceChips(){
+        document.querySelectorAll('#qcSourceChips [data-qc-source]').forEach(function(el){
+          el.classList.toggle('active', qcState.sources.indexOf(el.getAttribute('data-qc-source')) !== -1);
+        });
+      }
+      function qcCollectFilters(){
+        qcState.sentiment = Array.from(document.querySelectorAll('#page-media [data-qc-sent]:checked')).map(function(e){ return e.getAttribute('data-qc-sent'); });
+        qcState.emotions = Array.from(document.querySelectorAll('#page-media [data-qc-emo]:checked')).map(function(e){ return e.getAttribute('data-qc-emo'); });
+        qcState.languages = Array.from(document.querySelectorAll('#page-media [data-qc-lang]:checked')).map(function(e){ return e.getAttribute('data-qc-lang'); });
+        qcState.countries = Array.from(document.querySelectorAll('#page-media [data-qc-cn]:checked')).map(function(e){ return e.getAttribute('data-qc-cn'); });
+        var ht = document.getElementById('qcHashtag'); qcState.hashtag = ht ? ht.value.trim() : '';
+        var qq = document.getElementById('qcQuery'); qcState.q = qq ? qq.value.trim() : '';
+      }
+      function qcBuildQueryString(){
+        qcCollectFilters();
+        var p = [];
+        p.push('metric=' + qcState.metric);
+        p.push('segment=' + qcState.segment);
+        p.push('interval=' + qcState.interval);
+        p.push('hours=' + qcState.hours);
+        if (qcState.brands.length) p.push('tickers=' + qcState.brands.join(','));
+        if (qcState.sources.length) p.push('sources=' + qcState.sources.join(','));
+        if (qcState.sentiment.length) p.push('sentiment=' + qcState.sentiment.join(','));
+        if (qcState.emotions.length) p.push('emotions=' + qcState.emotions.join(','));
+        if (qcState.languages.length) p.push('languages=' + qcState.languages.join(','));
+        if (qcState.countries.length) p.push('countries=' + qcState.countries.join(','));
+        if (qcState.hashtag) p.push('hashtag=' + encodeURIComponent(qcState.hashtag));
+        if (qcState.q) p.push('q=' + encodeURIComponent(qcState.q));
+        return '/api/btcmine/media/aggregate?' + p.join('&');
+      }
+      async function renderQuickChart(){
+        var loadEl = document.getElementById('qcLoading');
+        if (loadEl) loadEl.style.display = 'inline';
+        try {
+          var d = await j(qcBuildQueryString());
+          var emptyEl = document.getElementById('qcEmpty');
+          var canvas = document.getElementById('qcChartCanvas');
+          var tableWrap = document.getElementById('qcTableWrap');
+          var isTable = qcState.chart === 'table';
+          if (canvas) canvas.style.display = isTable ? 'none' : '';
+          if (tableWrap) tableWrap.style.display = isTable ? 'block' : 'none';
+          if (!d.data || !d.data.length) {
+            if (qcChart) { qcChart.destroy(); qcChart = null; }
+            if (emptyEl) emptyEl.style.display = 'flex';
+            if (tableWrap && isTable) tableWrap.innerHTML = '<div class="text-muted" style="padding:20px;text-align:center;">无数据</div>';
+            return;
+          }
+          if (emptyEl) emptyEl.style.display = 'none';
+          if (isTable) { qcRenderTable(d); return; }
+
+          var labels = [];
+          var datasets = [];
+          var segMode = qcState.segment !== 'none';
+          var intMode = qcState.interval !== 'none';
+          var palette = ['#60a5fa','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#eab308','#84cc16','#f97316','#a855f7','#0ea5e9'];
+
+          if (intMode && segMode) {
+            labels = d.data.map(function(r){ return r.bucket; });
+            var segKeys = {};
+            d.data.forEach(function(r){ Object.keys(r.series || {}).forEach(function(k){ segKeys[k] = true; }); });
+            var segs = Object.keys(segKeys);
+            datasets = segs.map(function(sk, i){
+              return {
+                label: qcSegLabel(sk),
+                data: d.data.map(function(r){ return (r.series && r.series[sk] != null) ? r.series[sk] : 0; }),
+                borderColor: qcSegColor(sk, i, palette),
+                backgroundColor: qcSegColor(sk, i, palette) + (qcState.chart === 'area' ? '44' : 'cc'),
+                fill: qcState.chart === 'area',
+                tension: 0.25,
+                stack: qcState.chart === 'stacked_bar' ? 'all' : undefined,
+              };
+            });
+          } else if (intMode) {
+            labels = d.data.map(function(r){ return r.bucket; });
+            datasets = [{
+              label: qcMetricLabel(),
+              data: d.data.map(function(r){ return r.value; }),
+              borderColor: '#60a5fa',
+              backgroundColor: qcState.chart === 'area' ? '#60a5fa44' : '#60a5facc',
+              fill: qcState.chart === 'area',
+              tension: 0.25,
+            }];
+          } else if (segMode) {
+            labels = d.data.map(function(r){ return qcSegLabel(r.segment); });
+            datasets = [{
+              label: qcMetricLabel(),
+              data: d.data.map(function(r){ return r.value; }),
+              backgroundColor: d.data.map(function(r, i){ return qcSegColor(r.segment, i, palette); }),
+              borderColor: d.data.map(function(r, i){ return qcSegColor(r.segment, i, palette); }),
+            }];
+          } else {
+            labels = [qcMetricLabel()];
+            datasets = [{label: qcMetricLabel(), data: [d.data[0].value], backgroundColor:'#60a5fa'}];
+          }
+
+          var chartType = qcState.chart;
+          if (chartType === 'stacked_bar' || chartType === 'horizontal_bar') chartType = 'bar';
+          if (chartType === 'area') chartType = 'line';
+
+          if (qcChart) qcChart.destroy();
+          qcChart = new Chart(canvas, {
+            type: chartType,
+            data: {labels: labels, datasets: datasets},
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              indexAxis: qcState.chart === 'horizontal_bar' ? 'y' : 'x',
+              plugins: {
+                legend: {
+                  display: segMode || qcState.chart === 'pie' || qcState.chart === 'doughnut' || qcState.chart === 'radar',
+                  position: 'bottom',
+                  labels: {color:'#a0a0a0', font:{size:10}, boxWidth:10, padding:6}
+                },
+                tooltip: {callbacks: {label: function(ctx){ return ctx.dataset.label + ': ' + qcFmt(ctx.parsed.y != null ? ctx.parsed.y : ctx.parsed); }}}
+              },
+              scales: (qcState.chart === 'pie' || qcState.chart === 'doughnut' || qcState.chart === 'radar') ? {} : {
+                x: {ticks:{color:'#606060', font:{size:9}}, grid:{color:'rgba(255,255,255,0.04)'}, stacked: qcState.chart === 'stacked_bar'},
+                y: {ticks:{color:'#606060', font:{size:9}, callback:function(v){return qcFmt(v);}}, grid:{color:'rgba(255,255,255,0.04)'}, beginAtZero:true, stacked: qcState.chart === 'stacked_bar'}
+              },
+            }
+          });
+        } catch (e) {
+          console.error('qc', e);
+        } finally {
+          if (loadEl) loadEl.style.display = 'none';
+        }
+      }
+      function qcRenderTable(d){
+        var wrap = document.getElementById('qcTableWrap');
+        if (!wrap) return;
+        var rows = d.data || [];
+        if (!rows.length) { wrap.innerHTML = '<div class="text-muted" style="padding:20px;">无数据</div>'; return; }
+        var cols = Object.keys(rows[0]);
+        // Flatten series
+        if (rows[0].series) {
+          var allSegs = {};
+          rows.forEach(function(r){ Object.keys(r.series || {}).forEach(function(k){ allSegs[k] = true; }); });
+          var segs = Object.keys(allSegs);
+          wrap.innerHTML = '<table style="width:100%;font-size:11px;border-collapse:collapse;">'
+            + '<thead><tr><th style="text-align:left;padding:6px 8px;color:var(--text-muted);">' + (rows[0].bucket != null ? '时间' : '维度') + '</th>'
+            + segs.map(function(s){ return '<th style="text-align:right;padding:6px 8px;color:var(--text-muted);">' + esc(qcSegLabel(s)) + '</th>'; }).join('')
+            + '</tr></thead><tbody>'
+            + rows.map(function(r){
+              return '<tr><td style="padding:4px 8px;color:var(--text-primary);font-family:monospace;">' + esc(r.bucket || '') + '</td>'
+                + segs.map(function(s){ var v = (r.series || {})[s]; return '<td style="text-align:right;padding:4px 8px;color:var(--text-primary);font-family:monospace;">' + (v == null ? '—' : qcFmt(v)) + '</td>'; }).join('')
+                + '</tr>';
+            }).join('')
+            + '</tbody></table>';
+        } else {
+          wrap.innerHTML = '<table style="width:100%;font-size:11px;border-collapse:collapse;">'
+            + '<thead><tr>' + cols.map(function(c){ return '<th style="text-align:left;padding:6px 8px;color:var(--text-muted);">' + esc(c) + '</th>'; }).join('') + '</tr></thead><tbody>'
+            + rows.map(function(r){ return '<tr>' + cols.map(function(c){ return '<td style="padding:4px 8px;color:var(--text-primary);font-family:monospace;">' + esc(r[c] != null ? r[c] : '') + '</td>'; }).join('') + '</tr>'; }).join('')
+            + '</tbody></table>';
+        }
+      }
+      function qcMetricLabel(){
+        var m = QC_METRICS.find(function(x){return x.key === qcState.metric;}); return m ? m.label : qcState.metric;
+      }
+      function qcSegLabel(s){
+        if (qcState.segment === 'source_type') return PLATFORM_LABEL[s] || s;
+        if (qcState.segment === 'ticker') return '$' + s;
+        if (qcState.segment === 'sentiment') return SENT_LABEL[s] || s;
+        if (qcState.segment === 'day_of_week') { var names=['周日','周一','周二','周三','周四','周五','周六']; return names[s] || s; }
+        if (qcState.segment === 'hour_of_day') return String(s).padStart(2,'0') + ':00';
+        if (qcState.segment === 'source_tier') return 'T' + s;
+        return s == null ? '—' : String(s);
+      }
+      function qcSegColor(s, i, palette){
+        if (qcState.segment === 'source_type') return PLATFORM_COLOR[s] || palette[i % palette.length];
+        if (qcState.segment === 'ticker') return TICKER_COLORS[s] || palette[i % palette.length];
+        if (qcState.segment === 'sentiment') return SENT_COLOR[s] || palette[i % palette.length];
+        return palette[i % palette.length];
+      }
+      function qcFmt(v){
+        if (v == null) return '—';
+        if (qcState.metric === 'reach' || qcState.metric === 'engagement') return fmtReach(v);
+        if (qcState.metric === 'positive_pct' || qcState.metric === 'negative_pct') return (Math.round(v*10)/10) + '%';
+        if (qcState.metric === 'sentiment_avg') return (Math.round(v*100)/100).toString();
+        return v;
+      }
+      // Wire QuickChart selects + text inputs + sidebar filter checkboxes once at init
+      function qcWireEvents(){
+        ['qcMetric','qcSegment','qcChart','qcInterval'].forEach(function(id){
+          var el = document.getElementById(id);
+          if (!el || el._qcWired) return; el._qcWired = true;
+          el.addEventListener('change', function(){
+            qcState[id === 'qcMetric' ? 'metric' : id === 'qcSegment' ? 'segment' : id === 'qcChart' ? 'chart' : 'interval'] = el.value;
+            renderQuickChart();
+          });
+        });
+        document.querySelectorAll('#page-media [data-qc-sent],#page-media [data-qc-emo],#page-media [data-qc-lang],#page-media [data-qc-cn]').forEach(function(cb){
+          if (cb._qcWired) return; cb._qcWired = true;
+          cb.addEventListener('change', renderQuickChart);
+        });
+        ['qcHashtag','qcQuery'].forEach(function(id){
+          var el = document.getElementById(id);
+          if (!el || el._qcWired) return; el._qcWired = true;
+          var t;
+          el.addEventListener('input', function(){ clearTimeout(t); t = setTimeout(renderQuickChart, 500); });
+        });
+        var csv = document.getElementById('qcCsvExport');
+        if (csv && !csv._qcWired) { csv._qcWired = true; csv.addEventListener('click', qcExportCsv); }
+        var sav = document.getElementById('qcSaveReport');
+        if (sav && !sav._qcWired) { sav._qcWired = true; sav.addEventListener('click', qcSaveReportClick); }
+      }
+      function qcExportCsv(){
+        var p = [];
+        p.push('hours=' + qcState.hours);
+        if (qcState.brands.length === 1) p.push('ticker=' + qcState.brands[0]);
+        if (qcState.sources.length === 1) p.push('source_type=' + qcState.sources[0]);
+        if (qcState.sentiment.length === 1) p.push('sentiment=' + qcState.sentiment[0]);
+        p.push('limit=2000');
+        window.open(API + '/api/btcmine/media/export.csv?' + p.join('&'), '_blank');
+      }
+      async function qcSaveReportClick(){
+        qcCollectFilters();
+        var defaultName = 'QuickChart-' + new Date().toISOString().slice(0,10) + '-' + Math.random().toString(36).slice(2,7);
+        var slug = window.prompt('输入报表 slug (小写字母数字连字符)：', defaultName);
+        if (!slug) return;
+        var title = window.prompt('报表标题 (可留空)：', '') || '';
+        var pub = window.confirm('设为公开 (拿到链接谁都能看)？');
+        try {
+          var res = await fetch(API + '/api/btcmine/media/reports', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({slug: slug.toLowerCase().trim(), title: title, config: qcState, public: pub}),
+          });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          alert('已保存。公开链接: ' + window.location.origin + '/#media/r/' + slug.toLowerCase().trim());
+          renderReportsList();
+        } catch(e){ alert('保存失败: ' + e.message); }
+      }
+
+      // ═══════════════════════════════════════════════════════════════
+      // feat-029 Heatmap (7×24)
+      // ═══════════════════════════════════════════════════════════════
+      async function renderHeatmap(){
+        try {
+          var d = await j('/api/btcmine/media/heatmap?hours=' + Math.max(168, state.hours) + (state.ticker ? '&ticker='+state.ticker : ''));
+          var el = document.getElementById('heatmapGrid');
+          if (!el) return;
+          var max = 0;
+          d.grid.forEach(function(row){ row.forEach(function(v){ if (v > max) max = v; }); });
+          function color(v){
+            if (!v) return 'var(--bg-elevated)';
+            var p = max > 0 ? v / max : 0;
+            var alpha = 0.15 + 0.75 * p;
+            return 'rgba(96,165,250,' + alpha.toFixed(2) + ')';
+          }
+          var html = '<table style="border-spacing:2px;border-collapse:separate;">';
+          // Header row
+          html += '<tr><td></td>';
+          for (var h=0; h<24; h++) html += '<td style="color:var(--text-muted);font-size:9px;text-align:center;">'+h+'</td>';
+          html += '</tr>';
+          var names = d.dow_labels || ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+          for (var w=0; w<7; w++) {
+            html += '<tr><td style="color:var(--text-muted);font-size:10px;padding-right:4px;">'+names[w]+'</td>';
+            for (var h2=0; h2<24; h2++) {
+              var v = d.grid[w][h2];
+              html += '<td><div class="heatmap-cell" title="'+names[w]+' '+h2+':00 = '+v+'" style="background:'+color(v)+';"></div></td>';
+            }
+            html += '</tr>';
+          }
+          html += '</table>';
+          el.innerHTML = html;
+          var hint = document.getElementById('heatmapHint');
+          if (hint) hint.textContent = '近 ' + Math.round(Math.max(168, state.hours)/24) + ' 天 · 峰值 ' + max;
+        } catch(e){ console.error('heatmap', e); }
+      }
+
+      // ═══════════════════════════════════════════════════════════════
+      // feat-028 Wordcloud
+      // ═══════════════════════════════════════════════════════════════
+      async function renderWordcloud(){
+        try {
+          var path = '/api/btcmine/media/wordcloud?hours=' + state.hours + '&limit=60' + (state.ticker ? '&ticker='+state.ticker : '');
+          var d = await j(path);
+          var el = document.getElementById('wordcloudBox');
+          if (!el) return;
+          if (!d.words || !d.words.length) { el.innerHTML = '<div class="text-muted">无数据</div>'; return; }
+          var max = d.words[0].count;
+          el.innerHTML = d.words.map(function(w){
+            var size = 10 + Math.round(22 * (w.count / max));
+            var opacity = 0.55 + 0.45 * (w.count / max);
+            return '<span class="wc-word" title="'+w.count+' 次" style="font-size:'+size+'px;opacity:'+opacity.toFixed(2)+';" data-wc-word="'+esc(w.word)+'">'+esc(w.word)+'</span>';
+          }).join('');
+          el.querySelectorAll('[data-wc-word]').forEach(function(s){
+            s.addEventListener('click', function(){
+              var qq = document.getElementById('qcQuery');
+              if (qq) { qq.value = s.getAttribute('data-wc-word'); renderQuickChart(); }
+            });
+          });
+        } catch(e){ console.error('wc', e); }
+      }
+
+      // ═══════════════════════════════════════════════════════════════
+      // feat-030 Saved reports list
+      // ═══════════════════════════════════════════════════════════════
+      async function renderReportsList(){
+        var el = document.getElementById('reportsList');
+        if (!el) return;
+        try {
+          var d = await j('/api/btcmine/media/reports');
+          if (!d.reports || !d.reports.length) {
+            el.innerHTML = '<div class="text-muted" style="padding:12px;">尚无报表。在 QuickChart 顶栏点 💾 存为报表。</div>';
+            return;
+          }
+          el.innerHTML = d.reports.map(function(r){
+            var pub = r.public ? '<span style="color:var(--green);font-size:9px;">● public</span>' : '<span style="color:var(--text-muted);font-size:9px;">● private</span>';
+            return '<div class="report-card" data-report-slug="'+esc(r.slug)+'">'
+              + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--text-primary);font-weight:500;">'+esc(r.title || r.slug)+'</span>'+pub+'</div>'
+              + '<div class="text-muted" style="font-size:10px;margin-top:2px;">'+esc(r.slug)+' · '+(r.description || '')+'</div>'
+              + '<div class="text-muted" style="font-size:10px;margin-top:2px;">updated '+fmtRel(r.updated_at)+'</div>'
+              + '<div style="margin-top:6px;display:flex;gap:6px;"><button type="button" data-report-apply="'+esc(r.slug)+'" style="font-size:10px;padding:2px 8px;background:var(--accent-blue);color:white;border:none;border-radius:10px;cursor:pointer;">应用</button>'
+              + '<button type="button" data-report-del="'+esc(r.slug)+'" style="font-size:10px;padding:2px 8px;background:transparent;color:var(--red);border:1px solid var(--red);border-radius:10px;cursor:pointer;">删</button></div>'
+              + '</div>';
+          }).join('');
+          el.querySelectorAll('[data-report-apply]').forEach(function(b){
+            b.addEventListener('click', async function(e){
+              e.stopPropagation();
+              var slug = b.getAttribute('data-report-apply');
+              try {
+                var rr = await j('/api/btcmine/media/reports/' + slug);
+                if (rr.config) { Object.keys(rr.config).forEach(function(k){ qcState[k] = rr.config[k]; }); qcBuildUI(); renderQuickChart(); window.scrollTo({top: document.querySelector('[data-module="quickchart"]').offsetTop - 60, behavior:'smooth'}); }
+              } catch(e){}
+            });
+          });
+          el.querySelectorAll('[data-report-del]').forEach(function(b){
+            b.addEventListener('click', async function(e){
+              e.stopPropagation();
+              var slug = b.getAttribute('data-report-del');
+              if (!window.confirm('删除报表 ' + slug + '？')) return;
+              await fetch(API + '/api/btcmine/media/reports/' + slug, {method:'DELETE'});
+              renderReportsList();
+            });
+          });
+        } catch(e){ console.error('reports', e); }
+      }
+
+      // ═══════════════════════════════════════════════════════════════
+      // feat-032 Alert rules
+      // ═══════════════════════════════════════════════════════════════
+      async function renderAlertRules(){
+        var el = document.getElementById('alertsList');
+        if (!el) return;
+        try {
+          var d = await j('/api/btcmine/media/alert_rules');
+          if (!d.rules || !d.rules.length) {
+            el.innerHTML = '<div class="text-muted" style="padding:12px;">尚无监听规则。点右上"+ 新建规则"。</div>';
+            return;
+          }
+          el.innerHTML = d.rules.map(function(r){
+            var active = r.active ? '<span style="color:var(--green);font-size:9px;">● 启用</span>' : '<span style="color:var(--text-muted);font-size:9px;">● 暂停</span>';
+            var sources = ''; try { sources = (JSON.parse(r.sources || '[]')).join(', '); } catch(_){}
+            var tickers = ''; try { tickers = (JSON.parse(r.tickers || '[]')).join(', '); } catch(_){}
+            return '<div class="alert-card">'
+              + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--text-primary);font-weight:500;">'+esc(r.name)+'</span>'+active+'</div>'
+              + '<div style="font-size:10px;color:var(--text-secondary);margin-top:4px;font-family:monospace;">query: '+esc(r.query || '')+'</div>'
+              + (sources ? '<div style="font-size:10px;color:var(--text-muted);margin-top:2px;">sources: '+esc(sources)+'</div>' : '')
+              + (tickers ? '<div style="font-size:10px;color:var(--text-muted);margin-top:2px;">tickers: '+esc(tickers)+'</div>' : '')
+              + '<div class="text-muted" style="font-size:9px;margin-top:4px;">last check '+fmtRel(r.last_checked)+' · match '+(r.last_matched_count || 0)+'</div>'
+              + '<div style="margin-top:6px;"><button type="button" data-alert-del="'+r.id+'" style="font-size:10px;padding:2px 8px;background:transparent;color:var(--red);border:1px solid var(--red);border-radius:10px;cursor:pointer;">删</button></div>'
+              + '</div>';
+          }).join('');
+          el.querySelectorAll('[data-alert-del]').forEach(function(b){
+            b.addEventListener('click', async function(){
+              var id = b.getAttribute('data-alert-del');
+              if (!window.confirm('删除规则 #' + id + '？')) return;
+              await fetch(API + '/api/btcmine/media/alert_rules/' + id, {method:'DELETE'});
+              renderAlertRules();
+            });
+          });
+        } catch(e){ console.error('alerts', e); }
+      }
+      function alertsNewClick(){
+        var name = window.prompt('规则名称 (如: 财报关键词):'); if (!name) return;
+        var query = window.prompt('Boolean 查询 (支持 AND/OR/NOT):\n例: earnings AND (MARA OR RIOT) NOT ETF'); if (!query) return;
+        var srcStr = window.prompt('数据源 (逗号分隔，留空=全部): news,twitter,reddit,facebook,instagram,youtube,blog', '');
+        var tkStr = window.prompt('公司 (逗号分隔 ticker，留空=全部): FUFU,MARA,...', '');
+        var srcs = srcStr ? srcStr.split(',').map(function(x){return x.trim();}).filter(Boolean) : [];
+        var tks = tkStr ? tkStr.split(',').map(function(x){return x.trim().toUpperCase();}).filter(Boolean) : [];
+        fetch(API + '/api/btcmine/media/alert_rules', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({name:name, query:query, sources:srcs, tickers:tks, active:true})
+        }).then(function(){ renderAlertRules(); }).catch(function(e){ alert('创建失败: ' + e.message); });
       }
 
       // ========== feat-022 Reach distribution ==========
@@ -1290,14 +1994,19 @@
       }
 
       // ========== feat-025 Custom layout (module show/hide + drag-reorder) ==========
-      var LAYOUT_KEY = 'btcmine_media_layout_v1';
+      var LAYOUT_KEY = 'btcmine_media_layout_v2';  // v2 = added quickchart/heatmap/wordcloud/reports/alerts
       var MODULE_META = [
-        {key:'overview-cards',  label:'8 家公司一览',  default:true},
+        {key:'overview-cards',  label:'8 家公司一览',   default:true},
+        {key:'quickchart',      label:'🔍 QuickChart 自由探索', default:true},
         {key:'sentiment-reach', label:'情感 & Reach 分布', default:true},
-        {key:'timeline-themes', label:'时间线 & 话题',  default:true},
-        {key:'compare',         label:'竞品对比雷达',   default:true},
-        {key:'kol',             label:'KOL 影响力榜',   default:true},
-        {key:'sources-feed',    label:'来源 & 报道流',  default:true},
+        {key:'timeline-themes', label:'时间线 & 话题',   default:true},
+        {key:'heatmap',         label:'🕒 活跃时段热力图', default:true},
+        {key:'compare',         label:'竞品对比雷达',    default:true},
+        {key:'wordcloud',       label:'☁ 关键词云',     default:true},
+        {key:'kol',             label:'KOL 影响力榜',    default:true},
+        {key:'reports',         label:'💾 我的报表',     default:true},
+        {key:'alerts',          label:'🔔 监听规则',     default:true},
+        {key:'sources-feed',    label:'来源 & 报道流',   default:true},
       ];
       function loadLayout(){
         try {
@@ -1576,6 +2285,23 @@
         hashToState();
         applyLayout();    // feat-025: restore saved module order/visibility before first render
         syncUI();
+        // feat-027 wire QuickChart UI after layout restored
+        qcBuildUI();
+        qcWireEvents();
+        // feat-032 wire alerts new-rule button
+        var _alNew = document.getElementById('alertsNew');
+        if (_alNew && !_alNew._wired) { _alNew._wired = true; _alNew.addEventListener('click', alertsNewClick); }
+        // Handle /#media/r/<slug> deep link
+        var m = (window.location.hash || '').match(/^#media\/r\/([a-z0-9\-_]+)/);
+        if (m) {
+          j('/api/btcmine/media/reports/' + m[1]).then(function(r){
+            if (r && r.config) {
+              Object.keys(r.config).forEach(function(k){ qcState[k] = r.config[k]; });
+              qcBuildUI();
+              refreshAll();
+            }
+          }).catch(function(){});
+        }
         refreshAll();
       }
       var navBtn = document.querySelector('[data-page="media"]');
