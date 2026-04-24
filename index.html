@@ -348,7 +348,7 @@
   <!-- ─────────────────────── PAGE: MEDIA (舆情分析) ─────────────────────── -->
   <div class="page" id="page-media">
     <div class="section-header mb-16">
-      <div class="section-title">舆情分析 <span style="font-size:11px;color:var(--text-muted);font-weight:400;margin-left:8px;">IR &amp; PR 视角 · 媒体 + 社交覆盖</span></div>
+      <div class="section-title">舆情分析 <span style="font-size:11px;color:var(--text-secondary);font-weight:400;margin-left:8px;">IR &amp; PR 视角 · 媒体 + 社交覆盖</span></div>
       <div style="display:flex;gap:10px;align-items:center;font-size:12px;color:var(--text-secondary);">
         <label>时间范围</label>
         <select id="mediaHours" class="filter-select" style="min-width:80px;">
@@ -361,8 +361,33 @@
       </div>
     </div>
 
-    <div id="mediaCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:24px;">
+    <!-- alerts banner -->
+    <div id="mediaAlerts" style="margin-bottom:16px;"></div>
+
+    <!-- 8 公司卡片 -->
+    <div id="mediaCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:24px;">
       <div class="text-muted">加载中...</div>
+    </div>
+
+    <!-- Timeline chart + Themes row -->
+    <div class="two-col mb-24" style="grid-template-columns:2fr 1fr;gap:20px;">
+      <div>
+        <div class="section-header mb-16">
+          <div class="section-title" style="font-size:13px;">30 天声量时间线</div>
+          <span class="text-muted text-mono" style="font-size:10px;" id="mediaTimelineHint">所有公司 (点卡片筛选)</span>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:12px;">
+          <canvas id="mediaTimelineChart" height="120"></canvas>
+        </div>
+      </div>
+      <div>
+        <div class="section-header mb-16">
+          <div class="section-title" style="font-size:13px;">话题分布</div>
+        </div>
+        <div id="mediaThemes" style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:12px;min-height:120px;">
+          <div class="text-muted">加载中...</div>
+        </div>
+      </div>
     </div>
 
     <div class="two-col mb-24" style="grid-template-columns:1fr 2fr;gap:20px;">
@@ -376,17 +401,25 @@
       <div>
         <div class="section-header mb-16">
           <div class="section-title" style="font-size:13px;">实时报道流</div>
-          <select id="mediaTickerFilter" class="filter-select" style="font-size:11px;">
-            <option value="">全部公司</option>
-            <option value="FUFU">BitFuFu ($FUFU)</option>
-            <option value="BTDR">Bitdeer ($BTDR)</option>
-            <option value="IREN">Iris Energy ($IREN)</option>
-            <option value="MARA">Marathon ($MARA)</option>
-            <option value="CLSK">CleanSpark ($CLSK)</option>
-            <option value="RIOT">Riot ($RIOT)</option>
-            <option value="CAN">Canaan ($CAN)</option>
-            <option value="CANG">Cango ($CANG)</option>
-          </select>
+          <div style="display:flex;gap:8px;">
+            <select id="mediaSentimentFilter" class="filter-select" style="font-size:11px;">
+              <option value="">全部情感</option>
+              <option value="positive">正面</option>
+              <option value="neutral">中性</option>
+              <option value="negative">负面</option>
+            </select>
+            <select id="mediaTickerFilter" class="filter-select" style="font-size:11px;">
+              <option value="">全部公司</option>
+              <option value="FUFU">BitFuFu ($FUFU)</option>
+              <option value="BTDR">Bitdeer ($BTDR)</option>
+              <option value="IREN">Iris Energy ($IREN)</option>
+              <option value="MARA">Marathon ($MARA)</option>
+              <option value="CLSK">CleanSpark ($CLSK)</option>
+              <option value="RIOT">Riot ($RIOT)</option>
+              <option value="CAN">Canaan ($CAN)</option>
+              <option value="CANG">Cango ($CANG)</option>
+            </select>
+          </div>
         </div>
         <div id="mediaFeed" style="max-height:70vh;overflow-y:auto;padding-right:4px;"><div class="text-muted">加载中...</div></div>
       </div>
@@ -395,11 +428,22 @@
     <script>
     (function(){
       var API = 'https://api.btcmine.info';
-      var TIER_COLOR = {1:'var(--accent-blue)', 2:'var(--text-secondary)', 3:'var(--text-muted)'};
-      var state = {hours: 168, ticker: ''};
+      var TIER_COLOR = {1:'var(--accent-blue)', 2:'var(--text-secondary)', 3:'var(--text-muted)', 4:'var(--purple)'};
+      var THEME_LABEL = {
+        earnings: '财报', financing: '融资', hashrate: '算力', ai_pivot: 'AI转型',
+        regulatory: '监管', ma: '并购', leadership: '高管', esg: 'ESG'
+      };
+      var SENT_COLOR = {positive:'var(--green)', neutral:'var(--text-secondary)', negative:'var(--red)'};
+      var SENT_LABEL = {positive:'正面', neutral:'中性', negative:'负面'};
+      var TICKER_COLORS = {
+        FUFU:'#60a5fa', BTDR:'#f59e0b', IREN:'#10b981', MARA:'#ef4444',
+        CLSK:'#8b5cf6', RIOT:'#06b6d4', CAN:'#ec4899', CANG:'#eab308'
+      };
+      var state = {hours:168, ticker:'', sentiment:''};
+      var timelineChart = null;
 
-      async function fetchJSON(path){
-        var res = await fetch(API + path, { signal: AbortSignal.timeout(12000) });
+      async function j(path){
+        var res = await fetch(API + path, {signal: AbortSignal.timeout(12000)});
         if (!res.ok) throw new Error('HTTP ' + res.status);
         return await res.json();
       }
@@ -412,18 +456,43 @@
         if (diff < 86400*7) return Math.floor(diff/86400) + '天前';
         return d.toLocaleDateString('zh-CN');
       }
-      function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+      function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+      function sentBar(s){
+        if (s == null) return '<div style="height:3px;background:var(--border-default);border-radius:2px;margin-top:6px;"></div>';
+        var pct = Math.max(0, Math.min(100, (s + 1) * 50));
+        var col = s > 0.15 ? 'var(--green)' : (s < -0.15 ? 'var(--red)' : 'var(--text-secondary)');
+        return '<div style="height:3px;background:var(--border-default);border-radius:2px;margin-top:6px;position:relative;overflow:hidden;"><div style="position:absolute;left:0;top:0;bottom:0;width:'+pct+'%;background:'+col+';"></div></div>';
+      }
+
+      async function renderAlerts(){
+        try {
+          var d = await j('/api/btcmine/media/alerts?unacknowledged=true&limit=3');
+          var el = document.getElementById('mediaAlerts');
+          if (!d.alerts || !d.alerts.length) { el.innerHTML = ''; return; }
+          el.innerHTML = d.alerts.map(function(a){
+            var bg = a.severity === 'critical' ? 'rgba(239,68,68,0.15)' : 'rgba(245,158,11,0.12)';
+            var border = a.severity === 'critical' ? 'var(--red)' : 'var(--orange)';
+            return '<div style="background:'+bg+';border-left:3px solid '+border+';padding:8px 12px;margin-bottom:6px;border-radius:4px;font-size:12px;color:var(--text-primary);"><strong style="color:'+border+';">⚠ '+(a.ticker||'')+'</strong> · '+esc(a.message)+' <span style="color:var(--text-muted);margin-left:8px;">'+fmtRel(a.ts)+'</span></div>';
+          }).join('');
+        } catch (e) {}
+      }
 
       async function renderCards(){
         try {
-          var d = await fetchJSON('/api/btcmine/media/overview?hours=' + state.hours);
+          var d = await j('/api/btcmine/media/overview?hours=' + state.hours);
           document.getElementById('mediaTotal').textContent = '共 ' + d.total_mentions + ' 条相关报道';
           document.getElementById('mediaCards').innerHTML = d.tickers.map(function(t){
             var active = state.ticker === t.ticker ? 'border-color:var(--accent-blue);box-shadow:0 0 0 1px var(--accent-blue);' : '';
+            var sentTxt = t.sentiment_avg != null ? t.sentiment_avg.toFixed(2) : '—';
+            var sentCol = t.sentiment_avg == null ? 'var(--text-muted)' : (t.sentiment_avg > 0.15 ? 'var(--green)' : (t.sentiment_avg < -0.15 ? 'var(--red)' : 'var(--text-secondary)'));
+            var breakdown = '<span style="color:var(--green);">+'+t.positive+'</span><span style="color:var(--text-muted);"> / '+t.neutral+' / </span><span style="color:var(--red);">-'+t.negative+'</span>';
             return '<div class="media-card" data-ticker="'+t.ticker+'" style="cursor:pointer;padding:12px;background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;transition:all .15s;'+active+'">'+
               '<div style="display:flex;justify-content:space-between;align-items:baseline;"><span style="font-size:13px;color:var(--text-primary);font-weight:500;">'+esc(t.name)+'</span><span style="font-size:10px;color:var(--text-muted);font-family:monospace;">$'+t.ticker+'</span></div>'+
               '<div style="font-size:22px;font-weight:600;color:var(--text-primary);margin:4px 0 2px 0;">'+t.mentions+'</div>'+
-              '<div style="font-size:10px;color:var(--text-muted);">'+t.sov_pct+'% SoV</div>'+
+              '<div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">'+t.sov_pct+'% SoV · 情感 <span style="color:'+sentCol+';font-weight:600;">'+sentTxt+'</span></div>'+
+              '<div style="font-size:10px;margin-top:2px;">'+breakdown+'</div>'+
+              sentBar(t.sentiment_avg)+
               '<div style="font-size:10px;color:var(--text-secondary);margin-top:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(t.top_source||'-')+'</div>'+
               '<div style="font-size:10px;color:var(--text-muted);margin-top:2px;">'+fmtRel(t.latest_ts)+'</div>'+
             '</div>';
@@ -432,7 +501,7 @@
             el.addEventListener('click', function(){
               state.ticker = (state.ticker === el.dataset.ticker) ? '' : el.dataset.ticker;
               document.getElementById('mediaTickerFilter').value = state.ticker;
-              renderCards(); renderFeed();
+              refreshAll();
             });
           });
         } catch (e) {
@@ -440,12 +509,78 @@
         }
       }
 
+      async function renderTimeline(){
+        try {
+          var path = '/api/btcmine/media/timeline?days=30' + (state.ticker ? '&ticker='+state.ticker : '');
+          var d = await j(path);
+          document.getElementById('mediaTimelineHint').textContent = state.ticker ? ('公司: ' + state.ticker) : '所有公司 (点卡片筛选)';
+          var rows = d.rows || [];
+          var datasets, labels;
+          var ctx = document.getElementById('mediaTimelineChart');
+          if (state.ticker) {
+            labels = rows.map(r => r.date);
+            datasets = [
+              {label:'声量', data: rows.map(r => r.mentions_total), borderColor: TICKER_COLORS[state.ticker]||'#60a5fa', backgroundColor:(TICKER_COLORS[state.ticker]||'#60a5fa')+'33', fill:true, tension:0.3, yAxisID:'y'},
+              {label:'情感', data: rows.map(r => r.sentiment_avg), borderColor:'#10b981', borderDash:[4,4], fill:false, tension:0.3, yAxisID:'y1'}
+            ];
+          } else {
+            // pivot rows by ticker
+            var dateSet = new Set(rows.map(r => r.date));
+            labels = Array.from(dateSet).sort();
+            var byTicker = {};
+            rows.forEach(r => {
+              if (!byTicker[r.ticker]) byTicker[r.ticker] = {};
+              byTicker[r.ticker][r.date] = r.mentions_total;
+            });
+            datasets = Object.keys(byTicker).map(tk => ({
+              label: tk,
+              data: labels.map(dt => byTicker[tk][dt] || 0),
+              borderColor: TICKER_COLORS[tk] || '#888',
+              backgroundColor: (TICKER_COLORS[tk] || '#888') + '22',
+              fill: false,
+              tension: 0.25,
+              pointRadius: 0,
+              borderWidth: 1.5
+            }));
+          }
+          if (timelineChart) timelineChart.destroy();
+          timelineChart = new Chart(ctx, {
+            type: 'line',
+            data: {labels: labels, datasets: datasets},
+            options: {
+              responsive:true, maintainAspectRatio:false,
+              plugins: {legend: {labels: {color:'#a0a0a0', boxWidth:10, font:{size:10}}}},
+              scales: {
+                x: {ticks:{color:'#606060', font:{size:9}}, grid:{color:'rgba(255,255,255,0.04)'}},
+                y: {ticks:{color:'#606060', font:{size:9}}, grid:{color:'rgba(255,255,255,0.04)'}, beginAtZero:true},
+                y1: state.ticker ? {position:'right', ticks:{color:'#606060', font:{size:9}}, grid:{display:false}, min:-1, max:1} : undefined
+              }
+            }
+          });
+        } catch (e) { console.error(e); }
+      }
+
+      async function renderThemes(){
+        try {
+          var path = '/api/btcmine/media/themes?hours=' + state.hours + (state.ticker ? '&ticker='+state.ticker : '');
+          var d = await j(path);
+          var el = document.getElementById('mediaThemes');
+          if (!d.themes || !d.themes.length) { el.innerHTML = '<div class="text-muted">暂无 NLP 数据</div>'; return; }
+          var max = Math.max.apply(null, d.themes.map(t => t.cnt));
+          el.innerHTML = d.themes.map(function(t){
+            var pct = 100 * t.cnt / max;
+            var lbl = THEME_LABEL[t.theme] || t.theme;
+            return '<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);margin-bottom:2px;"><span>'+esc(lbl)+'</span><span style="font-family:monospace;color:var(--text-primary);">'+t.cnt+'</span></div><div style="height:6px;background:var(--border-default);border-radius:3px;overflow:hidden;"><div style="height:100%;width:'+pct+'%;background:var(--accent-blue);"></div></div></div>';
+          }).join('');
+        } catch (e) { document.getElementById('mediaThemes').innerHTML = '<div style="color:var(--red);">加载失败</div>'; }
+      }
+
       async function renderSources(){
         try {
-          var d = await fetchJSON('/api/btcmine/media/sources?hours=' + state.hours);
+          var d = await j('/api/btcmine/media/sources?hours=' + state.hours);
           var rows = d.sources.slice(0, 30).map(function(s){
             return '<tr>'+
-              '<td style="padding:4px 6px;"><span style="color:'+(TIER_COLOR[s.source_tier]||'#6b7280')+';font-weight:600;font-size:11px;">T'+(s.source_tier||3)+'</span></td>'+
+              '<td style="padding:4px 6px;"><span style="color:'+(TIER_COLOR[s.source_tier]||'var(--text-muted)')+';font-weight:600;font-size:11px;">T'+(s.source_tier||3)+'</span></td>'+
               '<td style="padding:4px 6px;color:var(--text-primary);font-size:12px;">'+esc(s.source_name)+'</td>'+
               '<td style="padding:4px 6px;text-align:right;color:var(--text-primary);font-family:monospace;font-size:12px;">'+s.cnt+'</td>'+
               '<td style="padding:4px 6px;color:var(--text-muted);font-size:10px;white-space:nowrap;">'+fmtRel(s.latest)+'</td>'+
@@ -462,18 +597,33 @@
         var el = document.getElementById('mediaFeed');
         el.innerHTML = '<div class="text-muted">加载中...</div>';
         try {
-          var qs = 'hours=' + state.hours + (state.ticker ? '&ticker=' + state.ticker : '') + '&limit=100';
-          var d = await fetchJSON('/api/btcmine/media/feed?' + qs);
+          var qs = 'hours=' + state.hours + '&limit=100' +
+            (state.ticker ? '&ticker='+state.ticker : '') +
+            (state.sentiment ? '&sentiment='+state.sentiment : '');
+          var d = await j('/api/btcmine/media/feed?' + qs);
           if (!d.items.length) { el.innerHTML = '<div class="text-muted">暂无数据</div>'; return; }
           el.innerHTML = d.items.map(function(m){
             var tks = (m.tickers||[]).map(function(x){ return '$'+x; }).join(' ');
+            var sLabel = m.sentiment_label;
+            var sChip = sLabel ? '<span style="display:inline-block;padding:1px 6px;background:'+SENT_COLOR[sLabel]+'22;color:'+SENT_COLOR[sLabel]+';border-radius:3px;font-size:10px;font-weight:500;">'+(SENT_LABEL[sLabel]||sLabel)+'</span>' : '';
+            var themeChips = '';
+            if (m.themes && m.themes.length) {
+              themeChips = m.themes.map(function(t){
+                return '<span style="display:inline-block;padding:1px 5px;background:var(--bg-elevated);color:var(--text-secondary);border-radius:3px;font-size:10px;margin-left:4px;">'+esc(THEME_LABEL[t]||t)+'</span>';
+              }).join('');
+            }
+            var title = m.title_cn || m.title || '(无标题)';
+            var sub = m.body_summary_cn ? '<div style="color:var(--text-muted);font-size:11px;margin-top:3px;line-height:1.4;">'+esc(m.body_summary_cn)+'</div>' : '';
             return '<div style="padding:10px 0;border-bottom:1px solid var(--border-default);">'+
-              '<div style="display:flex;gap:8px;align-items:baseline;font-size:10px;color:var(--text-muted);margin-bottom:4px;">'+
-                '<span style="color:'+(TIER_COLOR[m.source_tier]||'#6b7280')+';font-weight:600;">T'+(m.source_tier||3)+'</span>'+
+              '<div style="display:flex;gap:8px;align-items:center;font-size:10px;color:var(--text-muted);margin-bottom:4px;flex-wrap:wrap;">'+
+                '<span style="color:'+(TIER_COLOR[m.source_tier]||'var(--text-muted)')+';font-weight:600;">T'+(m.source_tier||3)+'</span>'+
                 '<span>'+esc(m.source_name)+'</span><span>·</span><span>'+fmtRel(m.ts)+'</span>'+
+                sChip+
+                themeChips+
                 '<span style="margin-left:auto;color:var(--text-secondary);">'+esc(tks)+'</span>'+
               '</div>'+
-              '<a href="'+esc(m.url||'#')+'" target="_blank" rel="noopener" style="color:var(--text-primary);text-decoration:none;font-size:14px;line-height:1.5;display:block;">'+esc((m.title||'(无标题)').substring(0,220))+'</a>'+
+              '<a href="'+esc(m.url||'#')+'" target="_blank" rel="noopener" style="color:var(--text-primary);text-decoration:none;font-size:14px;line-height:1.5;display:block;">'+esc(title.substring(0,220))+'</a>'+
+              sub+
             '</div>';
           }).join('');
         } catch (e) {
@@ -481,10 +631,13 @@
         }
       }
 
-      function refreshAll(){ renderCards(); renderSources(); renderFeed(); }
+      function refreshAll(){
+        renderAlerts(); renderCards(); renderTimeline(); renderThemes(); renderSources(); renderFeed();
+      }
 
       document.getElementById('mediaHours').addEventListener('change', function(e){ state.hours = parseInt(e.target.value); refreshAll(); });
-      document.getElementById('mediaTickerFilter').addEventListener('change', function(e){ state.ticker = e.target.value; renderCards(); renderFeed(); });
+      document.getElementById('mediaTickerFilter').addEventListener('change', function(e){ state.ticker = e.target.value; refreshAll(); });
+      document.getElementById('mediaSentimentFilter').addEventListener('change', function(e){ state.sentiment = e.target.value; renderFeed(); });
 
       var initialized = false;
       function init(){ if (initialized) return; initialized = true; refreshAll(); }
