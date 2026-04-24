@@ -358,6 +358,11 @@
           <option value="720">30天</option>
         </select>
         <span id="mediaTotal" class="text-muted text-mono"></span>
+        <label style="margin-left:12px;">排序</label>
+        <select id="mediaSort" class="filter-select" style="min-width:80px;">
+          <option value="latest" selected>最新动态</option>
+          <option value="mentions">声量</option>
+        </select>
       </div>
     </div>
 
@@ -439,7 +444,7 @@
         FUFU:'#60a5fa', BTDR:'#f59e0b', IREN:'#10b981', MARA:'#ef4444',
         CLSK:'#8b5cf6', RIOT:'#06b6d4', CAN:'#ec4899', CANG:'#eab308'
       };
-      var state = {hours:168, ticker:'', sentiment:''};
+      var state = {hours:168, ticker:'', sentiment:'', sort:'latest'};
       var timelineChart = null;
 
       async function j(path){
@@ -480,7 +485,7 @@
 
       async function renderCards(){
         try {
-          var d = await j('/api/btcmine/media/overview?hours=' + state.hours);
+          var d = await j('/api/btcmine/media/overview?hours=' + state.hours + '&sort=' + state.sort);
           document.getElementById('mediaTotal').textContent = '共 ' + d.total_mentions + ' 条相关报道';
           document.getElementById('mediaCards').innerHTML = d.tickers.map(function(t){
             var active = state.ticker === t.ticker ? 'border-color:var(--accent-blue);box-shadow:0 0 0 1px var(--accent-blue);' : '';
@@ -636,6 +641,7 @@
       }
 
       document.getElementById('mediaHours').addEventListener('change', function(e){ state.hours = parseInt(e.target.value); refreshAll(); });
+      document.getElementById('mediaSort').addEventListener('change', function(e){ state.sort = e.target.value; renderCards(); });
       document.getElementById('mediaTickerFilter').addEventListener('change', function(e){ state.ticker = e.target.value; refreshAll(); });
       document.getElementById('mediaSentimentFilter').addEventListener('change', function(e){ state.sentiment = e.target.value; renderFeed(); });
 
