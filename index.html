@@ -363,6 +363,12 @@
           <option value="latest" selected data-i18n="media.sort.latest">最新动态</option>
           <option value="mentions" data-i18n="media.sort.mentions">声量</option>
         </select>
+        <!-- feat-020: Custom dashboard presets (localStorage) -->
+        <select id="mediaPreset" class="filter-select" style="min-width:110px;margin-left:8px;" title="预设方案">
+          <option value="" data-i18n="media.preset.placeholder">📁 预设方案</option>
+        </select>
+        <button type="button" id="mediaPresetSave" class="filter-btn" style="padding:4px 10px;" data-i18n="media.preset.save" title="保存当前筛选为预设">💾 保存</button>
+        <button type="button" id="mediaPresetDelete" class="filter-btn" style="padding:4px 10px;display:none;" title="删除当前预设">🗑️</button>
       </div>
     </div>
 
@@ -1018,6 +1024,111 @@
         renderKol();
         renderFeed();
       }
+
+      // ========== feat-020: Custom dashboard presets (localStorage) ==========
+      var PRESET_KEY = 'btcmine_media_presets_v1';
+      var PRESET_ACTIVE_KEY = 'btcmine_media_preset_active_v1';
+      var PRESET_FIELDS = ['hours','ticker','sentiment','platform','sort','timelineMode','kolBoard'];
+      function loadPresets(){
+        try { return JSON.parse(localStorage.getItem(PRESET_KEY) || '{}') || {}; }
+        catch(e){ return {}; }
+      }
+      function savePresets(p){
+        try { localStorage.setItem(PRESET_KEY, JSON.stringify(p)); } catch(e){}
+      }
+      function snapshotState(){
+        var out = {};
+        PRESET_FIELDS.forEach(function(k){ out[k] = state[k]; });
+        return out;
+      }
+      function applyPreset(name){
+        var presets = loadPresets();
+        var p = presets[name];
+        if (!p) return;
+        // assign fields then re-render
+        PRESET_FIELDS.forEach(function(k){
+          if (p[k] !== undefined) state[k] = p[k];
+        });
+        try { localStorage.setItem(PRESET_ACTIVE_KEY, name); } catch(e){}
+        var delBtn = document.getElementById('mediaPresetDelete');
+        if (delBtn) delBtn.style.display = 'inline-block';
+        syncUI();
+        syncHash();
+        renderFilterBar();
+        refreshAll();
+      }
+      function renderPresetOptions(){
+        var sel = document.getElementById('mediaPreset');
+        if (!sel) return;
+        var presets = loadPresets();
+        var names = Object.keys(presets).sort();
+        var placeholder = (typeof t === 'function' ? t('media.preset.placeholder') : '📁 预设方案');
+        var html = '<option value="">' + placeholder + '</option>';
+        names.forEach(function(n){
+          var nameEsc = n.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+          html += '<option value="' + nameEsc + '">' + nameEsc + '</option>';
+        });
+        sel.innerHTML = html;
+        // restore active selection if stored
+        try {
+          var active = localStorage.getItem(PRESET_ACTIVE_KEY) || '';
+          if (active && presets[active]) {
+            sel.value = active;
+            var delBtn = document.getElementById('mediaPresetDelete');
+            if (delBtn) delBtn.style.display = 'inline-block';
+          } else {
+            var delBtn2 = document.getElementById('mediaPresetDelete');
+            if (delBtn2) delBtn2.style.display = 'none';
+          }
+        } catch(e){}
+      }
+      function presetSaveClick(){
+        var promptMsg = (typeof t === 'function' ? t('media.preset.nameRequired') : '请输入预设名称');
+        var name = window.prompt(promptMsg, '');
+        if (!name) return;
+        name = String(name).trim();
+        if (!name) return;
+        var presets = loadPresets();
+        presets[name] = snapshotState();
+        savePresets(presets);
+        try { localStorage.setItem(PRESET_ACTIVE_KEY, name); } catch(e){}
+        renderPresetOptions();
+        var sel = document.getElementById('mediaPreset');
+        if (sel) sel.value = name;
+        var delBtn = document.getElementById('mediaPresetDelete');
+        if (delBtn) delBtn.style.display = 'inline-block';
+      }
+      function presetDeleteClick(){
+        var sel = document.getElementById('mediaPreset');
+        if (!sel || !sel.value) return;
+        var confirmMsg = (typeof t === 'function' ? t('media.preset.deleteConfirm') : '确认删除此预设？');
+        if (!window.confirm(confirmMsg + ' "' + sel.value + '"')) return;
+        var presets = loadPresets();
+        delete presets[sel.value];
+        savePresets(presets);
+        try { localStorage.removeItem(PRESET_ACTIVE_KEY); } catch(e){}
+        renderPresetOptions();
+        var delBtn = document.getElementById('mediaPresetDelete');
+        if (delBtn) delBtn.style.display = 'none';
+      }
+      // wire preset controls
+      var _pSel = document.getElementById('mediaPreset');
+      if (_pSel) _pSel.addEventListener('change', function(e){
+        var v = e.target.value;
+        if (!v) {
+          try { localStorage.removeItem(PRESET_ACTIVE_KEY); } catch(_){}
+          var delBtn = document.getElementById('mediaPresetDelete');
+          if (delBtn) delBtn.style.display = 'none';
+          return;
+        }
+        applyPreset(v);
+      });
+      var _pSave = document.getElementById('mediaPresetSave');
+      if (_pSave) _pSave.addEventListener('click', presetSaveClick);
+      var _pDel = document.getElementById('mediaPresetDelete');
+      if (_pDel) _pDel.addEventListener('click', presetDeleteClick);
+      // initial render
+      renderPresetOptions();
 
       // ========== Event wiring ==========
       document.querySelectorAll('#mediaHoursChips .time-chip').forEach(function(btn){

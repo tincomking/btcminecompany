@@ -455,6 +455,10 @@ const I18N = {
     'media.alertBrief.copy': '复制简报',
     'media.alertBrief.copied': '已复制',
     'media.alertBrief.empty': '当前无新告警',
+    'media.preset.placeholder': '📁 预设方案',
+    'media.preset.save': '💾 保存',
+    'media.preset.deleteConfirm': '确认删除预设？',
+    'media.preset.nameRequired': '请输入预设名称',
 
     // News
     'news.read_full': '查看全文',
@@ -899,6 +903,10 @@ const I18N = {
     'media.alertBrief.copy': 'Copy Brief',
     'media.alertBrief.copied': 'Copied',
     'media.alertBrief.empty': 'No recent alerts',
+    'media.preset.placeholder': '📁 Presets',
+    'media.preset.save': '💾 Save',
+    'media.preset.deleteConfirm': 'Delete this preset?',
+    'media.preset.nameRequired': 'Enter preset name',
 
     // News
     'news.read_full': 'Read Full Article',
