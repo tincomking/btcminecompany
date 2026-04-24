@@ -345,30 +345,35 @@
     </div>
   </div>
 
-  <!-- ─────────────────────── PAGE: MEDIA (舆情分析) v2.0424D ─────────────────────── -->
+  <!-- ─────────────────────── PAGE: MEDIA (舆情分析) v2.0424G ─────────────────────── -->
   <div class="page" id="page-media">
     <div class="section-header mb-16">
-      <div class="section-title">舆情分析 <span style="font-size:11px;color:var(--text-secondary);font-weight:400;margin-left:8px;">IR &amp; PR 视角 · 媒体 + 社交覆盖</span></div>
+      <div class="section-title">舆情分析
+        <span style="font-size:11px;color:var(--text-secondary);font-weight:400;margin-left:8px;">IR &amp; PR 视角 · 媒体 + 社交覆盖</span>
+        <span data-tip="舆情分析页面追踪 8 家美股上市矿企（$FUFU/$BTDR/$IREN/$MARA/$CLSK/$RIOT/$CAN/$CANG）的全网媒体与社交讨论。数据源：新闻/Twitter/Reddit/YouTube/Facebook/Blog/Instagram。每 5-30 分钟刷新一次，情感分析由本地 Ollama qwen3:8b 完成。" style="display:inline-block;margin-left:6px;color:var(--text-muted);cursor:help;font-size:12px;">ⓘ</span>
+      </div>
       <div style="display:flex;gap:10px;align-items:center;font-size:12px;color:var(--text-secondary);flex-wrap:wrap;">
         <span id="mediaTotal" class="text-muted text-mono"></span>
         <!-- Time-range chips (feat-011) -->
-        <div id="mediaHoursChips" style="display:inline-flex;gap:4px;" role="tablist" aria-label="时间范围">
+        <div id="mediaHoursChips" style="display:inline-flex;gap:4px;" role="tablist" aria-label="时间范围" data-tip="选择统计时间窗口。所有图表和卡片都会按此窗口重新计算。">
           <button type="button" class="time-chip" data-hours="24" data-i18n="media.range.24h">24h</button>
           <button type="button" class="time-chip" data-hours="72" data-i18n="media.range.72h">3d</button>
           <button type="button" class="time-chip active" data-hours="168" data-i18n="media.range.168h">7d</button>
           <button type="button" class="time-chip" data-hours="720" data-i18n="media.range.720h">30d</button>
         </div>
-        <label style="margin-left:8px;">排序</label>
+        <label style="margin-left:8px;" data-tip="卡片排序方式：最新动态（按最近一条报道时间）或声量（按提及次数降序）">排序</label>
         <select id="mediaSort" class="filter-select" style="min-width:80px;">
           <option value="latest" selected data-i18n="media.sort.latest">最新动态</option>
           <option value="mentions" data-i18n="media.sort.mentions">声量</option>
         </select>
         <!-- feat-020: Custom dashboard presets (localStorage) -->
-        <select id="mediaPreset" class="filter-select" style="min-width:110px;margin-left:8px;" title="预设方案">
+        <select id="mediaPreset" class="filter-select" style="min-width:110px;margin-left:8px;" title="预设方案：保存/加载当前的筛选组合">
           <option value="" data-i18n="media.preset.placeholder">📁 预设方案</option>
         </select>
-        <button type="button" id="mediaPresetSave" class="filter-btn" style="padding:4px 10px;" data-i18n="media.preset.save" title="保存当前筛选为预设">💾 保存</button>
+        <button type="button" id="mediaPresetSave" class="filter-btn" style="padding:4px 10px;" data-i18n="media.preset.save" title="把当前的时间范围+筛选+布局保存为一个预设">💾 保存</button>
         <button type="button" id="mediaPresetDelete" class="filter-btn" style="padding:4px 10px;display:none;" title="删除当前预设">🗑️</button>
+        <!-- feat-025: Custom layout (module show/hide + drag) -->
+        <button type="button" id="mediaLayoutBtn" class="filter-btn" style="padding:4px 10px;margin-left:4px;" title="自定义看板：开关模块 + 拖拽排序">🧩 看板</button>
       </div>
     </div>
 
@@ -378,39 +383,60 @@
     <!-- Active filter chip bar (feat-013) -->
     <div id="mediaFilterBar" style="display:none;margin-bottom:12px;padding:8px 10px;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:6px;font-size:11px;align-items:center;gap:6px;flex-wrap:wrap;"></div>
 
-    <!-- 8 公司卡片 -->
-    <div id="mediaCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:24px;">
-      <div class="text-muted">加载中...</div>
-    </div>
-
-    <!-- Sentiment doughnut + reach placeholder (feat-011) -->
-    <div class="two-col mb-24" style="grid-template-columns:1fr 1fr;gap:20px;">
-      <div>
-        <div class="section-header mb-16">
-          <div class="section-title" style="font-size:13px;" data-i18n="media.sentiment.distribution">情感分布</div>
-          <span class="text-muted text-mono" style="font-size:10px;" id="mediaSentimentHint">当前筛选</span>
+    <!-- MODULE: overview-cards (8 公司卡片) -->
+    <section data-module="overview-cards" class="media-module">
+      <div class="section-header mb-16" style="justify-content:space-between;">
+        <div class="section-title" style="font-size:13px;">8 家矿企一览
+          <span data-tip="每张卡片显示该公司在选定时间窗口内的：提及次数（声量）、正面/中性/负面分布、平均情感分、主要来源、触达人数（Reach）、最近报道时间。点击卡片可把所有图表切到只看这家。" style="color:var(--text-muted);cursor:help;font-size:11px;margin-left:4px;">ⓘ</span>
         </div>
-        <div style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:12px;position:relative;min-height:240px;display:flex;align-items:center;justify-content:center;">
-          <canvas id="mediaSentimentChart" height="200"></canvas>
-          <div id="mediaSentimentCenter" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;"></div>
+        <span class="text-muted text-mono module-drag-handle" style="font-size:10px;cursor:grab;display:none;" title="拖拽排序">⋮⋮</span>
+      </div>
+      <div id="mediaCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:24px;">
+        <div class="text-muted">加载中...</div>
+      </div>
+    </section>
+
+    <!-- MODULE: sentiment-reach (Sentiment doughnut + Reach distribution) -->
+    <section data-module="sentiment-reach" class="media-module">
+      <div class="two-col mb-24" style="grid-template-columns:1fr 1fr;gap:20px;">
+        <div>
+          <div class="section-header mb-16">
+            <div class="section-title" style="font-size:13px;" data-i18n="media.sentiment.distribution">情感分布
+              <span data-tip="NLP 对每条内容打 -1~+1 的情感分，再分桶：正面(>+0.15) / 中性(±0.15) / 负面(<-0.15)。饼图点击可把实时报道流按情感筛选。" style="color:var(--text-muted);cursor:help;font-size:11px;margin-left:4px;">ⓘ</span>
+            </div>
+            <span class="text-muted text-mono" style="font-size:10px;" id="mediaSentimentHint">当前筛选</span>
+          </div>
+          <div style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:12px;position:relative;min-height:240px;display:flex;align-items:center;justify-content:center;">
+            <canvas id="mediaSentimentChart" height="200"></canvas>
+            <div id="mediaSentimentCenter" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;"></div>
+          </div>
+        </div>
+        <div>
+          <div class="section-header mb-16">
+            <div class="section-title" style="font-size:13px;">触达分布 (Reach)
+              <span data-tip="Reach = 潜在阅读人数。新闻=网站月访客估算、Twitter=作者粉丝数、Reddit=子版订阅数、YouTube=频道订阅、Facebook=页面粉丝。左图按平台拆解 reach 总量，右图按单条 reach 大小分 5 档（<1K / 1K–10K / 10K–100K / 100K–1M / 1M+）。" style="color:var(--text-muted);cursor:help;font-size:11px;margin-left:4px;">ⓘ</span>
+            </div>
+            <div style="display:inline-flex;gap:4px;" id="mediaReachModeChips">
+              <button type="button" class="time-chip active" data-reach-mode="by_source" style="font-size:10px;padding:2px 8px;">按平台</button>
+              <button type="button" class="time-chip" data-reach-mode="buckets" style="font-size:10px;padding:2px 8px;">按档位</button>
+            </div>
+          </div>
+          <div style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:12px;position:relative;min-height:240px;">
+            <canvas id="mediaReachChart" height="200"></canvas>
+            <div id="mediaReachTotal" style="position:absolute;top:8px;right:12px;font-size:10px;color:var(--text-muted);"></div>
+          </div>
         </div>
       </div>
-      <div>
-        <div class="section-header mb-16">
-          <div class="section-title" style="font-size:13px;">触达分布</div>
-          <span class="text-muted text-mono" style="font-size:10px;">Reach</span>
-        </div>
-        <div style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:24px;min-height:240px;display:flex;align-items:center;justify-content:center;">
-          <div class="text-muted" style="font-size:12px;text-align:center;" data-i18n="media.reach.placeholder">Reach 分布 (即将推出)</div>
-        </div>
-      </div>
-    </div>
+    </section>
 
-    <!-- Timeline chart + Themes row -->
+    <!-- MODULE: timeline-themes (Timeline chart + Themes) -->
+    <section data-module="timeline-themes" class="media-module">
     <div class="two-col mb-24" style="grid-template-columns:2fr 1fr;gap:20px;">
       <div>
         <div class="section-header mb-16">
-          <div class="section-title" style="font-size:13px;">30 天声量时间线</div>
+          <div class="section-title" style="font-size:13px;">30 天声量时间线
+            <span data-tip="按日汇总的提及次数折线/柱状图。未选公司时显示所有公司堆叠；选了公司时左轴显示声量、右轴叠加情感走势。点击柱/点可下钻到那一天的报道列表。" style="color:var(--text-muted);cursor:help;font-size:11px;margin-left:4px;">ⓘ</span>
+          </div>
           <div style="display:flex;gap:10px;align-items:center;">
             <span class="text-muted text-mono" style="font-size:10px;" id="mediaTimelineHint">所有公司 (点卡片筛选)</span>
             <div id="mediaTimelineModeChips" style="display:inline-flex;gap:4px;">
@@ -426,18 +452,43 @@
       </div>
       <div>
         <div class="section-header mb-16">
-          <div class="section-title" style="font-size:13px;">话题分布</div>
+          <div class="section-title" style="font-size:13px;">话题分布
+            <span data-tip="LLM 从每条内容提取的主题标签：财报/融资/算力/AI转型/监管/并购/高管/ESG。展示此窗口内各主题出现次数。" style="color:var(--text-muted);cursor:help;font-size:11px;margin-left:4px;">ⓘ</span>
+          </div>
         </div>
         <div id="mediaThemes" style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:12px;min-height:120px;">
           <div class="text-muted">加载中...</div>
         </div>
       </div>
     </div>
+    </section>
+    <!-- /MODULE: timeline-themes -->
 
-    <!-- KOL 影响力榜 (feat-016) -->
-    <section class="mb-24">
+    <!-- MODULE: compare (feat-023 竞品对比) -->
+    <section data-module="compare" class="media-module mb-24">
       <div class="section-header mb-16">
-        <div class="section-title" style="font-size:13px;" data-i18n="media.kol.title">KOL 影响力榜</div>
+        <div class="section-title" style="font-size:13px;">竞品对比
+          <span data-tip="选 2–4 家公司，在同一张雷达图上对比 6 个指标：声量 / SoV 份额 / 正面率 / Reach / KOL 覆盖 / 预警数。每个指标会按"全选中公司里的最大值"归一化到 0–100，方便横向比较。裸数值在 tooltip 里显示。" style="color:var(--text-muted);cursor:help;font-size:11px;margin-left:4px;">ⓘ</span>
+        </div>
+        <div id="mediaCompareChips" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
+      </div>
+      <div class="two-col" style="grid-template-columns:2fr 1fr;gap:20px;">
+        <div style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:12px;position:relative;min-height:300px;">
+          <canvas id="mediaCompareChart" height="260"></canvas>
+          <div id="mediaCompareEmpty" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;color:var(--text-muted);font-size:12px;">选 2–4 家公司开始对比</div>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:12px;overflow-x:auto;">
+          <table id="mediaCompareTable" style="width:100%;font-size:11px;border-collapse:collapse;"></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE: kol (KOL 影响力榜, feat-016) -->
+    <section data-module="kol" class="media-module mb-24">
+      <div class="section-header mb-16">
+        <div class="section-title" style="font-size:13px;" data-i18n="media.kol.title">KOL 影响力榜
+          <span data-tip="Key Opinion Leader —— 关键意见领袖。按最近 7 天该账号发布的相关内容数、互动量、粉丝量加权打分。正面支持榜=情感偏正的作者（可作为合作或放大对象），批评声音榜=情感偏负的作者（IR/PR 风险预警）。" style="color:var(--text-muted);cursor:help;font-size:11px;margin-left:4px;">ⓘ</span>
+        </div>
         <div style="display:flex;gap:6px;">
           <button type="button" id="kolTabPositive" class="time-chip active" data-kol-board="positive" data-i18n="media.kol.positive" style="font-size:10px;padding:3px 10px;">正面支持 (可合作)</button>
           <button type="button" id="kolTabCritical" class="time-chip" data-kol-board="critical" data-i18n="media.kol.critical" style="font-size:10px;padding:3px 10px;">批评声音 (需关注)</button>
@@ -448,33 +499,42 @@
       </div>
     </section>
 
+    <!-- MODULE: sources-feed (来源分布 + 实时报道流) -->
+    <section data-module="sources-feed" class="media-module">
     <div class="two-col mb-24" style="grid-template-columns:1fr 2fr;gap:20px;">
       <div>
         <div class="section-header mb-16">
-          <div class="section-title" style="font-size:13px;">来源分布</div>
+          <div class="section-title" style="font-size:13px;">来源分布
+            <span data-tip="按站点/账号拆解的提及次数。tier 标签：T1=顶级媒体（Bloomberg/Reuters/WSJ/FT 等一线权威）、T2=二线专业媒体（CoinDesk/TheBlock/CNBC 等）、T3=一般媒体/小站、T4=社交账号。" style="color:var(--text-muted);cursor:help;font-size:11px;margin-left:4px;">ⓘ</span>
+          </div>
           <span class="text-muted text-mono" style="font-size:10px;">按声量排序</span>
         </div>
         <div id="mediaSources" class="table-wrapper"><div class="text-muted">加载中...</div></div>
       </div>
       <div>
         <div class="section-header mb-16">
-          <div class="section-title" style="font-size:13px;">实时报道流</div>
+          <div class="section-title" style="font-size:13px;">实时报道流
+            <span data-tip="按发布时间倒序的全量报道列表。失效链接（404/410/超时等）默认不显示；403 和未体检的保留（可能是临时封锁）。点击标题跳原文。" style="color:var(--text-muted);cursor:help;font-size:11px;margin-left:4px;">ⓘ</span>
+          </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
-            <select id="mediaPlatformFilter" class="filter-select" style="font-size:11px;">
+            <select id="mediaPlatformFilter" class="filter-select" style="font-size:11px;" title="筛选数据源平台">
               <option value="" data-i18n="media.platform.all">全部平台</option>
               <option value="news" data-i18n="media.platform.news">新闻</option>
-              <option value="twitter" data-i18n="media.platform.twitter">Twitter</option>
+              <option value="twitter" data-i18n="media.platform.twitter">Twitter / X</option>
               <option value="reddit" data-i18n="media.platform.reddit">Reddit</option>
               <option value="youtube" data-i18n="media.platform.youtube">YouTube</option>
-              <option value="blog" data-i18n="media.platform.blog">Blog</option>
+              <option value="facebook" data-i18n="media.platform.facebook">Facebook</option>
+              <option value="instagram" data-i18n="media.platform.instagram">Instagram</option>
+              <option value="blog" data-i18n="media.platform.blog">Blog / IR</option>
+              <option value="seekingalpha">Seeking Alpha</option>
             </select>
-            <select id="mediaSentimentFilter" class="filter-select" style="font-size:11px;">
+            <select id="mediaSentimentFilter" class="filter-select" style="font-size:11px;" title="情感分桶：正面 >+0.15, 中性 ±0.15, 负面 <-0.15">
               <option value="" data-i18n="media.sentiment.all">全部情感</option>
               <option value="positive" data-i18n="media.sentiment.positive">正面</option>
               <option value="neutral" data-i18n="media.sentiment.neutral">中性</option>
               <option value="negative" data-i18n="media.sentiment.negative">负面</option>
             </select>
-            <select id="mediaTickerFilter" class="filter-select" style="font-size:11px;">
+            <select id="mediaTickerFilter" class="filter-select" style="font-size:11px;" title="筛选只看某一家公司">
               <option value="">全部公司</option>
               <option value="FUFU">BitFuFu ($FUFU)</option>
               <option value="BTDR">Bitdeer ($BTDR)</option>
@@ -490,6 +550,35 @@
         <div id="mediaFeed" style="max-height:70vh;overflow-y:auto;padding-right:4px;"><div class="text-muted">加载中...</div></div>
       </div>
     </div>
+    </section>
+    <!-- /MODULE: sources-feed -->
+
+    <!-- feat-025 Layout customization drawer (modal) -->
+    <div id="mediaLayoutDrawer" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
+      <div style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:10px;padding:20px;width:420px;max-height:80vh;overflow-y:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div style="font-weight:600;color:var(--text-primary);font-size:14px;">🧩 自定义看板</div>
+          <button type="button" id="mediaLayoutClose" class="filter-btn" style="padding:4px 10px;">关闭</button>
+        </div>
+        <div style="font-size:11px;color:var(--text-secondary);margin-bottom:12px;">✓ 打勾显示模块，拖拽 <span style="color:var(--text-muted);">⋮⋮</span> 调整顺序。自动存到本机浏览器。</div>
+        <ul id="mediaLayoutList" style="list-style:none;padding:0;margin:0;"></ul>
+        <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;">
+          <button type="button" id="mediaLayoutReset" class="filter-btn" style="padding:4px 10px;">恢复默认</button>
+        </div>
+      </div>
+    </div>
+
+    <style>
+      .media-module.dragging { opacity:0.4; }
+      .media-module.drag-over { box-shadow:0 0 0 2px var(--accent-blue) inset; }
+      .module-drag-handle.active { display:inline-block !important; }
+      #mediaLayoutList li { display:flex;align-items:center;gap:10px;padding:8px;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:6px;margin-bottom:6px;cursor:grab; }
+      #mediaLayoutList li.dragging { opacity:0.4; }
+      #mediaLayoutList li.drag-over { box-shadow:0 0 0 2px var(--accent-blue) inset; }
+      #mediaLayoutList .lay-handle { color:var(--text-muted);font-size:13px;cursor:grab;user-select:none; }
+      #mediaLayoutList .lay-name { flex:1;font-size:12px;color:var(--text-primary); }
+      #mediaLayoutList input[type="checkbox"] { accent-color:var(--accent-blue); }
+    </style>
 
     <script>
     (function(){
@@ -501,7 +590,17 @@
       };
       var SENT_COLOR = {positive:'var(--green)', neutral:'var(--text-secondary)', negative:'var(--red)'};
       var SENT_LABEL = {positive:'正面', neutral:'中性', negative:'负面'};
-      var PLATFORM_LABEL = {news:'新闻', twitter:'Twitter', reddit:'Reddit', youtube:'YouTube', blog:'Blog', facebook:'Facebook'};
+      var PLATFORM_LABEL = {news:'新闻', twitter:'Twitter/X', reddit:'Reddit', youtube:'YouTube', blog:'Blog/IR', facebook:'Facebook', instagram:'Instagram', seekingalpha:'Seeking Alpha'};
+      var PLATFORM_COLOR = {news:'#60a5fa', twitter:'#1DA1F2', reddit:'#ff4500', youtube:'#ff0000', blog:'#8b5cf6', facebook:'#4267B2', instagram:'#E4405F', seekingalpha:'#ec8b2d'};
+      // feat-023 compare metric definitions
+      var COMPARE_METRICS = [
+        {key:'mentions',      label:'声量',       tip:'该窗口内的提及总条数', raw:function(d){return d.mentions;}},
+        {key:'sov_pct',       label:'SoV份额',    tip:'Share of Voice：该公司占 8 家矿企总声量的百分比', raw:function(d){return d.sov_pct;}, unit:'%'},
+        {key:'positive_pct',  label:'正面率',     tip:'正面情感条数占该公司全部提及的百分比', raw:function(d){return d.positive_pct;}, unit:'%'},
+        {key:'reach_sum',     label:'Reach',      tip:'潜在阅读人数的加总（单位:千）', raw:function(d){return d.reach_sum;}, fmt:function(v){return fmtReach(v);}},
+        {key:'kol_count',     label:'KOL数',      tip:'该公司在最新 KOL 榜单中出现的独立作者数', raw:function(d){return d.kol_count;}},
+        {key:'alert_count',   label:'预警数',     tip:'该窗口内触发的情感/声量预警次数', raw:function(d){return d.alert_count;}},
+      ];
       var TICKER_NAME = {FUFU:'BitFuFu', BTDR:'Bitdeer', IREN:'Iris Energy', MARA:'Marathon', CLSK:'CleanSpark', RIOT:'Riot', CAN:'Canaan', CANG:'Cango'};
       var TICKER_COLORS = {
         FUFU:'#60a5fa', BTDR:'#f59e0b', IREN:'#10b981', MARA:'#ef4444',
@@ -513,10 +612,14 @@
       // feat-013: centralized filter state manager
       var state = {
         hours:168, ticker:'', sentiment:'', platform:'', sort:'latest',
-        date:null, timelineMode:'bar', kolBoard:'positive'
+        date:null, timelineMode:'bar', kolBoard:'positive',
+        reachMode:'by_source',                       // feat-022
+        compareTickers:['FUFU','MARA','BTDR','IREN'] // feat-023 default selection
       };
       var timelineChart = null;
       var sentimentChart = null;
+      var reachChart = null;
+      var compareChart = null;
 
       // ========== URL hash sync (feat-013) ==========
       function stateToHash(){
@@ -1018,11 +1121,282 @@
         renderAlerts();
         renderCards();
         renderSentimentPie();
+        renderReachDist();   // feat-022
         renderTimeline();
         renderThemes();
+        renderCompare();     // feat-023
         renderSources();
         renderKol();
         renderFeed();
+      }
+
+      // ========== feat-022 Reach distribution ==========
+      async function renderReachDist(){
+        try {
+          var path = '/api/btcmine/media/reach_distribution?hours=' + state.hours + (state.ticker ? '&ticker='+state.ticker : '');
+          var d = await j(path);
+          var ctx = document.getElementById('mediaReachChart');
+          if (!ctx) return;
+          var totalEl = document.getElementById('mediaReachTotal');
+          if (totalEl) totalEl.textContent = '总 Reach: ' + fmtReach(d.total_reach) + ' · ' + d.total_mentions + ' 条';
+          var labels, data, colors, tooltipFmt;
+          if (state.reachMode === 'buckets') {
+            labels = d.buckets.map(function(b){ return b.range; });
+            data = d.buckets.map(function(b){ return b.count; });
+            colors = ['#6b7280','#60a5fa','#10b981','#f59e0b','#ef4444'];
+            tooltipFmt = function(ctx){
+              var b = d.buckets[ctx.dataIndex];
+              return b.range + ': ' + b.count + ' 条 · reach 合计 ' + fmtReach(b.reach_sum);
+            };
+          } else {
+            labels = d.by_source_type.map(function(b){ return PLATFORM_LABEL[b.source_type] || b.source_type; });
+            data = d.by_source_type.map(function(b){ return b.reach_sum; });
+            colors = d.by_source_type.map(function(b){ return PLATFORM_COLOR[b.source_type] || '#888'; });
+            tooltipFmt = function(ctx){
+              var b = d.by_source_type[ctx.dataIndex];
+              return (PLATFORM_LABEL[b.source_type] || b.source_type) + ': reach ' + fmtReach(b.reach_sum) +
+                     ' · ' + b.mention_count + ' 条 · 每条均值 ' + fmtReach(b.reach_avg);
+            };
+          }
+          if (reachChart) reachChart.destroy();
+          reachChart = new Chart(ctx, {
+            type: 'bar',
+            data: {labels: labels, datasets: [{data: data, backgroundColor: colors, borderRadius:4}]},
+            options: {
+              indexAxis: 'y',
+              responsive:true, maintainAspectRatio:false,
+              plugins: {
+                legend: {display:false},
+                tooltip: {callbacks: {label: tooltipFmt}}
+              },
+              scales: {
+                x: {ticks:{color:'#606060', font:{size:9}, callback:function(v){return fmtReach(v);}}, grid:{color:'rgba(255,255,255,0.04)'}, beginAtZero:true},
+                y: {ticks:{color:'#a0a0a0', font:{size:10}}, grid:{display:false}}
+              }
+            }
+          });
+        } catch (e) { console.error('reach', e); }
+      }
+
+      // ========== feat-023 Competitor comparison ==========
+      function renderCompareChips(){
+        var el = document.getElementById('mediaCompareChips');
+        if (!el) return;
+        var ALL = ['FUFU','BTDR','IREN','MARA','CLSK','RIOT','CAN','CANG'];
+        el.innerHTML = ALL.map(function(tk){
+          var on = state.compareTickers.indexOf(tk) !== -1;
+          var bg = on ? (TICKER_COLORS[tk]||'#60a5fa') : 'transparent';
+          var col = on ? 'white' : 'var(--text-secondary)';
+          var bd = on ? (TICKER_COLORS[tk]||'#60a5fa') : 'var(--border-default)';
+          return '<button type="button" data-cmp-ticker="'+tk+'" style="padding:3px 8px;font-size:10px;background:'+bg+';color:'+col+';border:1px solid '+bd+';border-radius:12px;cursor:pointer;font-family:monospace;">$'+tk+'</button>';
+        }).join('');
+        el.querySelectorAll('[data-cmp-ticker]').forEach(function(b){
+          b.addEventListener('click', function(){
+            var tk = b.getAttribute('data-cmp-ticker');
+            var i = state.compareTickers.indexOf(tk);
+            if (i !== -1) {
+              if (state.compareTickers.length > 2) state.compareTickers.splice(i, 1);
+            } else {
+              if (state.compareTickers.length < 4) state.compareTickers.push(tk);
+            }
+            renderCompareChips();
+            renderCompare();
+          });
+        });
+      }
+      async function renderCompare(){
+        renderCompareChips();
+        var ctx = document.getElementById('mediaCompareChart');
+        var emptyEl = document.getElementById('mediaCompareEmpty');
+        var tableEl = document.getElementById('mediaCompareTable');
+        if (!ctx) return;
+        var tks = state.compareTickers;
+        if (tks.length < 2) {
+          if (compareChart) { compareChart.destroy(); compareChart = null; }
+          if (emptyEl) emptyEl.style.display = 'flex';
+          if (tableEl) tableEl.innerHTML = '';
+          return;
+        }
+        if (emptyEl) emptyEl.style.display = 'none';
+        try {
+          var d = await j('/api/btcmine/media/compare?tickers=' + tks.join(',') + '&hours=' + state.hours);
+          // Normalize each metric to 0-100 by max-over-selection so the radar shape is comparable.
+          var maxes = {};
+          COMPARE_METRICS.forEach(function(m){
+            maxes[m.key] = 0;
+            d.data.forEach(function(row){ var v = m.raw(row) || 0; if (v > maxes[m.key]) maxes[m.key] = v; });
+          });
+          var datasets = d.data.map(function(row){
+            return {
+              label: '$' + row.ticker + ' ' + row.name,
+              data: COMPARE_METRICS.map(function(m){ return maxes[m.key] > 0 ? Math.round(100 * (m.raw(row)||0) / maxes[m.key]) : 0; }),
+              borderColor: TICKER_COLORS[row.ticker] || '#888',
+              backgroundColor: (TICKER_COLORS[row.ticker] || '#888') + '33',
+              pointBackgroundColor: TICKER_COLORS[row.ticker] || '#888',
+              borderWidth: 2
+            };
+          });
+          if (compareChart) compareChart.destroy();
+          compareChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+              labels: COMPARE_METRICS.map(function(m){ return m.label; }),
+              datasets: datasets
+            },
+            options: {
+              responsive:true, maintainAspectRatio:false,
+              plugins: {
+                legend: {position:'bottom', labels:{color:'#a0a0a0', font:{size:10}, boxWidth:10, padding:8}},
+                tooltip: {
+                  callbacks: {
+                    label: function(ctx){
+                      var row = d.data[ctx.datasetIndex];
+                      var m = COMPARE_METRICS[ctx.dataIndex];
+                      var raw = m.raw(row) || 0;
+                      var val = m.fmt ? m.fmt(raw) : raw;
+                      return ctx.dataset.label + ' — ' + m.label + ': ' + val + (m.unit || '') + '  (归一化 ' + ctx.parsed.r + ')';
+                    }
+                  }
+                }
+              },
+              scales: {
+                r: {
+                  min:0, max:100,
+                  angleLines:{color:'rgba(255,255,255,0.08)'},
+                  grid:{color:'rgba(255,255,255,0.06)'},
+                  pointLabels:{color:'#a0a0a0', font:{size:10}},
+                  ticks:{display:false}
+                }
+              }
+            }
+          });
+          // Raw values table
+          if (tableEl) {
+            var head = '<thead><tr><th style="text-align:left;padding:4px 6px;color:var(--text-muted);font-weight:500;">指标</th>' +
+              d.data.map(function(r){
+                return '<th style="text-align:right;padding:4px 6px;color:' + (TICKER_COLORS[r.ticker]||'#888') + ';font-family:monospace;">$' + r.ticker + '</th>';
+              }).join('') + '</tr></thead>';
+            var body = '<tbody>' + COMPARE_METRICS.map(function(m){
+              return '<tr><td data-tip="' + m.tip + '" style="padding:4px 6px;color:var(--text-secondary);cursor:help;">' + m.label + '</td>' +
+                d.data.map(function(r){
+                  var raw = m.raw(r);
+                  var val = (raw == null) ? '—' : (m.fmt ? m.fmt(raw) : raw) + (m.unit || '');
+                  return '<td style="text-align:right;padding:4px 6px;color:var(--text-primary);font-family:monospace;">' + val + '</td>';
+                }).join('') + '</tr>';
+            }).join('') + '</tbody>';
+            tableEl.innerHTML = head + body;
+          }
+        } catch (e) { console.error('compare', e); }
+      }
+
+      // ========== feat-025 Custom layout (module show/hide + drag-reorder) ==========
+      var LAYOUT_KEY = 'btcmine_media_layout_v1';
+      var MODULE_META = [
+        {key:'overview-cards',  label:'8 家公司一览',  default:true},
+        {key:'sentiment-reach', label:'情感 & Reach 分布', default:true},
+        {key:'timeline-themes', label:'时间线 & 话题',  default:true},
+        {key:'compare',         label:'竞品对比雷达',   default:true},
+        {key:'kol',             label:'KOL 影响力榜',   default:true},
+        {key:'sources-feed',    label:'来源 & 报道流',  default:true},
+      ];
+      function loadLayout(){
+        try {
+          var s = JSON.parse(localStorage.getItem(LAYOUT_KEY) || 'null');
+          if (s && Array.isArray(s.order) && Array.isArray(s.hidden)) {
+            // Heal: add any new modules not yet in saved order (appended at the end, visible).
+            MODULE_META.forEach(function(m){ if (s.order.indexOf(m.key) === -1) s.order.push(m.key); });
+            s.order = s.order.filter(function(k){ return MODULE_META.some(function(m){ return m.key === k; }); });
+            return s;
+          }
+        } catch(e){}
+        return {order: MODULE_META.map(function(m){return m.key;}), hidden: []};
+      }
+      function saveLayout(s){
+        try { localStorage.setItem(LAYOUT_KEY, JSON.stringify(s)); } catch(e){}
+      }
+      function applyLayout(){
+        var s = loadLayout();
+        var container = document.getElementById('page-media');
+        if (!container) return;
+        // Reorder DOM: find each module and re-append in saved order.
+        s.order.forEach(function(key){
+          var el = container.querySelector('[data-module="'+key+'"]');
+          if (el) container.appendChild(el);
+        });
+        // Re-append the layout drawer + style at the end (they were appended as part of ordering if matched).
+        // Show/hide.
+        MODULE_META.forEach(function(m){
+          var el = container.querySelector('[data-module="'+m.key+'"]');
+          if (!el) return;
+          el.style.display = s.hidden.indexOf(m.key) !== -1 ? 'none' : '';
+        });
+      }
+      function renderLayoutList(){
+        var s = loadLayout();
+        var list = document.getElementById('mediaLayoutList');
+        if (!list) return;
+        list.innerHTML = s.order.map(function(key){
+          var m = MODULE_META.find(function(x){return x.key === key;});
+          if (!m) return '';
+          var shown = s.hidden.indexOf(key) === -1;
+          return '<li draggable="true" data-lay-module="' + key + '">' +
+            '<span class="lay-handle">⋮⋮</span>' +
+            '<input type="checkbox" ' + (shown ? 'checked' : '') + ' data-lay-check="' + key + '"/>' +
+            '<span class="lay-name">' + esc(m.label) + '</span>' +
+          '</li>';
+        }).join('');
+        // Checkbox show/hide
+        list.querySelectorAll('input[data-lay-check]').forEach(function(cb){
+          cb.addEventListener('change', function(){
+            var key = cb.getAttribute('data-lay-check');
+            var s2 = loadLayout();
+            var idx = s2.hidden.indexOf(key);
+            if (cb.checked) { if (idx !== -1) s2.hidden.splice(idx, 1); }
+            else { if (idx === -1) s2.hidden.push(key); }
+            saveLayout(s2);
+            applyLayout();
+          });
+        });
+        // Drag reorder
+        var dragSrc = null;
+        list.querySelectorAll('li[draggable="true"]').forEach(function(li){
+          li.addEventListener('dragstart', function(e){
+            dragSrc = li; li.classList.add('dragging');
+            if (e.dataTransfer) { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', li.getAttribute('data-lay-module')); }
+          });
+          li.addEventListener('dragend', function(){ li.classList.remove('dragging'); list.querySelectorAll('li').forEach(function(x){ x.classList.remove('drag-over'); }); });
+          li.addEventListener('dragover', function(e){ e.preventDefault(); if (dragSrc && dragSrc !== li) li.classList.add('drag-over'); });
+          li.addEventListener('dragleave', function(){ li.classList.remove('drag-over'); });
+          li.addEventListener('drop', function(e){
+            e.preventDefault();
+            if (!dragSrc || dragSrc === li) return;
+            var srcKey = dragSrc.getAttribute('data-lay-module');
+            var dstKey = li.getAttribute('data-lay-module');
+            var s2 = loadLayout();
+            var si = s2.order.indexOf(srcKey), di = s2.order.indexOf(dstKey);
+            if (si === -1 || di === -1) return;
+            s2.order.splice(si, 1);
+            s2.order.splice(di, 0, srcKey);
+            saveLayout(s2);
+            applyLayout();
+            renderLayoutList();
+          });
+        });
+      }
+      function openLayoutDrawer(){
+        var d = document.getElementById('mediaLayoutDrawer');
+        if (!d) return;
+        renderLayoutList();
+        d.style.display = 'flex';
+      }
+      function closeLayoutDrawer(){
+        var d = document.getElementById('mediaLayoutDrawer');
+        if (d) d.style.display = 'none';
+      }
+      function resetLayout(){
+        try { localStorage.removeItem(LAYOUT_KEY); } catch(e){}
+        applyLayout();
+        renderLayoutList();
       }
 
       // ========== feat-020: Custom dashboard presets (localStorage) ==========
@@ -1150,6 +1524,28 @@
       document.getElementById('mediaPlatformFilter').addEventListener('change', function(e){ setFilter('platform', e.target.value); });
       document.getElementById('mediaBackDay').addEventListener('click', function(){ setFilter('date', null); });
 
+      // feat-022 Reach mode chips
+      document.querySelectorAll('#mediaReachModeChips .time-chip').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var m = btn.dataset.reachMode;
+          if (state.reachMode === m) return;
+          state.reachMode = m;
+          document.querySelectorAll('#mediaReachModeChips .time-chip').forEach(function(x){
+            x.classList.toggle('active', x.dataset.reachMode === m);
+          });
+          renderReachDist();
+        });
+      });
+      // feat-025 Layout drawer wiring
+      var _layBtn = document.getElementById('mediaLayoutBtn');
+      if (_layBtn) _layBtn.addEventListener('click', openLayoutDrawer);
+      var _layClose = document.getElementById('mediaLayoutClose');
+      if (_layClose) _layClose.addEventListener('click', closeLayoutDrawer);
+      var _layReset = document.getElementById('mediaLayoutReset');
+      if (_layReset) _layReset.addEventListener('click', resetLayout);
+      var _layDrawer = document.getElementById('mediaLayoutDrawer');
+      if (_layDrawer) _layDrawer.addEventListener('click', function(e){ if (e.target === _layDrawer) closeLayoutDrawer(); });
+
       // KOL tab wiring (feat-016)
       document.querySelectorAll('[data-kol-board]').forEach(function(btn){
         btn.addEventListener('click', function(){
@@ -1178,6 +1574,7 @@
         if (initialized) return;
         initialized = true;
         hashToState();
+        applyLayout();    // feat-025: restore saved module order/visibility before first render
         syncUI();
         refreshAll();
       }
