@@ -353,15 +353,15 @@
         <span id="mediaTotal" class="text-muted text-mono"></span>
         <!-- Time-range chips (feat-011) -->
         <div id="mediaHoursChips" style="display:inline-flex;gap:4px;" role="tablist" aria-label="时间范围">
-          <button type="button" class="time-chip" data-hours="24">24h</button>
-          <button type="button" class="time-chip" data-hours="72">3d</button>
-          <button type="button" class="time-chip active" data-hours="168">7d</button>
-          <button type="button" class="time-chip" data-hours="720">30d</button>
+          <button type="button" class="time-chip" data-hours="24" data-i18n="media.range.24h">24h</button>
+          <button type="button" class="time-chip" data-hours="72" data-i18n="media.range.72h">3d</button>
+          <button type="button" class="time-chip active" data-hours="168" data-i18n="media.range.168h">7d</button>
+          <button type="button" class="time-chip" data-hours="720" data-i18n="media.range.720h">30d</button>
         </div>
         <label style="margin-left:8px;">排序</label>
         <select id="mediaSort" class="filter-select" style="min-width:80px;">
-          <option value="latest" selected>最新动态</option>
-          <option value="mentions">声量</option>
+          <option value="latest" selected data-i18n="media.sort.latest">最新动态</option>
+          <option value="mentions" data-i18n="media.sort.mentions">声量</option>
         </select>
       </div>
     </div>
@@ -381,7 +381,7 @@
     <div class="two-col mb-24" style="grid-template-columns:1fr 1fr;gap:20px;">
       <div>
         <div class="section-header mb-16">
-          <div class="section-title" style="font-size:13px;">情感分布</div>
+          <div class="section-title" style="font-size:13px;" data-i18n="media.sentiment.distribution">情感分布</div>
           <span class="text-muted text-mono" style="font-size:10px;" id="mediaSentimentHint">当前筛选</span>
         </div>
         <div style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:12px;position:relative;min-height:240px;display:flex;align-items:center;justify-content:center;">
@@ -395,7 +395,7 @@
           <span class="text-muted text-mono" style="font-size:10px;">Reach</span>
         </div>
         <div style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:24px;min-height:240px;display:flex;align-items:center;justify-content:center;">
-          <div class="text-muted" style="font-size:12px;text-align:center;">Reach 分布<br/><span style="font-size:10px;">(即将推出)</span></div>
+          <div class="text-muted" style="font-size:12px;text-align:center;" data-i18n="media.reach.placeholder">Reach 分布 (即将推出)</div>
         </div>
       </div>
     </div>
@@ -408,14 +408,14 @@
           <div style="display:flex;gap:10px;align-items:center;">
             <span class="text-muted text-mono" style="font-size:10px;" id="mediaTimelineHint">所有公司 (点卡片筛选)</span>
             <div id="mediaTimelineModeChips" style="display:inline-flex;gap:4px;">
-              <button type="button" class="time-chip active" data-mode="bar" style="font-size:10px;padding:2px 8px;">堆叠柱</button>
-              <button type="button" class="time-chip" data-mode="line" style="font-size:10px;padding:2px 8px;">折线</button>
+              <button type="button" class="time-chip active" data-mode="bar" style="font-size:10px;padding:2px 8px;" data-i18n="media.chart.stacked">堆叠柱</button>
+              <button type="button" class="time-chip" data-mode="line" style="font-size:10px;padding:2px 8px;" data-i18n="media.chart.line">折线</button>
             </div>
           </div>
         </div>
         <div style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:12px;position:relative;">
           <canvas id="mediaTimelineChart" height="120"></canvas>
-          <button type="button" id="mediaBackDay" style="display:none;position:absolute;top:8px;left:8px;background:var(--bg-elevated);border:1px solid var(--border-default);color:var(--accent-blue);font-size:10px;padding:2px 8px;border-radius:4px;cursor:pointer;">← 返回 30 天视图</button>
+          <button type="button" id="mediaBackDay" style="display:none;position:absolute;top:8px;left:8px;background:var(--bg-elevated);border:1px solid var(--border-default);color:var(--accent-blue);font-size:10px;padding:2px 8px;border-radius:4px;cursor:pointer;" data-i18n="media.chart.backToRange">← 返回 30 天视图</button>
         </div>
       </div>
       <div>
@@ -427,6 +427,20 @@
         </div>
       </div>
     </div>
+
+    <!-- KOL 影响力榜 (feat-016) -->
+    <section class="mb-24">
+      <div class="section-header mb-16">
+        <div class="section-title" style="font-size:13px;" data-i18n="media.kol.title">KOL 影响力榜</div>
+        <div style="display:flex;gap:6px;">
+          <button type="button" id="kolTabPositive" class="time-chip active" data-kol-board="positive" data-i18n="media.kol.positive" style="font-size:10px;padding:3px 10px;">正面支持 (可合作)</button>
+          <button type="button" id="kolTabCritical" class="time-chip" data-kol-board="critical" data-i18n="media.kol.critical" style="font-size:10px;padding:3px 10px;">批评声音 (需关注)</button>
+        </div>
+      </div>
+      <div id="mediaKolList" style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:12px;min-height:100px;">
+        <div class="text-muted" data-i18n="media.kol.loading">加载中...</div>
+      </div>
+    </section>
 
     <div class="two-col mb-24" style="grid-template-columns:1fr 2fr;gap:20px;">
       <div>
@@ -441,18 +455,18 @@
           <div class="section-title" style="font-size:13px;">实时报道流</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
             <select id="mediaPlatformFilter" class="filter-select" style="font-size:11px;">
-              <option value="">全部平台</option>
-              <option value="news">新闻</option>
-              <option value="twitter">Twitter</option>
-              <option value="reddit">Reddit</option>
-              <option value="youtube">YouTube</option>
-              <option value="blog">Blog</option>
+              <option value="" data-i18n="media.platform.all">全部平台</option>
+              <option value="news" data-i18n="media.platform.news">新闻</option>
+              <option value="twitter" data-i18n="media.platform.twitter">Twitter</option>
+              <option value="reddit" data-i18n="media.platform.reddit">Reddit</option>
+              <option value="youtube" data-i18n="media.platform.youtube">YouTube</option>
+              <option value="blog" data-i18n="media.platform.blog">Blog</option>
             </select>
             <select id="mediaSentimentFilter" class="filter-select" style="font-size:11px;">
-              <option value="">全部情感</option>
-              <option value="positive">正面</option>
-              <option value="neutral">中性</option>
-              <option value="negative">负面</option>
+              <option value="" data-i18n="media.sentiment.all">全部情感</option>
+              <option value="positive" data-i18n="media.sentiment.positive">正面</option>
+              <option value="neutral" data-i18n="media.sentiment.neutral">中性</option>
+              <option value="negative" data-i18n="media.sentiment.negative">负面</option>
             </select>
             <select id="mediaTickerFilter" class="filter-select" style="font-size:11px;">
               <option value="">全部公司</option>
@@ -493,7 +507,7 @@
       // feat-013: centralized filter state manager
       var state = {
         hours:168, ticker:'', sentiment:'', platform:'', sort:'latest',
-        date:null, timelineMode:'bar'
+        date:null, timelineMode:'bar', kolBoard:'positive'
       };
       var timelineChart = null;
       var sentimentChart = null;
@@ -591,6 +605,13 @@
         if (!res.ok) throw new Error('HTTP ' + res.status);
         return await res.json();
       }
+      function fmtReach(n){
+        n = parseInt(n) || 0;
+        if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+        if (n >= 1000) return (n/1000).toFixed(1) + 'K';
+        return String(n);
+      }
+      function t_(k){ try { return t(k); } catch(_) { return k; } }
       function fmtRel(iso){
         if (!iso) return '-';
         var d = new Date(iso), diff = (Date.now() - d.getTime())/1000;
@@ -627,12 +648,12 @@
         if (!chips.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
         el.style.display = 'flex';
         el.innerHTML =
-          '<span style="color:var(--text-muted);margin-right:4px;">筛选：</span>' +
+          '<span style="color:var(--text-muted);margin-right:4px;">' + t('media.filter.prefix') + '</span>' +
           chips.map(function(c){
             return '<span data-filter-chip="' + c.key + '" style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:var(--accent-blue);color:white;border-radius:12px;font-size:10px;cursor:pointer;font-weight:500;">' +
               esc(c.label) + ' <span style="opacity:0.8;font-size:12px;line-height:1;">×</span></span>';
           }).join('') +
-          '<span data-filter-clear style="margin-left:6px;padding:3px 8px;background:transparent;border:1px solid var(--border-default);color:var(--text-secondary);border-radius:12px;font-size:10px;cursor:pointer;">清除全部</span>';
+          '<span data-filter-clear style="margin-left:6px;padding:3px 8px;background:transparent;border:1px solid var(--border-default);color:var(--text-secondary);border-radius:12px;font-size:10px;cursor:pointer;">' + t('media.filter.clear') + '</span>';
         el.querySelectorAll('[data-filter-chip]').forEach(function(c){
           c.addEventListener('click', function(){
             var k = c.getAttribute('data-filter-chip');
@@ -673,7 +694,7 @@
               '<div style="font-size:10px;margin-top:2px;">'+breakdown+'</div>'+
               sentBar(t.sentiment_avg)+
               '<div style="font-size:10px;color:var(--text-secondary);margin-top:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(t.top_source||'-')+'</div>'+
-              '<div style="font-size:10px;color:var(--text-muted);margin-top:2px;">'+fmtRel(t.latest_ts)+'</div>'+
+              '<div style="font-size:10px;color:var(--text-muted);margin-top:2px;">' + t_('media.reach.label') + ': ' + fmtReach(t.reach_sum) + ' · ' + fmtRel(t.latest_ts) + '</div>'+
             '</div>';
           }).join('');
           document.querySelectorAll('.media-card').forEach(function(el){
@@ -919,9 +940,9 @@
             var itemBorder = isDead ? 'border:1px solid rgba(239,68,68,0.35);border-radius:4px;padding:8px 10px;margin:6px 0;' : 'padding:10px 0;border-bottom:1px solid var(--border-default);';
             var statusChip = '';
             if (isDead) {
-              statusChip = '<span style="display:inline-block;padding:1px 6px;background:rgba(239,68,68,0.18);color:var(--red);border-radius:3px;font-size:10px;font-weight:500;margin-left:4px;" title="链接已失效 ('+(m.url_status||'')+')">🔗 链接失效</span>';
+              statusChip = '<span style="display:inline-block;padding:1px 6px;background:rgba(239,68,68,0.18);color:var(--red);border-radius:3px;font-size:10px;font-weight:500;margin-left:4px;" title="链接已失效 ('+(m.url_status||'')+')">' + t('media.link.dead') + '</span>';
             } else if (isPaywall) {
-              statusChip = '<span style="display:inline-block;padding:1px 6px;background:var(--bg-elevated);color:var(--text-muted);border-radius:3px;font-size:10px;font-weight:500;margin-left:4px;" title="访问受限 — 需要登录或订阅">🔒 访问受限</span>';
+              statusChip = '<span style="display:inline-block;padding:1px 6px;background:var(--bg-elevated);color:var(--text-muted);border-radius:3px;font-size:10px;font-weight:500;margin-left:4px;" title="访问受限 — 需要登录或订阅">' + t('media.link.paywall') + '</span>';
             }
             var title = m.title_cn || m.title || '(无标题)';
             var sub = m.body_summary_cn ? '<div style="color:var(--text-muted);font-size:11px;margin-top:3px;line-height:1.4;'+(isDead?'opacity:0.6;':'')+'">'+esc(m.body_summary_cn)+'</div>' : '';
@@ -944,6 +965,48 @@
         }
       }
 
+      // ========== KOL leaderboard (feat-016) ==========
+      var PLATFORM_ICON = {twitter:'🐦', reddit:'👽', facebook:'📘', youtube:'▶'};
+      async function renderKol(){
+        var el = document.getElementById('mediaKolList');
+        el.innerHTML = '<div class="text-muted">'+t_('media.kol.loading')+'</div>';
+        try {
+          var parts = ['board='+encodeURIComponent(state.kolBoard||'positive'), 'limit=15'];
+          if (state.ticker) parts.push('ticker='+encodeURIComponent(state.ticker));
+          if (state.platform) parts.push('platform='+encodeURIComponent(state.platform));
+          var d = await j('/api/btcmine/media/kol?' + parts.join('&'));
+          if (!d.items || !d.items.length) { el.innerHTML = '<div class="text-muted">'+t_('media.kol.empty')+'</div>'; return; }
+          var boardColor = state.kolBoard === 'critical' ? 'var(--red)' : 'var(--green)';
+          var rows = d.items.map(function(r, i){
+            var icon = PLATFORM_ICON[r.platform] || '';
+            var ss = r.avg_sentiment;
+            var sCol = ss == null ? 'var(--text-muted)' : (ss > 0.15 ? 'var(--green)' : (ss < -0.15 ? 'var(--red)' : 'var(--text-secondary)'));
+            var sTxt = ss == null ? '—' : (ss > 0 ? '+' : '') + ss.toFixed(2);
+            return '<tr style="border-bottom:1px solid var(--border-default);">'+
+              '<td style="padding:6px 8px;color:var(--text-muted);font-family:monospace;">'+(i+1)+'</td>'+
+              '<td style="padding:6px 8px;color:var(--text-primary);font-size:12px;">'+icon+' '+esc(r.author)+'</td>'+
+              '<td style="padding:6px 8px;color:var(--text-secondary);font-size:11px;">'+esc(r.ticker)+'</td>'+
+              '<td style="padding:6px 8px;text-align:right;color:var(--text-secondary);font-family:monospace;font-size:11px;">'+r.mention_count+'</td>'+
+              '<td style="padding:6px 8px;text-align:right;color:var(--text-secondary);font-family:monospace;font-size:11px;">'+fmtReach(r.author_reach)+'</td>'+
+              '<td style="padding:6px 8px;text-align:right;font-family:monospace;font-size:11px;color:'+sCol+';">'+sTxt+'</td>'+
+              '<td style="padding:6px 8px;text-align:right;color:'+boardColor+';font-family:monospace;font-weight:600;font-size:12px;">'+(r.score!=null?r.score.toFixed(2):'—')+'</td>'+
+            '</tr>';
+          }).join('');
+          el.innerHTML = '<table style="width:100%;border-collapse:collapse;">' +
+            '<thead><tr style="background:var(--bg-elevated);color:var(--text-secondary);font-size:11px;font-weight:500;">' +
+              '<th style="padding:6px 8px;text-align:left;">#</th>' +
+              '<th style="padding:6px 8px;text-align:left;">'+t_('media.kol.author')+'</th>' +
+              '<th style="padding:6px 8px;text-align:left;">Ticker</th>' +
+              '<th style="padding:6px 8px;text-align:right;">'+t_('media.kol.mentions')+'</th>' +
+              '<th style="padding:6px 8px;text-align:right;">'+t_('media.kol.reach')+'</th>' +
+              '<th style="padding:6px 8px;text-align:right;">Sent.</th>' +
+              '<th style="padding:6px 8px;text-align:right;">'+t_('media.kol.score')+'</th>' +
+            '</tr></thead><tbody>' + rows + '</tbody></table>';
+        } catch (e) {
+          el.innerHTML = '<div style="color:var(--red);">加载失败: ' + esc(e.message) + '</div>';
+        }
+      }
+
       function refreshAll(){
         renderFilterBar();
         renderAlerts();
@@ -952,6 +1015,7 @@
         renderTimeline();
         renderThemes();
         renderSources();
+        renderKol();
         renderFeed();
       }
 
@@ -974,6 +1038,19 @@
       document.getElementById('mediaSentimentFilter').addEventListener('change', function(e){ setFilter('sentiment', e.target.value); });
       document.getElementById('mediaPlatformFilter').addEventListener('change', function(e){ setFilter('platform', e.target.value); });
       document.getElementById('mediaBackDay').addEventListener('click', function(){ setFilter('date', null); });
+
+      // KOL tab wiring (feat-016)
+      document.querySelectorAll('[data-kol-board]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var b = btn.getAttribute('data-kol-board');
+          if (state.kolBoard === b) return;
+          state.kolBoard = b;
+          document.querySelectorAll('[data-kol-board]').forEach(function(x){
+            x.classList.toggle('active', x.getAttribute('data-kol-board') === b);
+          });
+          renderKol();
+        });
+      });
 
       // React to URL hash changes (browser back/forward)
       window.addEventListener('hashchange', function(){
