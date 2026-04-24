@@ -562,6 +562,27 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 
 .filter-select:focus { border-color: var(--accent-blue); }
 
+/* ── TIME CHIPS (media v2.0424D: feat-011) ────────────── */
+.time-chip {
+  padding: 4px 10px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: all 0.15s ease;
+  line-height: 1.2;
+}
+.time-chip:hover { color: var(--text-primary); border-color: var(--border-strong); }
+.time-chip.active {
+  color: #fff;
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  font-weight: 500;
+}
+
 /* ── AUTOCOMPLETE ─────────────────────────────────────── */
 .autocomplete-wrapper {
   position: relative;

@@ -345,20 +345,20 @@
     </div>
   </div>
 
-  <!-- ─────────────────────── PAGE: MEDIA (舆情分析) ─────────────────────── -->
+  <!-- ─────────────────────── PAGE: MEDIA (舆情分析) v2.0424D ─────────────────────── -->
   <div class="page" id="page-media">
     <div class="section-header mb-16">
       <div class="section-title">舆情分析 <span style="font-size:11px;color:var(--text-secondary);font-weight:400;margin-left:8px;">IR &amp; PR 视角 · 媒体 + 社交覆盖</span></div>
-      <div style="display:flex;gap:10px;align-items:center;font-size:12px;color:var(--text-secondary);">
-        <label>时间范围</label>
-        <select id="mediaHours" class="filter-select" style="min-width:80px;">
-          <option value="24">24小时</option>
-          <option value="72">3天</option>
-          <option value="168" selected>7天</option>
-          <option value="720">30天</option>
-        </select>
+      <div style="display:flex;gap:10px;align-items:center;font-size:12px;color:var(--text-secondary);flex-wrap:wrap;">
         <span id="mediaTotal" class="text-muted text-mono"></span>
-        <label style="margin-left:12px;">排序</label>
+        <!-- Time-range chips (feat-011) -->
+        <div id="mediaHoursChips" style="display:inline-flex;gap:4px;" role="tablist" aria-label="时间范围">
+          <button type="button" class="time-chip" data-hours="24">24h</button>
+          <button type="button" class="time-chip" data-hours="72">3d</button>
+          <button type="button" class="time-chip active" data-hours="168">7d</button>
+          <button type="button" class="time-chip" data-hours="720">30d</button>
+        </div>
+        <label style="margin-left:8px;">排序</label>
         <select id="mediaSort" class="filter-select" style="min-width:80px;">
           <option value="latest" selected>最新动态</option>
           <option value="mentions">声量</option>
@@ -369,9 +369,35 @@
     <!-- alerts banner -->
     <div id="mediaAlerts" style="margin-bottom:16px;"></div>
 
+    <!-- Active filter chip bar (feat-013) -->
+    <div id="mediaFilterBar" style="display:none;margin-bottom:12px;padding:8px 10px;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:6px;font-size:11px;align-items:center;gap:6px;flex-wrap:wrap;"></div>
+
     <!-- 8 公司卡片 -->
     <div id="mediaCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:24px;">
       <div class="text-muted">加载中...</div>
+    </div>
+
+    <!-- Sentiment doughnut + reach placeholder (feat-011) -->
+    <div class="two-col mb-24" style="grid-template-columns:1fr 1fr;gap:20px;">
+      <div>
+        <div class="section-header mb-16">
+          <div class="section-title" style="font-size:13px;">情感分布</div>
+          <span class="text-muted text-mono" style="font-size:10px;" id="mediaSentimentHint">当前筛选</span>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:12px;position:relative;min-height:240px;display:flex;align-items:center;justify-content:center;">
+          <canvas id="mediaSentimentChart" height="200"></canvas>
+          <div id="mediaSentimentCenter" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;"></div>
+        </div>
+      </div>
+      <div>
+        <div class="section-header mb-16">
+          <div class="section-title" style="font-size:13px;">触达分布</div>
+          <span class="text-muted text-mono" style="font-size:10px;">Reach</span>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:24px;min-height:240px;display:flex;align-items:center;justify-content:center;">
+          <div class="text-muted" style="font-size:12px;text-align:center;">Reach 分布<br/><span style="font-size:10px;">(即将推出)</span></div>
+        </div>
+      </div>
     </div>
 
     <!-- Timeline chart + Themes row -->
@@ -379,10 +405,17 @@
       <div>
         <div class="section-header mb-16">
           <div class="section-title" style="font-size:13px;">30 天声量时间线</div>
-          <span class="text-muted text-mono" style="font-size:10px;" id="mediaTimelineHint">所有公司 (点卡片筛选)</span>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <span class="text-muted text-mono" style="font-size:10px;" id="mediaTimelineHint">所有公司 (点卡片筛选)</span>
+            <div id="mediaTimelineModeChips" style="display:inline-flex;gap:4px;">
+              <button type="button" class="time-chip active" data-mode="bar" style="font-size:10px;padding:2px 8px;">堆叠柱</button>
+              <button type="button" class="time-chip" data-mode="line" style="font-size:10px;padding:2px 8px;">折线</button>
+            </div>
+          </div>
         </div>
-        <div style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:12px;">
+        <div style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:12px;position:relative;">
           <canvas id="mediaTimelineChart" height="120"></canvas>
+          <button type="button" id="mediaBackDay" style="display:none;position:absolute;top:8px;left:8px;background:var(--bg-elevated);border:1px solid var(--border-default);color:var(--accent-blue);font-size:10px;padding:2px 8px;border-radius:4px;cursor:pointer;">← 返回 30 天视图</button>
         </div>
       </div>
       <div>
@@ -406,7 +439,15 @@
       <div>
         <div class="section-header mb-16">
           <div class="section-title" style="font-size:13px;">实时报道流</div>
-          <div style="display:flex;gap:8px;">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <select id="mediaPlatformFilter" class="filter-select" style="font-size:11px;">
+              <option value="">全部平台</option>
+              <option value="news">新闻</option>
+              <option value="twitter">Twitter</option>
+              <option value="reddit">Reddit</option>
+              <option value="youtube">YouTube</option>
+              <option value="blog">Blog</option>
+            </select>
             <select id="mediaSentimentFilter" class="filter-select" style="font-size:11px;">
               <option value="">全部情感</option>
               <option value="positive">正面</option>
@@ -440,13 +481,111 @@
       };
       var SENT_COLOR = {positive:'var(--green)', neutral:'var(--text-secondary)', negative:'var(--red)'};
       var SENT_LABEL = {positive:'正面', neutral:'中性', negative:'负面'};
+      var PLATFORM_LABEL = {news:'新闻', twitter:'Twitter', reddit:'Reddit', youtube:'YouTube', blog:'Blog', facebook:'Facebook'};
+      var TICKER_NAME = {FUFU:'BitFuFu', BTDR:'Bitdeer', IREN:'Iris Energy', MARA:'Marathon', CLSK:'CleanSpark', RIOT:'Riot', CAN:'Canaan', CANG:'Cango'};
       var TICKER_COLORS = {
         FUFU:'#60a5fa', BTDR:'#f59e0b', IREN:'#10b981', MARA:'#ef4444',
         CLSK:'#8b5cf6', RIOT:'#06b6d4', CAN:'#ec4899', CANG:'#eab308'
       };
-      var state = {hours:168, ticker:'', sentiment:'', sort:'latest'};
-      var timelineChart = null;
+      // feat-021 dead-link buckets
+      var DEAD_STATUSES = ['http_404','http_410','http_5xx','timeout','dns_fail','tls_fail','other_err'];
 
+      // feat-013: centralized filter state manager
+      var state = {
+        hours:168, ticker:'', sentiment:'', platform:'', sort:'latest',
+        date:null, timelineMode:'bar'
+      };
+      var timelineChart = null;
+      var sentimentChart = null;
+
+      // ========== URL hash sync (feat-013) ==========
+      function stateToHash(){
+        var parts = [];
+        if (state.hours !== 168) parts.push('hours='+state.hours);
+        if (state.ticker) parts.push('ticker='+state.ticker);
+        if (state.sentiment) parts.push('sentiment='+state.sentiment);
+        if (state.platform) parts.push('platform='+state.platform);
+        if (state.sort && state.sort !== 'latest') parts.push('sort='+state.sort);
+        if (state.date) parts.push('date='+state.date);
+        if (state.timelineMode && state.timelineMode !== 'bar') parts.push('mode='+state.timelineMode);
+        return parts.length ? '#media?' + parts.join('&') : '#media';
+      }
+      function hashToState(){
+        var h = window.location.hash || '';
+        var q = h.split('?')[1];
+        if (!q) return;
+        q.split('&').forEach(function(pair){
+          var kv = pair.split('=');
+          if (kv.length !== 2) return;
+          var k = decodeURIComponent(kv[0]);
+          var v = decodeURIComponent(kv[1]);
+          if (k === 'hours') state.hours = parseInt(v) || 168;
+          else if (k === 'ticker') state.ticker = v;
+          else if (k === 'sentiment') state.sentiment = v;
+          else if (k === 'platform') state.platform = v;
+          else if (k === 'sort') state.sort = v;
+          else if (k === 'date') state.date = v;
+          else if (k === 'mode') state.timelineMode = v;
+        });
+      }
+      function syncHash(){
+        var newHash = stateToHash();
+        if (window.location.hash !== newHash) {
+          if (history.replaceState) history.replaceState(null, '', newHash);
+          else window.location.hash = newHash;
+        }
+      }
+
+      // setFilter / clearFilters API (feat-013) — exposed for future drilldown + state manager
+      function setFilter(key, value, opts){
+        opts = opts || {};
+        if (state[key] === value) return;
+        state[key] = value;
+        syncUI();
+        syncHash();
+        if (opts.skipRender) return;
+        // feed-only changes: sentiment, platform
+        if (key === 'sentiment' || key === 'platform') { renderFilterBar(); renderFeed(); return; }
+        // sort only affects cards
+        if (key === 'sort') { renderFilterBar(); renderCards(); return; }
+        // timelineMode only affects timeline chart
+        if (key === 'timelineMode') { renderFilterBar(); renderTimeline(); return; }
+        // date only affects feed + timeline back button
+        if (key === 'date') { renderFilterBar(); renderTimeline(); renderFeed(); return; }
+        // full refresh for hours / ticker
+        refreshAll();
+      }
+      function clearFilters(){
+        state.ticker = '';
+        state.sentiment = '';
+        state.platform = '';
+        state.date = null;
+        syncUI();
+        syncHash();
+        renderFilterBar();
+        refreshAll();
+      }
+      window.__btcmineMediaFilters = {setFilter: setFilter, clearFilters: clearFilters, state: state};
+
+      // ========== UI sync from state ==========
+      function syncUI(){
+        // hours chips
+        document.querySelectorAll('#mediaHoursChips .time-chip').forEach(function(b){
+          b.classList.toggle('active', parseInt(b.dataset.hours) === state.hours);
+        });
+        // timeline mode chips
+        document.querySelectorAll('#mediaTimelineModeChips .time-chip').forEach(function(b){
+          b.classList.toggle('active', b.dataset.mode === state.timelineMode);
+        });
+        var sortEl = document.getElementById('mediaSort'); if (sortEl) sortEl.value = state.sort;
+        var tEl = document.getElementById('mediaTickerFilter'); if (tEl) tEl.value = state.ticker;
+        var sEl = document.getElementById('mediaSentimentFilter'); if (sEl) sEl.value = state.sentiment;
+        var pEl = document.getElementById('mediaPlatformFilter'); if (pEl) pEl.value = state.platform;
+        var backBtn = document.getElementById('mediaBackDay');
+        if (backBtn) backBtn.style.display = state.date ? 'inline-block' : 'none';
+      }
+
+      // ========== Helpers ==========
       async function j(path){
         var res = await fetch(API + path, {signal: AbortSignal.timeout(12000)});
         if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -462,7 +601,6 @@
         return d.toLocaleDateString('zh-CN');
       }
       function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
       function sentBar(s){
         if (s == null) return '<div style="height:3px;background:var(--border-default);border-radius:2px;margin-top:6px;"></div>';
         var pct = Math.max(0, Math.min(100, (s + 1) * 50));
@@ -470,6 +608,42 @@
         return '<div style="height:3px;background:var(--border-default);border-radius:2px;margin-top:6px;position:relative;overflow:hidden;"><div style="position:absolute;left:0;top:0;bottom:0;width:'+pct+'%;background:'+col+';"></div></div>';
       }
 
+      // ========== Filter chip bar (feat-013) ==========
+      function renderFilterBar(){
+        var el = document.getElementById('mediaFilterBar');
+        var chips = [];
+        if (state.ticker) {
+          chips.push({label:'公司: ' + (TICKER_NAME[state.ticker] || state.ticker), key:'ticker'});
+        }
+        if (state.platform) {
+          chips.push({label:'平台: ' + (PLATFORM_LABEL[state.platform] || state.platform), key:'platform'});
+        }
+        if (state.sentiment) {
+          chips.push({label:'情感: ' + (SENT_LABEL[state.sentiment] || state.sentiment), key:'sentiment'});
+        }
+        if (state.date) {
+          chips.push({label:'日期: ' + state.date, key:'date'});
+        }
+        if (!chips.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
+        el.style.display = 'flex';
+        el.innerHTML =
+          '<span style="color:var(--text-muted);margin-right:4px;">筛选：</span>' +
+          chips.map(function(c){
+            return '<span data-filter-chip="' + c.key + '" style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:var(--accent-blue);color:white;border-radius:12px;font-size:10px;cursor:pointer;font-weight:500;">' +
+              esc(c.label) + ' <span style="opacity:0.8;font-size:12px;line-height:1;">×</span></span>';
+          }).join('') +
+          '<span data-filter-clear style="margin-left:6px;padding:3px 8px;background:transparent;border:1px solid var(--border-default);color:var(--text-secondary);border-radius:12px;font-size:10px;cursor:pointer;">清除全部</span>';
+        el.querySelectorAll('[data-filter-chip]').forEach(function(c){
+          c.addEventListener('click', function(){
+            var k = c.getAttribute('data-filter-chip');
+            setFilter(k, k === 'date' ? null : '');
+          });
+        });
+        var clearBtn = el.querySelector('[data-filter-clear]');
+        if (clearBtn) clearBtn.addEventListener('click', clearFilters);
+      }
+
+      // ========== Renders ==========
       async function renderAlerts(){
         try {
           var d = await j('/api/btcmine/media/alerts?unacknowledged=true&limit=3');
@@ -504,9 +678,8 @@
           }).join('');
           document.querySelectorAll('.media-card').forEach(function(el){
             el.addEventListener('click', function(){
-              state.ticker = (state.ticker === el.dataset.ticker) ? '' : el.dataset.ticker;
-              document.getElementById('mediaTickerFilter').value = state.ticker;
-              refreshAll();
+              var tk = el.dataset.ticker;
+              setFilter('ticker', state.ticker === tk ? '' : tk);
             });
           });
         } catch (e) {
@@ -514,51 +687,164 @@
         }
       }
 
+      // ========== Sentiment doughnut (feat-011) ==========
+      async function renderSentimentPie(){
+        var hintEl = document.getElementById('mediaSentimentHint');
+        try {
+          var path = '/api/btcmine/media/sentiment_pie?hours=' + state.hours + (state.ticker ? '&ticker='+state.ticker : '');
+          var d = await j(path);
+          hintEl.textContent = state.ticker ? ('公司: ' + state.ticker + ' · ' + state.hours + 'h') : ('全部 · ' + state.hours + 'h');
+          var ctx = document.getElementById('mediaSentimentChart');
+          var pos = d.positive||0, neu = d.neutral||0, neg = d.negative||0;
+          var total = pos+neu+neg;
+          var centerEl = document.getElementById('mediaSentimentCenter');
+          if (total === 0) {
+            centerEl.innerHTML = '<div style="color:var(--text-muted);font-size:12px;">暂无数据</div>';
+            if (sentimentChart) { sentimentChart.destroy(); sentimentChart = null; }
+            return;
+          }
+          centerEl.innerHTML =
+            '<div style="font-size:24px;font-weight:700;color:var(--text-primary);">' + total + '</div>' +
+            '<div style="font-size:10px;color:var(--text-muted);">总量</div>';
+          if (sentimentChart) sentimentChart.destroy();
+          sentimentChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+              labels: ['正面','中性','负面'],
+              datasets: [{
+                data: [pos, neu, neg],
+                backgroundColor: ['#10b981','#6b7280','#ef4444'],
+                borderColor: 'var(--bg-card)',
+                borderWidth: 2
+              }]
+            },
+            options: {
+              responsive:true, maintainAspectRatio:false, cutout:'60%',
+              plugins: {
+                legend: {position:'bottom', labels:{color:'#a0a0a0', boxWidth:10, font:{size:10}, padding:8,
+                  generateLabels: function(chart){
+                    var data = chart.data;
+                    return data.labels.map(function(lbl, i){
+                      var val = data.datasets[0].data[i];
+                      var pct = total ? (100*val/total).toFixed(1) : 0;
+                      return {
+                        text: lbl + ' ' + val + ' (' + pct + '%)',
+                        fillStyle: data.datasets[0].backgroundColor[i],
+                        strokeStyle: data.datasets[0].backgroundColor[i],
+                        index: i
+                      };
+                    });
+                  }
+                }}
+              },
+              onClick: function(evt, elements){
+                if (!elements || !elements.length) return;
+                var idx = elements[0].index;
+                var sentKey = ['positive','neutral','negative'][idx];
+                // Toggle: if already set, clear.
+                setFilter('sentiment', state.sentiment === sentKey ? '' : sentKey);
+              }
+            }
+          });
+        } catch (e) {
+          hintEl.textContent = '加载失败';
+          console.error(e);
+        }
+      }
+
+      // ========== Timeline (feat-011: bar/line toggle; feat-012: drilldown onClick) ==========
       async function renderTimeline(){
         try {
           var path = '/api/btcmine/media/timeline?days=30' + (state.ticker ? '&ticker='+state.ticker : '');
           var d = await j(path);
-          document.getElementById('mediaTimelineHint').textContent = state.ticker ? ('公司: ' + state.ticker) : '所有公司 (点卡片筛选)';
+          var hint = state.ticker ? ('公司: ' + state.ticker) : '所有公司 (点卡片筛选)';
+          if (state.date) hint += ' · 日期: ' + state.date;
+          document.getElementById('mediaTimelineHint').textContent = hint;
           var rows = d.rows || [];
-          var datasets, labels;
           var ctx = document.getElementById('mediaTimelineChart');
+          var mode = state.timelineMode || 'bar';
+          var chartType, datasets, labels;
+
+          // Build labels (dates) once
           if (state.ticker) {
-            labels = rows.map(r => r.date);
-            datasets = [
-              {label:'声量', data: rows.map(r => r.mentions_total), borderColor: TICKER_COLORS[state.ticker]||'#60a5fa', backgroundColor:(TICKER_COLORS[state.ticker]||'#60a5fa')+'33', fill:true, tension:0.3, yAxisID:'y'},
-              {label:'情感', data: rows.map(r => r.sentiment_avg), borderColor:'#10b981', borderDash:[4,4], fill:false, tension:0.3, yAxisID:'y1'}
-            ];
+            labels = rows.map(function(r){ return r.date; });
           } else {
-            // pivot rows by ticker
-            var dateSet = new Set(rows.map(r => r.date));
+            var dateSet = new Set(rows.map(function(r){ return r.date; }));
             labels = Array.from(dateSet).sort();
+          }
+
+          if (state.ticker) {
+            // Single ticker: volume (left Y) + sentiment (right Y).
+            datasets = [{
+              label:'声量',
+              data: rows.map(function(r){ return r.mentions_total; }),
+              borderColor: TICKER_COLORS[state.ticker]||'#60a5fa',
+              backgroundColor:(TICKER_COLORS[state.ticker]||'#60a5fa') + (mode === 'bar' ? '88' : '33'),
+              fill: mode !== 'bar',
+              tension:0.3,
+              pointRadius: mode === 'line' ? 0 : undefined,
+              yAxisID:'y'
+            }];
+            datasets.push({
+              label:'情感',
+              type:'line',
+              data: rows.map(function(r){ return r.sentiment_avg; }),
+              borderColor:'#10b981',
+              borderDash:[4,4],
+              fill:false,
+              tension:0.3,
+              pointRadius: 0,
+              yAxisID:'y1'
+            });
+            chartType = mode === 'bar' ? 'bar' : 'line';
+          } else {
+            // All tickers.
             var byTicker = {};
-            rows.forEach(r => {
+            rows.forEach(function(r){
               if (!byTicker[r.ticker]) byTicker[r.ticker] = {};
               byTicker[r.ticker][r.date] = r.mentions_total;
             });
-            datasets = Object.keys(byTicker).map(tk => ({
-              label: tk,
-              data: labels.map(dt => byTicker[tk][dt] || 0),
-              borderColor: TICKER_COLORS[tk] || '#888',
-              backgroundColor: (TICKER_COLORS[tk] || '#888') + '22',
-              fill: false,
-              tension: 0.25,
-              pointRadius: 0,
-              borderWidth: 1.5
-            }));
+            datasets = Object.keys(byTicker).map(function(tk){
+              return {
+                label: tk,
+                data: labels.map(function(dt){ return byTicker[tk][dt] || 0; }),
+                borderColor: TICKER_COLORS[tk] || '#888',
+                backgroundColor: (TICKER_COLORS[tk] || '#888') + (mode === 'bar' ? 'cc' : '22'),
+                fill: false,
+                tension: 0.25,
+                pointRadius: 0,
+                borderWidth: mode === 'line' ? 1.8 : 1.0,
+                stack: mode === 'bar' ? 'all' : undefined
+              };
+            });
+            chartType = mode === 'bar' ? 'bar' : 'line';
           }
           if (timelineChart) timelineChart.destroy();
           timelineChart = new Chart(ctx, {
-            type: 'line',
+            type: chartType,
             data: {labels: labels, datasets: datasets},
             options: {
               responsive:true, maintainAspectRatio:false,
               plugins: {legend: {labels: {color:'#a0a0a0', boxWidth:10, font:{size:10}}}},
               scales: {
-                x: {ticks:{color:'#606060', font:{size:9}}, grid:{color:'rgba(255,255,255,0.04)'}},
-                y: {ticks:{color:'#606060', font:{size:9}}, grid:{color:'rgba(255,255,255,0.04)'}, beginAtZero:true},
+                x: {ticks:{color:'#606060', font:{size:9}}, grid:{color:'rgba(255,255,255,0.04)'}, stacked: (mode === 'bar' && !state.ticker)},
+                y: {ticks:{color:'#606060', font:{size:9}}, grid:{color:'rgba(255,255,255,0.04)'}, beginAtZero:true, stacked: (mode === 'bar' && !state.ticker)},
                 y1: state.ticker ? {position:'right', ticks:{color:'#606060', font:{size:9}}, grid:{display:false}, min:-1, max:1} : undefined
+              },
+              onClick: function(evt, elements){
+                if (!elements || !elements.length) return;
+                var e0 = elements[0];
+                var dateStr = labels[e0.index];
+                if (!dateStr) return;
+                // If no ticker yet, and this is the all-tickers view, also set ticker from dataset.
+                if (!state.ticker && datasets[e0.datasetIndex] && datasets[e0.datasetIndex].label) {
+                  var dsLabel = datasets[e0.datasetIndex].label;
+                  if (TICKER_COLORS[dsLabel]) {
+                    // Chain: set ticker + date together, then single refresh.
+                    state.ticker = dsLabel;
+                  }
+                }
+                setFilter('date', dateStr);
               }
             }
           });
@@ -571,7 +857,7 @@
           var d = await j(path);
           var el = document.getElementById('mediaThemes');
           if (!d.themes || !d.themes.length) { el.innerHTML = '<div class="text-muted">暂无 NLP 数据</div>'; return; }
-          var max = Math.max.apply(null, d.themes.map(t => t.cnt));
+          var max = Math.max.apply(null, d.themes.map(function(t){ return t.cnt; }));
           el.innerHTML = d.themes.map(function(t){
             var pct = 100 * t.cnt / max;
             var lbl = THEME_LABEL[t.theme] || t.theme;
@@ -598,13 +884,21 @@
         }
       }
 
+      // ========== Feed (feat-021 dead-link indicator + feat-013 platform/date filters) ==========
       async function renderFeed(){
         var el = document.getElementById('mediaFeed');
         el.innerHTML = '<div class="text-muted">加载中...</div>';
         try {
-          var qs = 'hours=' + state.hours + '&limit=100' +
-            (state.ticker ? '&ticker='+state.ticker : '') +
-            (state.sentiment ? '&sentiment='+state.sentiment : '');
+          var parts = ['limit=100'];
+          if (state.date) {
+            parts.push('date=' + encodeURIComponent(state.date));
+          } else {
+            parts.push('hours=' + state.hours);
+          }
+          if (state.ticker) parts.push('ticker=' + encodeURIComponent(state.ticker));
+          if (state.sentiment) parts.push('sentiment=' + encodeURIComponent(state.sentiment));
+          if (state.platform) parts.push('source_type=' + encodeURIComponent(state.platform));
+          var qs = parts.join('&');
           var d = await j('/api/btcmine/media/feed?' + qs);
           if (!d.items.length) { el.innerHTML = '<div class="text-muted">暂无数据</div>'; return; }
           el.innerHTML = d.items.map(function(m){
@@ -617,17 +911,31 @@
                 return '<span style="display:inline-block;padding:1px 5px;background:var(--bg-elevated);color:var(--text-secondary);border-radius:3px;font-size:10px;margin-left:4px;">'+esc(THEME_LABEL[t]||t)+'</span>';
               }).join('');
             }
+            // feat-021 dead-link indicator
+            var isDead = m.url_status && DEAD_STATUSES.indexOf(m.url_status) !== -1;
+            var isPaywall = m.url_status === 'http_403';
+            var titleStyle = 'color:var(--text-primary);text-decoration:none;font-size:14px;line-height:1.5;display:block;';
+            if (isDead) titleStyle += 'text-decoration:line-through;opacity:0.6;';
+            var itemBorder = isDead ? 'border:1px solid rgba(239,68,68,0.35);border-radius:4px;padding:8px 10px;margin:6px 0;' : 'padding:10px 0;border-bottom:1px solid var(--border-default);';
+            var statusChip = '';
+            if (isDead) {
+              statusChip = '<span style="display:inline-block;padding:1px 6px;background:rgba(239,68,68,0.18);color:var(--red);border-radius:3px;font-size:10px;font-weight:500;margin-left:4px;" title="链接已失效 ('+(m.url_status||'')+')">🔗 链接失效</span>';
+            } else if (isPaywall) {
+              statusChip = '<span style="display:inline-block;padding:1px 6px;background:var(--bg-elevated);color:var(--text-muted);border-radius:3px;font-size:10px;font-weight:500;margin-left:4px;" title="访问受限 — 需要登录或订阅">🔒 访问受限</span>';
+            }
             var title = m.title_cn || m.title || '(无标题)';
-            var sub = m.body_summary_cn ? '<div style="color:var(--text-muted);font-size:11px;margin-top:3px;line-height:1.4;">'+esc(m.body_summary_cn)+'</div>' : '';
-            return '<div style="padding:10px 0;border-bottom:1px solid var(--border-default);">'+
+            var sub = m.body_summary_cn ? '<div style="color:var(--text-muted);font-size:11px;margin-top:3px;line-height:1.4;'+(isDead?'opacity:0.6;':'')+'">'+esc(m.body_summary_cn)+'</div>' : '';
+            return '<div style="'+itemBorder+'">'+
               '<div style="display:flex;gap:8px;align-items:center;font-size:10px;color:var(--text-muted);margin-bottom:4px;flex-wrap:wrap;">'+
                 '<span style="color:'+(TIER_COLOR[m.source_tier]||'var(--text-muted)')+';font-weight:600;">T'+(m.source_tier||3)+'</span>'+
-                '<span>'+esc(m.source_name)+'</span><span>·</span><span>'+fmtRel(m.ts)+'</span>'+
+                '<span>'+esc(m.source_name)+'</span>'+
+                statusChip+
+                '<span>·</span><span>'+fmtRel(m.ts)+'</span>'+
                 sChip+
                 themeChips+
                 '<span style="margin-left:auto;color:var(--text-secondary);">'+esc(tks)+'</span>'+
               '</div>'+
-              '<a href="'+esc(m.url||'#')+'" target="_blank" rel="noopener" style="color:var(--text-primary);text-decoration:none;font-size:14px;line-height:1.5;display:block;">'+esc(title.substring(0,220))+'</a>'+
+              '<a href="'+esc(m.url||'#')+'" target="_blank" rel="noopener" style="'+titleStyle+'">'+esc(title.substring(0,220))+'</a>'+
               sub+
             '</div>';
           }).join('');
@@ -637,16 +945,54 @@
       }
 
       function refreshAll(){
-        renderAlerts(); renderCards(); renderTimeline(); renderThemes(); renderSources(); renderFeed();
+        renderFilterBar();
+        renderAlerts();
+        renderCards();
+        renderSentimentPie();
+        renderTimeline();
+        renderThemes();
+        renderSources();
+        renderFeed();
       }
 
-      document.getElementById('mediaHours').addEventListener('change', function(e){ state.hours = parseInt(e.target.value); refreshAll(); });
-      document.getElementById('mediaSort').addEventListener('change', function(e){ state.sort = e.target.value; renderCards(); });
-      document.getElementById('mediaTickerFilter').addEventListener('change', function(e){ state.ticker = e.target.value; refreshAll(); });
-      document.getElementById('mediaSentimentFilter').addEventListener('change', function(e){ state.sentiment = e.target.value; renderFeed(); });
+      // ========== Event wiring ==========
+      document.querySelectorAll('#mediaHoursChips .time-chip').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var h = parseInt(btn.dataset.hours);
+          // Changing hours clears date drilldown so the chip reflects the window again.
+          if (state.date) state.date = null;
+          setFilter('hours', h);
+        });
+      });
+      document.querySelectorAll('#mediaTimelineModeChips .time-chip').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          setFilter('timelineMode', btn.dataset.mode);
+        });
+      });
+      document.getElementById('mediaSort').addEventListener('change', function(e){ setFilter('sort', e.target.value); });
+      document.getElementById('mediaTickerFilter').addEventListener('change', function(e){ setFilter('ticker', e.target.value); });
+      document.getElementById('mediaSentimentFilter').addEventListener('change', function(e){ setFilter('sentiment', e.target.value); });
+      document.getElementById('mediaPlatformFilter').addEventListener('change', function(e){ setFilter('platform', e.target.value); });
+      document.getElementById('mediaBackDay').addEventListener('click', function(){ setFilter('date', null); });
+
+      // React to URL hash changes (browser back/forward)
+      window.addEventListener('hashchange', function(){
+        var prev = JSON.stringify(state);
+        hashToState();
+        if (JSON.stringify(state) !== prev) {
+          syncUI();
+          refreshAll();
+        }
+      });
 
       var initialized = false;
-      function init(){ if (initialized) return; initialized = true; refreshAll(); }
+      function init(){
+        if (initialized) return;
+        initialized = true;
+        hashToState();
+        syncUI();
+        refreshAll();
+      }
       var navBtn = document.querySelector('[data-page="media"]');
       if (navBtn) navBtn.addEventListener('click', init);
       if (document.querySelector('#page-media.active')) init();
