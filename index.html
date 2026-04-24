@@ -1228,7 +1228,10 @@
             }
             var title = m.title_cn || m.title || '(无标题)';
             var sub = m.body_summary_cn ? '<div style="color:var(--text-muted);font-size:11px;margin-top:3px;line-height:1.4;'+(isDead?'opacity:0.6;':'')+'">'+esc(m.body_summary_cn)+'</div>' : '';
-            return '<div style="'+itemBorder+'">'+
+            // feat-031 per-mention user tags (pull once via /media/tags/mention/<id> lazy)
+            var tagStub = '<span data-mention-tags="'+m.id+'" style="display:inline-flex;gap:3px;align-items:center;flex-wrap:wrap;"></span>';
+            var addTagBtn = '<button type="button" data-add-tag="'+m.id+'" title="给这条打标签" style="background:transparent;border:1px dashed var(--border-default);color:var(--text-muted);border-radius:3px;font-size:10px;padding:0px 5px;cursor:pointer;">＋ tag</button>';
+            return '<div style="'+itemBorder+'" data-mention-row="'+m.id+'">'+
               '<div style="display:flex;gap:8px;align-items:center;font-size:10px;color:var(--text-muted);margin-bottom:4px;flex-wrap:wrap;">'+
                 '<span style="color:'+(TIER_COLOR[m.source_tier]||'var(--text-muted)')+';font-weight:600;">T'+(m.source_tier||3)+'</span>'+
                 '<span>'+esc(m.source_name)+'</span>'+
@@ -1236,15 +1239,63 @@
                 '<span>·</span><span>'+fmtRel(m.ts)+'</span>'+
                 sChip+
                 themeChips+
+                tagStub+
+                addTagBtn+
                 '<span style="margin-left:auto;color:var(--text-secondary);">'+esc(tks)+'</span>'+
               '</div>'+
               '<a href="'+esc(m.url||'#')+'" target="_blank" rel="noopener" style="'+titleStyle+'">'+esc(title.substring(0,220))+'</a>'+
               sub+
             '</div>';
           }).join('');
+          // Wire add-tag buttons
+          el.querySelectorAll('[data-add-tag]').forEach(function(b){
+            b.addEventListener('click', function(){
+              var mid = parseInt(b.getAttribute('data-add-tag'));
+              var tag = window.prompt('标签名 (英文字母/数字/连字符)：');
+              if (!tag) return;
+              fetch(API + '/api/btcmine/media/tags', {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({mention_id: mid, tag: tag.trim()}),
+              }).then(function(r){ if (r.ok) loadMentionTags([mid]); else alert('添加失败'); });
+            });
+          });
+          // Lazy-load existing tags for all visible items
+          loadMentionTags(d.items.map(function(m){ return m.id; }));
         } catch (e) {
           el.innerHTML = '<div style="color:var(--red);">加载失败: ' + esc(e.message) + '</div>';
         }
+      }
+
+      // feat-031 per-mention user tags — batch-fetch to avoid N requests
+      async function loadMentionTags(ids){
+        if (!ids || !ids.length) return;
+        try {
+          var q = 'ids=' + ids.join(',');
+          var d = await j('/api/btcmine/media/tags/mention?' + q);
+          var byId = {};
+          (d.tags || []).forEach(function(r){ (byId[r.mention_id] = byId[r.mention_id] || []).push(r.tag); });
+          Object.keys(byId).forEach(function(mid){
+            var el = document.querySelector('[data-mention-tags="'+mid+'"]');
+            if (!el) return;
+            el.innerHTML = byId[mid].map(function(t){
+              var isAlert = t.indexOf('alert:') === 0;
+              var color = isAlert ? 'var(--orange, #f59e0b)' : 'var(--accent-blue)';
+              return '<span style="display:inline-flex;align-items:center;gap:3px;padding:1px 6px;background:'+color+'22;color:'+color+';border-radius:10px;font-size:9px;font-weight:500;" data-tag="'+esc(t)+'" data-mid="'+mid+'">'
+                + (isAlert ? '🔔 ' : '🏷 ') + esc(t)
+                + ' <span data-del-tag="'+esc(t)+'_'+mid+'" style="cursor:pointer;opacity:0.6;" title="删除">×</span>'
+                + '</span>';
+            }).join(' ');
+            el.querySelectorAll('[data-del-tag]').forEach(function(x){
+              x.addEventListener('click', function(e){
+                e.stopPropagation();
+                var pair = x.getAttribute('data-del-tag');
+                var idx = pair.lastIndexOf('_');
+                var tag = pair.slice(0, idx), mid2 = pair.slice(idx + 1);
+                fetch(API + '/api/btcmine/media/tags/' + mid2 + '/' + encodeURIComponent(tag), {method:'DELETE'}).then(function(){ loadMentionTags([parseInt(mid2)]); });
+              });
+            });
+          });
+        } catch(e){}
       }
 
       // ========== KOL leaderboard (feat-016) ==========
