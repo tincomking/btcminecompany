@@ -348,8 +348,8 @@
   <!-- ─────────────────────── PAGE: MEDIA (舆情分析) ─────────────────────── -->
   <div class="page" id="page-media">
     <div class="section-header mb-16">
-      <div class="section-title">舆情分析 <span style="font-size:11px;color:#6b7280;font-weight:400;margin-left:8px;">IR &amp; PR 视角 · 媒体 + 社交覆盖</span></div>
-      <div style="display:flex;gap:10px;align-items:center;font-size:12px;color:#9ca3af;">
+      <div class="section-title">舆情分析 <span style="font-size:11px;color:var(--text-muted);font-weight:400;margin-left:8px;">IR &amp; PR 视角 · 媒体 + 社交覆盖</span></div>
+      <div style="display:flex;gap:10px;align-items:center;font-size:12px;color:var(--text-secondary);">
         <label>时间范围</label>
         <select id="mediaHours" class="filter-select" style="min-width:80px;">
           <option value="24">24小时</option>
@@ -395,7 +395,7 @@
     <script>
     (function(){
       var API = 'https://api.btcmine.info';
-      var TIER_COLOR = {1:'#60a5fa', 2:'#9ca3af', 3:'#6b7280'};
+      var TIER_COLOR = {1:'var(--accent-blue)', 2:'var(--text-secondary)', 3:'var(--text-muted)'};
       var state = {hours: 168, ticker: ''};
 
       async function fetchJSON(path){
@@ -419,13 +419,13 @@
           var d = await fetchJSON('/api/btcmine/media/overview?hours=' + state.hours);
           document.getElementById('mediaTotal').textContent = '共 ' + d.total_mentions + ' 条相关报道';
           document.getElementById('mediaCards').innerHTML = d.tickers.map(function(t){
-            var active = state.ticker === t.ticker ? 'border-color:#60a5fa;box-shadow:0 0 0 1px #60a5fa;' : '';
-            return '<div class="media-card" data-ticker="'+t.ticker+'" style="cursor:pointer;padding:12px;background:#1f2937;border:1px solid #374151;border-radius:8px;transition:all .15s;'+active+'">'+
-              '<div style="display:flex;justify-content:space-between;align-items:baseline;"><span style="font-size:12px;color:#d1d5db;">'+esc(t.name)+'</span><span style="font-size:10px;color:#6b7280;font-family:monospace;">$'+t.ticker+'</span></div>'+
-              '<div style="font-size:22px;font-weight:600;color:#f3f4f6;margin:4px 0 2px 0;">'+t.mentions+'</div>'+
-              '<div style="font-size:10px;color:#6b7280;">'+t.sov_pct+'% SoV</div>'+
-              '<div style="font-size:10px;color:#9ca3af;margin-top:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(t.top_source||'-')+'</div>'+
-              '<div style="font-size:10px;color:#6b7280;margin-top:2px;">'+fmtRel(t.latest_ts)+'</div>'+
+            var active = state.ticker === t.ticker ? 'border-color:var(--accent-blue);box-shadow:0 0 0 1px var(--accent-blue);' : '';
+            return '<div class="media-card" data-ticker="'+t.ticker+'" style="cursor:pointer;padding:12px;background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;transition:all .15s;'+active+'">'+
+              '<div style="display:flex;justify-content:space-between;align-items:baseline;"><span style="font-size:13px;color:var(--text-primary);font-weight:500;">'+esc(t.name)+'</span><span style="font-size:10px;color:var(--text-muted);font-family:monospace;">$'+t.ticker+'</span></div>'+
+              '<div style="font-size:22px;font-weight:600;color:var(--text-primary);margin:4px 0 2px 0;">'+t.mentions+'</div>'+
+              '<div style="font-size:10px;color:var(--text-muted);">'+t.sov_pct+'% SoV</div>'+
+              '<div style="font-size:10px;color:var(--text-secondary);margin-top:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(t.top_source||'-')+'</div>'+
+              '<div style="font-size:10px;color:var(--text-muted);margin-top:2px;">'+fmtRel(t.latest_ts)+'</div>'+
             '</div>';
           }).join('');
           document.querySelectorAll('.media-card').forEach(function(el){
@@ -436,7 +436,7 @@
             });
           });
         } catch (e) {
-          document.getElementById('mediaCards').innerHTML = '<div style="color:#ef4444;">加载失败: ' + esc(e.message) + '</div>';
+          document.getElementById('mediaCards').innerHTML = '<div style="color:var(--red);">加载失败: ' + esc(e.message) + '</div>';
         }
       }
 
@@ -446,15 +446,15 @@
           var rows = d.sources.slice(0, 30).map(function(s){
             return '<tr>'+
               '<td style="padding:4px 6px;"><span style="color:'+(TIER_COLOR[s.source_tier]||'#6b7280')+';font-weight:600;font-size:11px;">T'+(s.source_tier||3)+'</span></td>'+
-              '<td style="padding:4px 6px;color:#e5e7eb;font-size:12px;">'+esc(s.source_name)+'</td>'+
-              '<td style="padding:4px 6px;text-align:right;color:#f3f4f6;font-family:monospace;font-size:12px;">'+s.cnt+'</td>'+
-              '<td style="padding:4px 6px;color:#6b7280;font-size:10px;white-space:nowrap;">'+fmtRel(s.latest)+'</td>'+
+              '<td style="padding:4px 6px;color:var(--text-primary);font-size:12px;">'+esc(s.source_name)+'</td>'+
+              '<td style="padding:4px 6px;text-align:right;color:var(--text-primary);font-family:monospace;font-size:12px;">'+s.cnt+'</td>'+
+              '<td style="padding:4px 6px;color:var(--text-muted);font-size:10px;white-space:nowrap;">'+fmtRel(s.latest)+'</td>'+
             '</tr>';
           }).join('');
           document.getElementById('mediaSources').innerHTML =
-            '<table class="comp-table" style="width:100%;font-size:11px;"><thead><tr style="background:#111827;"><th style="padding:6px;text-align:left;">Tier</th><th style="padding:6px;text-align:left;">来源</th><th style="padding:6px;text-align:right;">声量</th><th style="padding:6px;text-align:left;">最近</th></tr></thead><tbody>'+rows+'</tbody></table>';
+            '<table class="comp-table" style="width:100%;font-size:11px;"><thead><tr style="background:var(--bg-elevated);"><th style="padding:6px;text-align:left;color:var(--text-secondary);font-weight:500;">Tier</th><th style="padding:6px;text-align:left;color:var(--text-secondary);font-weight:500;">来源</th><th style="padding:6px;text-align:right;color:var(--text-secondary);font-weight:500;">声量</th><th style="padding:6px;text-align:left;color:var(--text-secondary);font-weight:500;">最近</th></tr></thead><tbody>'+rows+'</tbody></table>';
         } catch (e) {
-          document.getElementById('mediaSources').innerHTML = '<div style="color:#ef4444;">加载失败</div>';
+          document.getElementById('mediaSources').innerHTML = '<div style="color:var(--red);">加载失败</div>';
         }
       }
 
@@ -467,17 +467,17 @@
           if (!d.items.length) { el.innerHTML = '<div class="text-muted">暂无数据</div>'; return; }
           el.innerHTML = d.items.map(function(m){
             var tks = (m.tickers||[]).map(function(x){ return '$'+x; }).join(' ');
-            return '<div style="padding:10px 0;border-bottom:1px solid #374151;">'+
-              '<div style="display:flex;gap:8px;align-items:baseline;font-size:10px;color:#6b7280;margin-bottom:4px;">'+
+            return '<div style="padding:10px 0;border-bottom:1px solid var(--border-default);">'+
+              '<div style="display:flex;gap:8px;align-items:baseline;font-size:10px;color:var(--text-muted);margin-bottom:4px;">'+
                 '<span style="color:'+(TIER_COLOR[m.source_tier]||'#6b7280')+';font-weight:600;">T'+(m.source_tier||3)+'</span>'+
                 '<span>'+esc(m.source_name)+'</span><span>·</span><span>'+fmtRel(m.ts)+'</span>'+
-                '<span style="margin-left:auto;color:#9ca3af;">'+esc(tks)+'</span>'+
+                '<span style="margin-left:auto;color:var(--text-secondary);">'+esc(tks)+'</span>'+
               '</div>'+
-              '<a href="'+esc(m.url||'#')+'" target="_blank" rel="noopener" style="color:#e5e7eb;text-decoration:none;font-size:13px;line-height:1.45;display:block;">'+esc((m.title||'(无标题)').substring(0,220))+'</a>'+
+              '<a href="'+esc(m.url||'#')+'" target="_blank" rel="noopener" style="color:var(--text-primary);text-decoration:none;font-size:14px;line-height:1.5;display:block;">'+esc((m.title||'(无标题)').substring(0,220))+'</a>'+
             '</div>';
           }).join('');
         } catch (e) {
-          el.innerHTML = '<div style="color:#ef4444;">加载失败: ' + esc(e.message) + '</div>';
+          el.innerHTML = '<div style="color:var(--red);">加载失败: ' + esc(e.message) + '</div>';
         }
       }
 
