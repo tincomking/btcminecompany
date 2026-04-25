@@ -1580,7 +1580,10 @@
             } else if (isPaywall) {
               statusChip = '<span style="display:inline-block;padding:1px 6px;background:var(--bg-elevated);color:var(--text-muted);border-radius:3px;font-size:10px;font-weight:500;margin-left:4px;" title="访问受限 — 需要登录或订阅">' + t('media.link.paywall') + '</span>';
             }
-            var title = m.title_cn || m.title || '(无标题)';
+            var titleZh = m.title_cn || m.title || '(无标题)';
+            var titleEn = m.title || '';
+            var hasBoth = !!(m.title_cn && m.title && m.title_cn !== m.title);
+            var langToggleBtn = hasBoth ? '<button type="button" class="feed-lang-toggle" data-feed-id="'+m.id+'" title="切换中/英标题" style="font-size:9px;padding:1px 5px;margin-left:6px;background:transparent;border:1px solid var(--border-default);color:var(--text-muted);border-radius:8px;cursor:pointer;vertical-align:middle;">中/EN</button>' : '';
             var sub = m.body_summary_cn ? '<div style="color:var(--text-muted);font-size:11px;margin-top:3px;line-height:1.4;'+(isDead?'opacity:0.6;':'')+'">'+esc(m.body_summary_cn)+'</div>' : '';
             // feat-031 per-mention user tags (pull once via /media/tags/mention/<id> lazy)
             var tagStub = '<span data-mention-tags="'+m.id+'" style="display:inline-flex;gap:3px;align-items:center;flex-wrap:wrap;"></span>';
@@ -1597,7 +1600,11 @@
                 addTagBtn+
                 '<span style="margin-left:auto;color:var(--text-secondary);">'+esc(tks)+'</span>'+
               '</div>'+
-              '<a href="'+esc(m.url||'#')+'" target="_blank" rel="noopener" style="'+titleStyle+'">'+esc(title.substring(0,220))+'</a>'+
+              '<span class="feed-row">'+
+                '<a href="'+esc(m.url||'#')+'" target="_blank" rel="noopener" class="feed-title-zh" style="'+titleStyle+'">'+esc(titleZh.substring(0,220))+'</a>'+
+                (hasBoth ? '<a href="'+esc(m.url||'#')+'" target="_blank" rel="noopener" class="feed-title-en" style="'+titleStyle+'display:none;">'+esc(titleEn.substring(0,220))+'</a>' : '')+
+                langToggleBtn+
+              '</span>'+
               sub+
             '</div>';
           }).join('');
@@ -4168,6 +4175,21 @@
 <script src="Analysis/kmv.js"></script>
 <script src="Analysis/montecarlo.js"></script>
 <script src="js/app.js"></script>
+<script>
+      // F17: zh/en title toggle in feed items
+      document.addEventListener('click', function(e){
+        var btn = e.target.closest && e.target.closest('.feed-lang-toggle');
+        if (!btn) return;
+        e.preventDefault();
+        var row = btn.closest('.feed-row');
+        if (!row) return;
+        var zh = row.querySelector('.feed-title-zh');
+        var en = row.querySelector('.feed-title-en');
+        if (!zh || !en) return;
+        if (zh.style.display === 'none') { zh.style.display=''; en.style.display='none'; }
+        else { zh.style.display='none'; en.style.display=''; }
+      });
+</script>
 
 <!-- feat-034 F05: Signal Inbox side drawer -->
 <aside id="mediaSignalDrawer" style="position:fixed;top:0;right:-380px;width:360px;height:100vh;background:var(--bg-elevated);border-left:1px solid var(--border-default);box-shadow:-4px 0 20px rgba(0,0,0,0.3);transition:right 0.25s ease;z-index:1000;display:flex;flex-direction:column;">
