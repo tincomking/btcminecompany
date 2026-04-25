@@ -782,13 +782,19 @@
       // feat-021 dead-link buckets
       var DEAD_STATUSES = ['http_404','http_410','http_5xx','timeout','dns_fail','tls_fail','other_err'];
 
-      // feat-013: centralized filter state manager
+      // feat-013 + feat-034 F01: centralized filter state manager.
+      // ticker is now tickers:[] (array). Single-ticker shorthand still accepted in URL/old presets.
       var state = {
-        hours:168, ticker:'', sentiment:'', platform:'', sort:'latest',
+        hours:168, tickers:[], sentiment:'', platform:'', sort:'latest',
         date:null, timelineMode:'bar', kolBoard:'positive',
         reachMode:'by_source',                       // feat-022
         compareTickers:['FUFU','MARA','BTDR','IREN'] // feat-023 default selection
       };
+      // feat-034 F01 helpers
+      function tickersCSV(){ return (state.tickers||[]).join(','); }
+      function hasAnyTicker(){ return (state.tickers||[]).length > 0; }
+      function isSingleTicker(tk){ return state.tickers.length === 1 && state.tickers[0] === tk; }
+      function firstTicker(){ return state.tickers && state.tickers.length ? state.tickers[0] : ''; }
       var timelineChart = null;
       var sentimentChart = null;
       var reachChart = null;
@@ -798,7 +804,8 @@
       function stateToHash(){
         var parts = [];
         if (state.hours !== 168) parts.push('hours='+state.hours);
-        if (state.ticker) parts.push('ticker='+state.ticker);
+        // feat-034 F01: ticker param now carries CSV. Keep `ticker` as key (old URLs compatible on read).
+        if (hasAnyTicker()) parts.push('ticker='+tickersCSV());
         if (state.sentiment) parts.push('sentiment='+state.sentiment);
         if (state.platform) parts.push('platform='+state.platform);
         if (state.sort && state.sort !== 'latest') parts.push('sort='+state.sort);
@@ -816,7 +823,10 @@
           var k = decodeURIComponent(kv[0]);
           var v = decodeURIComponent(kv[1]);
           if (k === 'hours') state.hours = parseInt(v) || 168;
-          else if (k === 'ticker') state.ticker = v;
+          else if (k === 'ticker' || k === 'tickers') {
+            // feat-034 F01: accept CSV. Old URL `?ticker=MARA` → ['MARA'].
+            state.tickers = v ? v.split(',').map(function(x){return x.trim().toUpperCase();}).filter(Boolean) : [];
+          }
           else if (k === 'sentiment') state.sentiment = v;
           else if (k === 'platform') state.platform = v;
           else if (k === 'sort') state.sort = v;
@@ -831,14 +841,65 @@
           else window.location.hash = newHash;
         }
       }
+      // feat-034 F01: state persistence (URL hash primary, localStorage fallback).
+      var MEDIA_STATE_LS_KEY = 'btcmine.media.state';
+      function saveState(){
+        syncHash();
+        try {
+          var snap = {
+            hours: state.hours, tickers: state.tickers, sentiment: state.sentiment,
+            platform: state.platform, sort: state.sort, date: state.date,
+            timelineMode: state.timelineMode, kolBoard: state.kolBoard,
+            reachMode: state.reachMode, compareTickers: state.compareTickers
+          };
+          localStorage.setItem(MEDIA_STATE_LS_KEY, JSON.stringify(snap));
+        } catch(_){}
+      }
+      function loadState(){
+        // Priority: URL hash (already applied via hashToState) > localStorage > defaults.
+        if (window.location.hash && window.location.hash.indexOf('?') >= 0) {
+          // Hash has params; hashToState will populate. Nothing to do.
+          return;
+        }
+        try {
+          var raw = localStorage.getItem(MEDIA_STATE_LS_KEY);
+          if (!raw) return;
+          var snap = JSON.parse(raw);
+          if (!snap) return;
+          if (typeof snap.hours === 'number') state.hours = snap.hours;
+          if (Array.isArray(snap.tickers)) state.tickers = snap.tickers.slice();
+          else if (typeof snap.ticker === 'string' && snap.ticker) state.tickers = [snap.ticker];
+          if (typeof snap.sentiment === 'string') state.sentiment = snap.sentiment;
+          if (typeof snap.platform === 'string') state.platform = snap.platform;
+          if (typeof snap.sort === 'string') state.sort = snap.sort;
+          if (typeof snap.date === 'string' || snap.date === null) state.date = snap.date;
+          if (typeof snap.timelineMode === 'string') state.timelineMode = snap.timelineMode;
+          if (typeof snap.kolBoard === 'string') state.kolBoard = snap.kolBoard;
+          if (typeof snap.reachMode === 'string') state.reachMode = snap.reachMode;
+          if (Array.isArray(snap.compareTickers)) state.compareTickers = snap.compareTickers.slice();
+        } catch(_){}
+      }
 
       // setFilter / clearFilters API (feat-013) — exposed for future drilldown + state manager
+      // feat-034 F01: `ticker` key is now an alias that writes/reads state.tickers[]. Pass string
+      // value (single ticker) or '' to clear; pass 'toggle' from render code for add/remove.
       function setFilter(key, value, opts){
         opts = opts || {};
-        if (state[key] === value) return;
-        state[key] = value;
+        if (key === 'ticker'){
+          // Compat wrapper: single value OR '' becomes the full tickers list.
+          var next = value ? [String(value).toUpperCase()] : [];
+          if (JSON.stringify(state.tickers) === JSON.stringify(next)) return;
+          state.tickers = next;
+        } else if (key === 'tickers'){
+          var arr = Array.isArray(value) ? value.slice() : [];
+          if (JSON.stringify(state.tickers) === JSON.stringify(arr)) return;
+          state.tickers = arr;
+        } else {
+          if (state[key] === value) return;
+          state[key] = value;
+        }
         syncUI();
-        syncHash();
+        saveState();
         if (opts.skipRender) return;
         // feed-only changes: sentiment, platform
         if (key === 'sentiment' || key === 'platform') { renderFilterBar(); renderFeed(); return; }
@@ -848,16 +909,16 @@
         if (key === 'timelineMode') { renderFilterBar(); renderTimeline(); return; }
         // date only affects feed + timeline back button
         if (key === 'date') { renderFilterBar(); renderTimeline(); renderFeed(); return; }
-        // full refresh for hours / ticker
+        // full refresh for hours / ticker / tickers
         refreshAll();
       }
       function clearFilters(){
-        state.ticker = '';
+        state.tickers = [];
         state.sentiment = '';
         state.platform = '';
         state.date = null;
         syncUI();
-        syncHash();
+        saveState();
         renderFilterBar();
         refreshAll();
       }
@@ -874,7 +935,7 @@
           b.classList.toggle('active', b.dataset.mode === state.timelineMode);
         });
         var sortEl = document.getElementById('mediaSort'); if (sortEl) sortEl.value = state.sort;
-        var tEl = document.getElementById('mediaTickerFilter'); if (tEl) tEl.value = state.ticker;
+        var tEl = document.getElementById('mediaTickerFilter'); if (tEl) tEl.value = (state.tickers && state.tickers.length === 1) ? state.tickers[0] : '';
         var sEl = document.getElementById('mediaSentimentFilter'); if (sEl) sEl.value = state.sentiment;
         var pEl = document.getElementById('mediaPlatformFilter'); if (pEl) pEl.value = state.platform;
         var backBtn = document.getElementById('mediaBackDay');
@@ -915,8 +976,9 @@
       function renderFilterBar(){
         var el = document.getElementById('mediaFilterBar');
         var chips = [];
-        if (state.ticker) {
-          chips.push({label:'公司: ' + (TICKER_NAME[state.ticker] || state.ticker), key:'ticker'});
+        if (hasAnyTicker()) {
+          var _lbl = state.tickers.map(function(tk){ return TICKER_NAME[tk] || tk; }).join(', ');
+          chips.push({label:'公司: ' + _lbl, key:'ticker'});
         }
         if (state.platform) {
           chips.push({label:'平台: ' + (PLATFORM_LABEL[state.platform] || state.platform), key:'platform'});
@@ -965,7 +1027,7 @@
           var d = await j('/api/btcmine/media/overview?hours=' + state.hours + '&sort=' + state.sort);
           document.getElementById('mediaTotal').textContent = '共 ' + d.total_mentions + ' 条相关报道';
           document.getElementById('mediaCards').innerHTML = d.tickers.map(function(t){
-            var active = state.ticker === t.ticker ? 'border-color:var(--accent-blue);box-shadow:0 0 0 1px var(--accent-blue);' : '';
+            var active = (state.tickers.indexOf(t.ticker) !== -1) ? 'border-color:var(--accent-blue);box-shadow:0 0 0 1px var(--accent-blue);' : '';
             var sentTxt = t.sentiment_avg != null ? t.sentiment_avg.toFixed(2) : '—';
             var sentCol = t.sentiment_avg == null ? 'var(--text-muted)' : (t.sentiment_avg > 0.15 ? 'var(--green)' : (t.sentiment_avg < -0.15 ? 'var(--red)' : 'var(--text-secondary)'));
             var breakdown = '<span style="color:var(--green);">+'+t.positive+'</span><span style="color:var(--text-muted);"> / '+t.neutral+' / </span><span style="color:var(--red);">-'+t.negative+'</span>';
@@ -980,9 +1042,18 @@
             '</div>';
           }).join('');
           document.querySelectorAll('.media-card').forEach(function(el){
-            el.addEventListener('click', function(){
+            el.addEventListener('click', function(ev){
               var tk = el.dataset.ticker;
-              setFilter('ticker', state.ticker === tk ? '' : tk);
+              if (ev.shiftKey) {
+                // feat-034 F01: Shift+click toggles membership (multi-select)
+                var i = state.tickers.indexOf(tk);
+                var next = state.tickers.slice();
+                if (i >= 0) next.splice(i, 1); else next.push(tk);
+                setFilter('tickers', next);
+              } else {
+                // Single-click: toggle solo selection (tap again = clear)
+                setFilter('tickers', isSingleTicker(tk) ? [] : [tk]);
+              }
             });
           });
         } catch (e) {
@@ -994,9 +1065,9 @@
       async function renderSentimentPie(){
         var hintEl = document.getElementById('mediaSentimentHint');
         try {
-          var path = '/api/btcmine/media/sentiment_pie?hours=' + state.hours + (state.ticker ? '&ticker='+state.ticker : '');
+          var path = '/api/btcmine/media/sentiment_pie?hours=' + state.hours + (hasAnyTicker() ? '&ticker='+encodeURIComponent(tickersCSV()) : '');
           var d = await j(path);
-          hintEl.textContent = state.ticker ? ('公司: ' + state.ticker + ' · ' + state.hours + 'h') : ('全部 · ' + state.hours + 'h');
+          hintEl.textContent = hasAnyTicker() ? ('公司: ' + tickersCSV() + ' · ' + state.hours + 'h') : ('全部 · ' + state.hours + 'h');
           var ctx = document.getElementById('mediaSentimentChart');
           var pos = d.positive||0, neu = d.neutral||0, neg = d.negative||0;
           var total = pos+neu+neg;
@@ -1058,9 +1129,12 @@
       // ========== Timeline (feat-011: bar/line toggle; feat-012: drilldown onClick) ==========
       async function renderTimeline(){
         try {
-          var path = '/api/btcmine/media/timeline?days=30' + (state.ticker ? '&ticker='+state.ticker : '');
+          // feat-034 F01: timeline single-ticker = detailed (vol+sentiment dual axis),
+          // multi-ticker = subset stacked, none = all 8 stacked.
+          var _tlSingle = state.tickers.length === 1 ? state.tickers[0] : null;
+          var path = '/api/btcmine/media/timeline?days=30' + (hasAnyTicker() ? '&ticker='+encodeURIComponent(tickersCSV()) : '');
           var d = await j(path);
-          var hint = state.ticker ? ('公司: ' + state.ticker) : '所有公司 (点卡片筛选)';
+          var hint = hasAnyTicker() ? ('公司: ' + tickersCSV()) : '所有公司 (点卡片筛选)';
           if (state.date) hint += ' · 日期: ' + state.date;
           document.getElementById('mediaTimelineHint').textContent = hint;
           var rows = d.rows || [];
@@ -1069,20 +1143,20 @@
           var chartType, datasets, labels;
 
           // Build labels (dates) once
-          if (state.ticker) {
+          if (_tlSingle) {
             labels = rows.map(function(r){ return r.date; });
           } else {
             var dateSet = new Set(rows.map(function(r){ return r.date; }));
             labels = Array.from(dateSet).sort();
           }
 
-          if (state.ticker) {
+          if (_tlSingle) {
             // Single ticker: volume (left Y) + sentiment (right Y).
             datasets = [{
               label:'声量',
               data: rows.map(function(r){ return r.mentions_total; }),
-              borderColor: TICKER_COLORS[state.ticker]||'#60a5fa',
-              backgroundColor:(TICKER_COLORS[state.ticker]||'#60a5fa') + (mode === 'bar' ? '88' : '33'),
+              borderColor: TICKER_COLORS[_tlSingle]||'#60a5fa',
+              backgroundColor:(TICKER_COLORS[_tlSingle]||'#60a5fa') + (mode === 'bar' ? '88' : '33'),
               fill: mode !== 'bar',
               tension:0.3,
               pointRadius: mode === 'line' ? 0 : undefined,
@@ -1130,9 +1204,9 @@
               responsive:true, maintainAspectRatio:false,
               plugins: {legend: {labels: {color:'#a0a0a0', boxWidth:10, font:{size:10}}}},
               scales: {
-                x: {ticks:{color:'#606060', font:{size:9}}, grid:{color:'rgba(255,255,255,0.04)'}, stacked: (mode === 'bar' && !state.ticker)},
-                y: {ticks:{color:'#606060', font:{size:9}}, grid:{color:'rgba(255,255,255,0.04)'}, beginAtZero:true, stacked: (mode === 'bar' && !state.ticker)},
-                y1: state.ticker ? {position:'right', ticks:{color:'#606060', font:{size:9}}, grid:{display:false}, min:-1, max:1} : undefined
+                x: {ticks:{color:'#606060', font:{size:9}}, grid:{color:'rgba(255,255,255,0.04)'}, stacked: (mode === 'bar' && !_tlSingle)},
+                y: {ticks:{color:'#606060', font:{size:9}}, grid:{color:'rgba(255,255,255,0.04)'}, beginAtZero:true, stacked: (mode === 'bar' && !_tlSingle)},
+                y1: _tlSingle ? {position:'right', ticks:{color:'#606060', font:{size:9}}, grid:{display:false}, min:-1, max:1} : undefined
               },
               onClick: function(evt, elements){
                 if (!elements || !elements.length) return;
@@ -1140,11 +1214,11 @@
                 var dateStr = labels[e0.index];
                 if (!dateStr) return;
                 // If no ticker yet, and this is the all-tickers view, also set ticker from dataset.
-                if (!state.ticker && datasets[e0.datasetIndex] && datasets[e0.datasetIndex].label) {
+                if (!_tlSingle && !hasAnyTicker() && datasets[e0.datasetIndex] && datasets[e0.datasetIndex].label) {
                   var dsLabel = datasets[e0.datasetIndex].label;
                   if (TICKER_COLORS[dsLabel]) {
-                    // Chain: set ticker + date together, then single refresh.
-                    state.ticker = dsLabel;
+                    // Chain: set tickers[dsLabel] + date together, then single refresh.
+                    state.tickers = [dsLabel];
                   }
                 }
                 setFilter('date', dateStr);
@@ -1156,7 +1230,7 @@
 
       async function renderThemes(){
         try {
-          var path = '/api/btcmine/media/themes?hours=' + state.hours + (state.ticker ? '&ticker='+state.ticker : '');
+          var path = '/api/btcmine/media/themes?hours=' + state.hours + (hasAnyTicker() ? '&ticker='+encodeURIComponent(tickersCSV()) : '');
           var d = await j(path);
           var el = document.getElementById('mediaThemes');
           if (!d.themes || !d.themes.length) { el.innerHTML = '<div class="text-muted">暂无 NLP 数据</div>'; return; }
@@ -1171,7 +1245,7 @@
 
       async function renderSources(){
         try {
-          var d = await j('/api/btcmine/media/sources?hours=' + state.hours);
+          var d = await j('/api/btcmine/media/sources?hours=' + state.hours + (hasAnyTicker() ? '&ticker='+encodeURIComponent(tickersCSV()) : ''));
           var rows = d.sources.slice(0, 30).map(function(s){
             return '<tr>'+
               '<td style="padding:4px 6px;"><span style="color:'+(TIER_COLOR[s.source_tier]||'var(--text-muted)')+';font-weight:600;font-size:11px;">T'+(s.source_tier||3)+'</span></td>'+
@@ -1198,7 +1272,7 @@
           } else {
             parts.push('hours=' + state.hours);
           }
-          if (state.ticker) parts.push('ticker=' + encodeURIComponent(state.ticker));
+          if (hasAnyTicker()) parts.push('ticker=' + encodeURIComponent(tickersCSV()));
           if (state.sentiment) parts.push('sentiment=' + encodeURIComponent(state.sentiment));
           if (state.platform) parts.push('source_type=' + encodeURIComponent(state.platform));
           var qs = parts.join('&');
@@ -1305,7 +1379,7 @@
         el.innerHTML = '<div class="text-muted">'+t_('media.kol.loading')+'</div>';
         try {
           var parts = ['board='+encodeURIComponent(state.kolBoard||'positive'), 'limit=15'];
-          if (state.ticker) parts.push('ticker='+encodeURIComponent(state.ticker));
+          if (hasAnyTicker()) parts.push('ticker='+encodeURIComponent(tickersCSV()));
           if (state.platform) parts.push('platform='+encodeURIComponent(state.platform));
           var d = await j('/api/btcmine/media/kol?' + parts.join('&'));
           if (!d.items || !d.items.length) { el.innerHTML = '<div class="text-muted">'+t_('media.kol.empty')+'</div>'; return; }
@@ -1736,7 +1810,7 @@
       // ═══════════════════════════════════════════════════════════════
       async function renderHeatmap(){
         try {
-          var d = await j('/api/btcmine/media/heatmap?hours=' + Math.max(168, state.hours) + (state.ticker ? '&ticker='+state.ticker : ''));
+          var d = await j('/api/btcmine/media/heatmap?hours=' + Math.max(168, state.hours) + (hasAnyTicker() ? '&ticker='+encodeURIComponent(tickersCSV()) : ''));
           var el = document.getElementById('heatmapGrid');
           if (!el) return;
           var max = 0;
@@ -1773,7 +1847,7 @@
       // ═══════════════════════════════════════════════════════════════
       async function renderWordcloud(){
         try {
-          var path = '/api/btcmine/media/wordcloud?hours=' + state.hours + '&limit=60' + (state.ticker ? '&ticker='+state.ticker : '');
+          var path = '/api/btcmine/media/wordcloud?hours=' + state.hours + '&limit=60' + (hasAnyTicker() ? '&ticker='+encodeURIComponent(tickersCSV()) : '');
           var d = await j(path);
           var el = document.getElementById('wordcloudBox');
           if (!el) return;
@@ -1888,7 +1962,7 @@
       // ========== feat-022 Reach distribution ==========
       async function renderReachDist(){
         try {
-          var path = '/api/btcmine/media/reach_distribution?hours=' + state.hours + (state.ticker ? '&ticker='+state.ticker : '');
+          var path = '/api/btcmine/media/reach_distribution?hours=' + state.hours + (hasAnyTicker() ? '&ticker='+encodeURIComponent(tickersCSV()) : '');
           var d = await j(path);
           var ctx = document.getElementById('mediaReachChart');
           if (!ctx) return;
@@ -2333,6 +2407,8 @@
       function init(){
         if (initialized) return;
         initialized = true;
+        // feat-034 F01: load persisted state first, then overlay with URL hash.
+        loadState();
         hashToState();
         applyLayout();    // feat-025: restore saved module order/visibility before first render
         syncUI();
