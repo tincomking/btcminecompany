@@ -454,9 +454,10 @@
           <button type="button" class="qc-time-chip" data-qc-hours="720">30d</button>
           <button type="button" class="qc-time-chip" data-qc-hours="2160">90d</button>
         </div>
+        <button type="button" class="qc-aside-mobile-toggle" id="qcAsideToggle" style="display:none;font-size:11px;padding:4px 10px;background:var(--bg-elevated);border:1px solid var(--border-default);color:var(--text-secondary);border-radius:6px;cursor:pointer;">📋 筛选</button>
       </div>
 
-      <div class="two-col" style="grid-template-columns:3fr 1fr;gap:16px;">
+      <div class="two-col qc-two-col" style="grid-template-columns:3fr 1fr;gap:16px;">
         <!-- Main chart + table fallback -->
         <div>
           <div style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:12px;position:relative;min-height:360px;">
@@ -595,6 +596,41 @@
       .report-card { background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:10px 12px;cursor:pointer; }
       .report-card:hover { border-color:var(--accent-blue); }
       .alert-card { background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:10px 12px; }
+
+      /* feat-034 F12: responsive layout for media dashboard */
+      @media (max-width: 900px) {
+        #mediaCards { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+        #page-media .two-col { grid-template-columns: 1fr; }
+        /* QuickChart sidebar becomes collapsible */
+        #page-media .qc-two-col > aside {
+          max-height: 0;
+          overflow: hidden;
+          transition: max-height 0.25s ease;
+          padding-top: 0;
+          padding-bottom: 0;
+          border-width: 0;
+        }
+        #page-media .qc-two-col.qc-expanded > aside {
+          max-height: 600px;
+          overflow-y: auto;
+          padding-top: 12px;
+          padding-bottom: 12px;
+          border-width: 1px;
+        }
+        .qc-aside-mobile-toggle { display: inline-block !important; }
+        /* Signal drawer full-width */
+        #mediaSignalDrawer { width: 100vw; right: -100vw; }
+        #mediaSignalDrawer.open { right: 0; }
+        /* time chips wrap */
+        #mediaHoursChips, #qcHoursChips { flex-wrap: wrap; }
+      }
+
+      @media (max-width: 600px) {
+        #kpiHeroBar { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+        #topMentionsList { grid-template-columns: 1fr; }
+        #page-media .section-title { font-size: 14px; }
+        #page-media .section-header > div:last-child { flex-wrap: wrap; }
+      }
     </style>
 
     <!-- MODULE: sentiment-reach (Sentiment doughnut + Reach distribution) -->
@@ -826,6 +862,7 @@
         date:null, timelineMode:'bar', kolBoard:'positive',
         reachMode:'by_source',                       // feat-022
         reachKind:'news',                            // feat-034 F03: 'news' | 'social'
+        theme:'',                                    // feat-034 F09: theme drill-down filter
         compareTickers:['FUFU','MARA','BTDR','IREN'] // feat-023 default selection
       };
       // feat-034 F01 helpers
@@ -849,6 +886,7 @@
         if (state.sort && state.sort !== 'latest') parts.push('sort='+state.sort);
         if (state.date) parts.push('date='+state.date);
         if (state.timelineMode && state.timelineMode !== 'bar') parts.push('mode='+state.timelineMode);
+        if (state.theme) parts.push('theme='+encodeURIComponent(state.theme)); // feat-034 F09
         return parts.length ? '#media?' + parts.join('&') : '#media';
       }
       function hashToState(){
@@ -870,6 +908,7 @@
           else if (k === 'sort') state.sort = v;
           else if (k === 'date') state.date = v;
           else if (k === 'mode') state.timelineMode = v;
+          else if (k === 'theme') state.theme = v; // feat-034 F09
         });
       }
       function syncHash(){
@@ -888,7 +927,8 @@
             hours: state.hours, tickers: state.tickers, sentiment: state.sentiment,
             platform: state.platform, sort: state.sort, date: state.date,
             timelineMode: state.timelineMode, kolBoard: state.kolBoard,
-            reachMode: state.reachMode, compareTickers: state.compareTickers
+            reachMode: state.reachMode, theme: state.theme, // feat-034 F09
+            compareTickers: state.compareTickers
           };
           localStorage.setItem(MEDIA_STATE_LS_KEY, JSON.stringify(snap));
         } catch(_){}
@@ -914,6 +954,7 @@
           if (typeof snap.timelineMode === 'string') state.timelineMode = snap.timelineMode;
           if (typeof snap.kolBoard === 'string') state.kolBoard = snap.kolBoard;
           if (typeof snap.reachMode === 'string') state.reachMode = snap.reachMode;
+          if (typeof snap.theme === 'string') state.theme = snap.theme; // feat-034 F09
           if (Array.isArray(snap.compareTickers)) state.compareTickers = snap.compareTickers.slice();
         } catch(_){}
       }
@@ -941,6 +982,8 @@
         if (opts.skipRender) return;
         // feed-only changes: sentiment, platform
         if (key === 'sentiment' || key === 'platform') { renderFilterBar(); renderFeed(); return; }
+        // feat-034 F09: theme drill-down — re-render themes (highlight) + feed
+        if (key === 'theme') { renderFilterBar(); renderThemes(); renderFeed(); return; }
         // sort only affects cards
         if (key === 'sort') { renderFilterBar(); renderCards(); return; }
         // timelineMode only affects timeline chart
@@ -955,6 +998,7 @@
         state.sentiment = '';
         state.platform = '';
         state.date = null;
+        state.theme = ''; // feat-034 F09
         syncUI();
         saveState();
         renderFilterBar();
@@ -1062,6 +1106,10 @@
         }
         if (state.sentiment) {
           chips.push({label:'情感: ' + (SENT_LABEL[state.sentiment] || state.sentiment), key:'sentiment'});
+        }
+        if (state.theme) { // feat-034 F09: theme drill-down chip
+          var _themeLbl = (typeof THEME_LABEL !== 'undefined' && THEME_LABEL[state.theme]) ? THEME_LABEL[state.theme] : state.theme;
+          chips.push({label:'话题: ' + _themeLbl, key:'theme'});
         }
         if (state.date) {
           chips.push({label:'日期: ' + state.date, key:'date'});
@@ -1449,8 +1497,28 @@
             var dim = (t.cnt||0) < 10;
             var cntStyle = dim ? 'color:var(--text-muted);' : 'color:var(--text-primary);';
             var cntTip = dim ? ' data-tip="样本过少 (n='+t.cnt+')，参考意义有限"' : '';
-            return '<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);margin-bottom:2px;"><span>'+esc(lbl)+dHtml+'</span><span'+cntTip+' style="font-family:monospace;'+cntStyle+'">'+t.cnt+'</span></div><div style="height:6px;background:var(--border-default);border-radius:3px;overflow:hidden;"><div style="height:100%;width:'+pct+'%;background:var(--accent-blue);"></div></div></div>';
+            // feat-034 F09: theme drill-down — clickable row, active highlight
+            var isActive = (state.theme === t.theme);
+            var rowStyle = 'margin-bottom:8px;cursor:pointer;padding:4px 6px;border-radius:4px;transition:background 0.12s;'
+              + (isActive ? 'background:rgba(96,165,250,0.18);box-shadow:inset 0 0 0 1px var(--accent-blue);' : '');
+            return '<div class="theme-row" data-theme-row="'+esc(t.theme)+'" style="'+rowStyle+'" title="点击筛选为该话题">'
+              + '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);margin-bottom:2px;"><span>'+esc(lbl)+dHtml+'</span><span'+cntTip+' style="font-family:monospace;'+cntStyle+'">'+t.cnt+'</span></div>'
+              + '<div style="height:6px;background:var(--border-default);border-radius:3px;overflow:hidden;"><div style="height:100%;width:'+pct+'%;background:var(--accent-blue);"></div></div>'
+              + '</div>';
           }).join('');
+          // feat-034 F09: wire click → toggle theme filter (click again to clear)
+          el.querySelectorAll('[data-theme-row]').forEach(function(row){
+            row.addEventListener('click', function(){
+              var name = row.getAttribute('data-theme-row');
+              setFilter('theme', state.theme === name ? '' : name);
+            });
+            row.addEventListener('mouseenter', function(){
+              if (state.theme !== row.getAttribute('data-theme-row')) row.style.background = 'rgba(255,255,255,0.04)';
+            });
+            row.addEventListener('mouseleave', function(){
+              if (state.theme !== row.getAttribute('data-theme-row')) row.style.background = '';
+            });
+          });
         } catch (e) { document.getElementById('mediaThemes').innerHTML = '<div style="color:var(--red);">加载失败</div>'; }
       }
 
@@ -1486,6 +1554,7 @@
           if (hasAnyTicker()) parts.push('ticker=' + encodeURIComponent(tickersCSV()));
           if (state.sentiment) parts.push('sentiment=' + encodeURIComponent(state.sentiment));
           if (state.platform) parts.push('source_type=' + encodeURIComponent(state.platform));
+          if (state.theme) parts.push('theme=' + encodeURIComponent(state.theme)); // feat-034 F09
           var qs = parts.join('&');
           var d = await j('/api/btcmine/media/feed?' + qs);
           if (!d.items.length) { el.innerHTML = '<div class="text-muted">暂无数据</div>'; return; }
@@ -2164,6 +2233,19 @@
         if (csv && !csv._qcWired) { csv._qcWired = true; csv.addEventListener('click', qcExportCsv); }
         var sav = document.getElementById('qcSaveReport');
         if (sav && !sav._qcWired) { sav._qcWired = true; sav.addEventListener('click', qcSaveReportClick); }
+        // feat-034 F12: mobile aside toggle
+        var asideTog = document.getElementById('qcAsideToggle');
+        if (asideTog && !asideTog._qcWired) {
+          asideTog._qcWired = true;
+          asideTog.addEventListener('click', function(){
+            var twoCol = asideTog.closest('#qcQueryBar') ? asideTog.closest('#qcQueryBar').nextElementSibling : null;
+            // The .qc-two-col is the next sibling of #qcQueryBar
+            if (!twoCol || !twoCol.classList.contains('qc-two-col')) {
+              twoCol = document.querySelector('#page-media .qc-two-col');
+            }
+            if (twoCol) twoCol.classList.toggle('qc-expanded');
+          });
+        }
       }
       function qcExportCsv(){
         var p = [];
@@ -2829,6 +2911,33 @@
           syncUI();
           refreshAll();
         }
+      });
+
+      // feat-034 F11: cross-tab state sync via storage event.
+      // When another tab writes to btcmine.media.state, mirror the change here.
+      // Guard against feedback loops by checking JSON-equality before refreshing.
+      window.addEventListener('storage', function(e){
+        if (e.key !== MEDIA_STATE_LS_KEY || !e.newValue) return;
+        try {
+          var saved = JSON.parse(e.newValue);
+          if (!saved) return;
+          var prev = JSON.stringify(state);
+          if (Array.isArray(saved.tickers))            state.tickers = saved.tickers.slice();
+          if (typeof saved.hours === 'number')         state.hours = saved.hours;
+          if (typeof saved.sentiment === 'string')     state.sentiment = saved.sentiment;
+          if (typeof saved.platform === 'string')      state.platform = saved.platform;
+          if (typeof saved.sort === 'string')          state.sort = saved.sort;
+          if (typeof saved.date === 'string' || saved.date === null) state.date = saved.date;
+          if (typeof saved.timelineMode === 'string')  state.timelineMode = saved.timelineMode;
+          if (typeof saved.kolBoard === 'string')      state.kolBoard = saved.kolBoard;
+          if (typeof saved.reachMode === 'string')     state.reachMode = saved.reachMode;
+          if (typeof saved.theme === 'string')         state.theme = saved.theme;
+          if (Array.isArray(saved.compareTickers))    state.compareTickers = saved.compareTickers.slice();
+          if (JSON.stringify(state) === prev) return;
+          syncUI();
+          syncHash();      // keep URL in sync but don't loop into saveState
+          refreshAll();
+        } catch(_){}
       });
 
       var initialized = false;
