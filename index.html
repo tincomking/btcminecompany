@@ -377,6 +377,13 @@
       </div>
     </div>
 
+    <!-- feat-034 F02: KPI Hero Bar (volume / sentiment / negative% / negative-T1 / alerts) -->
+    <section data-module="kpi-hero" class="media-module mb-16">
+      <div id="kpiHeroBar" style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;">
+        <div class="text-muted" style="grid-column:1/-1;font-size:11px;">加载中...</div>
+      </div>
+    </section>
+
     <!-- alerts banner -->
     <div id="mediaAlerts" style="margin-bottom:16px;"></div>
 
@@ -587,16 +594,24 @@
         <div>
           <div class="section-header mb-16">
             <div class="section-title" style="font-size:13px;">触达分布 (Reach)
-              <span data-tip="Reach = 潜在阅读人数。新闻=网站月访客估算、Twitter=作者粉丝数、Reddit=子版订阅数、YouTube=频道订阅、Facebook=页面粉丝。左图按平台拆解 reach 总量，右图按单条 reach 大小分 5 档（<1K / 1K–10K / 10K–100K / 100K–1M / 1M+）。" style="color:var(--text-muted);cursor:help;font-size:11px;margin-left:4px;">ⓘ</span>
+              <span data-tip="新闻 Reach = 网站估算月访客（unit: estimated_monthly_visits）。社交 Reach = 作者/账号粉丝数（unit: follower_count）。两者单位不同，所以拆 News / Social 两个 tab 显示。" style="color:var(--text-muted);cursor:help;font-size:11px;margin-left:4px;">ⓘ</span>
             </div>
-            <div style="display:inline-flex;gap:4px;" id="mediaReachModeChips">
-              <button type="button" class="time-chip active" data-reach-mode="by_source" style="font-size:10px;padding:2px 8px;">按平台</button>
-              <button type="button" class="time-chip" data-reach-mode="buckets" style="font-size:10px;padding:2px 8px;">按档位</button>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <!-- feat-034 F03: News / Social tab -->
+              <div style="display:inline-flex;gap:4px;" id="mediaReachKindChips">
+                <button type="button" class="time-chip active" data-reach-kind="news" style="font-size:10px;padding:2px 8px;">📰 News</button>
+                <button type="button" class="time-chip" data-reach-kind="social" style="font-size:10px;padding:2px 8px;">📱 Social</button>
+              </div>
+              <div style="display:inline-flex;gap:4px;" id="mediaReachModeChips">
+                <button type="button" class="time-chip active" data-reach-mode="by_source" style="font-size:10px;padding:2px 8px;">按来源</button>
+                <button type="button" class="time-chip" data-reach-mode="buckets" style="font-size:10px;padding:2px 8px;">按档位</button>
+              </div>
             </div>
           </div>
+          <div id="mediaReachKindHint" style="font-size:11px;color:var(--text-secondary);margin-bottom:6px;"></div>
           <div style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:12px;position:relative;min-height:240px;">
             <canvas id="mediaReachChart" height="200"></canvas>
-            <div id="mediaReachTotal" style="position:absolute;top:8px;right:12px;font-size:10px;color:var(--text-muted);"></div>
+            <div id="mediaReachTotal" style="position:absolute;top:8px;right:12px;font-size:10px;color:var(--text-muted);" title=""></div>
           </div>
         </div>
       </div>
@@ -788,6 +803,7 @@
         hours:168, tickers:[], sentiment:'', platform:'', sort:'latest',
         date:null, timelineMode:'bar', kolBoard:'positive',
         reachMode:'by_source',                       // feat-022
+        reachKind:'news',                            // feat-034 F03: 'news' | 'social'
         compareTickers:['FUFU','MARA','BTDR','IREN'] // feat-023 default selection
       };
       // feat-034 F01 helpers
@@ -954,6 +970,25 @@
         if (n >= 1000) return (n/1000).toFixed(1) + 'K';
         return String(n);
       }
+      // feat-034 F04: Δ vs prev-period badge.
+      // mode='pct' → relative %; mode='abs' → absolute diff (number).
+      // invert=true → positive delta is BAD (e.g. negative_pct), so flip color but keep arrow direction.
+      function deltaBadge(cur, prev, mode, invert){
+        mode = mode || 'pct';
+        if (prev === undefined || prev === null) return '';
+        var delta = (mode === 'pct') ? ((cur - prev) / Math.max(Math.abs(prev), 1) * 100) : (cur - prev);
+        if (!isFinite(delta)) return '';
+        var arrow = delta > 0 ? '▲' : (delta < 0 ? '▼' : '◆');
+        var sign = delta > 0 ? '+' : (delta < 0 ? '-' : '');
+        var goodIsUp = !invert;
+        var color = (delta === 0) ? 'var(--text-muted)' :
+                    ((delta > 0) === goodIsUp ? 'var(--green, #10b981)' : 'var(--red, #ef4444)');
+        var abs = Math.abs(delta);
+        var val = (mode === 'pct') ? (abs.toFixed(1) + '%') : abs.toFixed(2);
+        return '<span style="margin-left:6px;font-size:10px;color:' + color + ';font-weight:600;white-space:nowrap;">' +
+                 arrow + sign + val +
+               '</span>';
+      }
       function t_(k){ try { return t(k); } catch(_) { return k; } }
       function fmtRel(iso){
         if (!iso) return '-';
@@ -1061,13 +1096,69 @@
         }
       }
 
-      // ========== Sentiment doughnut (feat-011) ==========
+      // ========== feat-034 F02: KPI Hero Bar ==========
+      async function renderKpiHero(){
+        var bar = document.getElementById('kpiHeroBar');
+        if (!bar) return;
+        try {
+          var path = '/api/btcmine/media/kpi?hours=' + state.hours +
+            (hasAnyTicker() ? '&ticker='+encodeURIComponent(tickersCSV()) : '');
+          var d = await j(path);
+          var hrLbl = state.hours + 'h';
+          // tile factory
+          function tile(label, valHtml, deltaHtml, tip){
+            return '<div data-tip="' + esc(tip||'') + '" style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:16px 12px;text-align:center;">' +
+                     '<div style="font-size:28px;font-weight:600;color:var(--text-primary);line-height:1.1;">' + valHtml + '</div>' +
+                     '<div style="margin-top:6px;">' + (deltaHtml || '<span style="font-size:10px;color:var(--text-muted);">—</span>') + '</div>' +
+                     '<div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;margin-top:6px;letter-spacing:0.5px;">' + label + '</div>' +
+                   '</div>';
+          }
+          var v = d.volume || {}, s = d.sentiment_index || {}, np = d.negative_pct || {},
+              nt1 = d.negative_t1_count || {}, ap = d.alert_pending || {};
+
+          // 1. Volume — total mentions; up = good
+          var t1 = tile('声量 (' + hrLbl + ')',
+            String(v.val || 0),
+            (v.prev !== undefined ? deltaBadge(v.val||0, v.prev||0, 'pct', false) : ''),
+            '本期窗口内提及总数；与上一个等长窗口对比');
+          // 2. Sentiment index — avg sentiment, range -1..+1; up = good
+          var sentVal = (s.val !== undefined && s.val !== null) ? Number(s.val).toFixed(2) : '—';
+          var sentDelta = (s.prev !== undefined && s.prev !== null) ? deltaBadge(s.val||0, s.prev||0, 'abs', false) : '';
+          var t2 = tile('情感指数', sentVal, sentDelta, '所有提及的平均情感分（-1~+1），>0 偏正面');
+          // 3. Negative %, lower = better → invert
+          var t3 = tile('负面占比',
+            (np.val!==undefined ? np.val.toFixed(1) + '%' : '—'),
+            (np.prev!==undefined ? deltaBadge(np.val||0, np.prev||0, 'abs', true) : ''),
+            '负面提及 (sentiment<-0.15) 的占比；下降为好');
+          // 4. Negative T1 count, lower = better → invert
+          var t4 = tile('负面 · T1 媒体',
+            String(nt1.val || 0),
+            (nt1.prev !== undefined ? deltaBadge(nt1.val||0, nt1.prev||0, 'abs', true) : ''),
+            'Tier 1 媒体中负面提及的条数；下降为好');
+          // 5. Alert pending — current only
+          var t5 = tile('待处理告警',
+            String(ap.val || 0),
+            '<span style="font-size:10px;color:' + ((ap.val||0) > 0 ? 'var(--orange, #f59e0b)' : 'var(--text-muted)') + ';font-weight:600;">' + ((ap.val||0) > 0 ? '需处理' : '清空') + '</span>',
+            '本期窗口内未处理的告警事件数 (alert_event.acknowledged=0)');
+          bar.innerHTML = t1 + t2 + t3 + t4 + t5;
+        } catch (e) {
+          bar.innerHTML = '<div style="grid-column:1/-1;color:var(--red);font-size:11px;">KPI 加载失败: ' + esc(e.message) + '</div>';
+          console.error('kpi', e);
+        }
+      }
+
+      // ========== Sentiment doughnut (feat-011 + F04 delta) ==========
       async function renderSentimentPie(){
         var hintEl = document.getElementById('mediaSentimentHint');
         try {
-          var path = '/api/btcmine/media/sentiment_pie?hours=' + state.hours + (hasAnyTicker() ? '&ticker='+encodeURIComponent(tickersCSV()) : '');
+          var path = '/api/btcmine/media/sentiment_pie?hours=' + state.hours + '&compare_prev=1' +
+            (hasAnyTicker() ? '&ticker='+encodeURIComponent(tickersCSV()) : '');
           var d = await j(path);
-          hintEl.textContent = hasAnyTicker() ? ('公司: ' + tickersCSV() + ' · ' + state.hours + 'h') : ('全部 · ' + state.hours + 'h');
+          var hintBase = hasAnyTicker() ? ('公司: ' + tickersCSV() + ' · ' + state.hours + 'h') : ('全部 · ' + state.hours + 'h');
+          // feat-034 F04: delta on total volume
+          var prevTotal = (d.prev && d.prev.total !== undefined) ? d.prev.total : (d.prev_total !== undefined ? d.prev_total : null);
+          var deltaHtml = (prevTotal !== null) ? deltaBadge(d.total||0, prevTotal||0, 'pct', false) : '';
+          hintEl.innerHTML = esc(hintBase) + deltaHtml;
           var ctx = document.getElementById('mediaSentimentChart');
           var pos = d.positive||0, neu = d.neutral||0, neg = d.negative||0;
           var total = pos+neu+neg;
@@ -1132,11 +1223,17 @@
           // feat-034 F01: timeline single-ticker = detailed (vol+sentiment dual axis),
           // multi-ticker = subset stacked, none = all 8 stacked.
           var _tlSingle = state.tickers.length === 1 ? state.tickers[0] : null;
-          var path = '/api/btcmine/media/timeline?days=30' + (hasAnyTicker() ? '&ticker='+encodeURIComponent(tickersCSV()) : '');
+          var path = '/api/btcmine/media/timeline?days=30&compare_prev=1' + (hasAnyTicker() ? '&ticker='+encodeURIComponent(tickersCSV()) : '');
           var d = await j(path);
           var hint = hasAnyTicker() ? ('公司: ' + tickersCSV()) : '所有公司 (点卡片筛选)';
           if (state.date) hint += ' · 日期: ' + state.date;
-          document.getElementById('mediaTimelineHint').textContent = hint;
+          // feat-034 F04: delta vs prev 30-day window
+          var deltaHtml = '';
+          if (d.prev_total !== undefined && d.total !== undefined) {
+            deltaHtml = deltaBadge(d.total||0, d.prev_total||0, 'pct', false);
+          }
+          var hintNode = document.getElementById('mediaTimelineHint');
+          hintNode.innerHTML = esc(hint) + deltaHtml;
           var rows = d.rows || [];
           var ctx = document.getElementById('mediaTimelineChart');
           var mode = state.timelineMode || 'bar';
@@ -1230,7 +1327,8 @@
 
       async function renderThemes(){
         try {
-          var path = '/api/btcmine/media/themes?hours=' + state.hours + (hasAnyTicker() ? '&ticker='+encodeURIComponent(tickersCSV()) : '');
+          var path = '/api/btcmine/media/themes?hours=' + state.hours + '&compare_prev=1' +
+            (hasAnyTicker() ? '&ticker='+encodeURIComponent(tickersCSV()) : '');
           var d = await j(path);
           var el = document.getElementById('mediaThemes');
           if (!d.themes || !d.themes.length) { el.innerHTML = '<div class="text-muted">暂无 NLP 数据</div>'; return; }
@@ -1238,7 +1336,9 @@
           el.innerHTML = d.themes.map(function(t){
             var pct = 100 * t.cnt / max;
             var lbl = THEME_LABEL[t.theme] || t.theme;
-            return '<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);margin-bottom:2px;"><span>'+esc(lbl)+'</span><span style="font-family:monospace;color:var(--text-primary);">'+t.cnt+'</span></div><div style="height:6px;background:var(--border-default);border-radius:3px;overflow:hidden;"><div style="height:100%;width:'+pct+'%;background:var(--accent-blue);"></div></div></div>';
+            // feat-034 F04: per-theme delta vs prev period
+            var dHtml = (t.prev !== undefined) ? deltaBadge(t.cnt||0, t.prev||0, 'pct', false) : '';
+            return '<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);margin-bottom:2px;"><span>'+esc(lbl)+dHtml+'</span><span style="font-family:monospace;color:var(--text-primary);">'+t.cnt+'</span></div><div style="height:6px;background:var(--border-default);border-radius:3px;overflow:hidden;"><div style="height:100%;width:'+pct+'%;background:var(--accent-blue);"></div></div></div>';
           }).join('');
         } catch (e) { document.getElementById('mediaThemes').innerHTML = '<div style="color:var(--red);">加载失败</div>'; }
       }
@@ -1416,10 +1516,11 @@
 
       function refreshAll(){
         renderFilterBar();
+        renderKpiHero();     // feat-034 F02
         renderAlerts();
         renderCards();
         renderSentimentPie();
-        renderReachDist();   // feat-022
+        renderReachDist();   // feat-022 (rebuilt for F03)
         renderTimeline();
         renderThemes();
         renderCompare();     // feat-023
@@ -1959,32 +2060,53 @@
         }).then(function(){ renderAlertRules(); }).catch(function(e){ alert('创建失败: ' + e.message); });
       }
 
-      // ========== feat-022 Reach distribution ==========
+      // ========== feat-022 + feat-034 F03 Reach distribution (news/social tab) ==========
+      async function fetchReach(){
+        var path = '/api/btcmine/media/reach_distribution?hours=' + state.hours +
+          (hasAnyTicker() ? '&ticker='+encodeURIComponent(tickersCSV()) : '');
+        return await j(path);
+      }
       async function renderReachDist(){
         try {
-          var path = '/api/btcmine/media/reach_distribution?hours=' + state.hours + (hasAnyTicker() ? '&ticker='+encodeURIComponent(tickersCSV()) : '');
-          var d = await j(path);
+          var d = await fetchReach();
           var ctx = document.getElementById('mediaReachChart');
           if (!ctx) return;
+          var kind = state.reachKind === 'social' ? 'social' : 'news';
+          var grp = d[kind] || {total:0, mentions:0, by_source:[], by_bucket:[], unit:''};
+          var unitTxt = grp.unit === 'follower_count' ? '粉丝总数（sum of follower_count）' :
+                        grp.unit === 'estimated_monthly_visits' ? '月访客估算（sum of estimated_monthly_visits）' :
+                        grp.unit;
+          var kindIcon = kind === 'news' ? '📰' : '📱';
+          var kindCh   = kind === 'news' ? '新闻 Reach' : '社交 Reach';
+          var hintEl = document.getElementById('mediaReachKindHint');
+          if (hintEl) hintEl.innerHTML = kindIcon + ' <b>' + kindCh + '</b>: ' + fmtReach(grp.total) +
+            ' · ' + grp.mentions + ' 条 · <span style="color:var(--text-muted);">单位: ' + unitTxt + '</span>';
           var totalEl = document.getElementById('mediaReachTotal');
-          if (totalEl) totalEl.textContent = '总 Reach: ' + fmtReach(d.total_reach) + ' · ' + d.total_mentions + ' 条';
+          if (totalEl) {
+            totalEl.textContent = fmtReach(grp.total) + ' · ' + grp.mentions + ' 条';
+            totalEl.title = '单位: ' + unitTxt;
+          }
           var labels, data, colors, tooltipFmt;
           if (state.reachMode === 'buckets') {
-            labels = d.buckets.map(function(b){ return b.range; });
-            data = d.buckets.map(function(b){ return b.count; });
+            labels = grp.by_bucket.map(function(b){ return b.label; });
+            data = grp.by_bucket.map(function(b){ return b.count; });
             colors = ['#6b7280','#60a5fa','#10b981','#f59e0b','#ef4444'];
-            tooltipFmt = function(ctx){
-              var b = d.buckets[ctx.dataIndex];
-              return b.range + ': ' + b.count + ' 条 · reach 合计 ' + fmtReach(b.reach_sum);
+            tooltipFmt = function(c){
+              var b = grp.by_bucket[c.dataIndex];
+              return b.label + ': ' + b.count + ' 条 · reach 合计 ' + fmtReach(b.reach_sum) +
+                     ' (' + unitTxt + ')';
             };
           } else {
-            labels = d.by_source_type.map(function(b){ return PLATFORM_LABEL[b.source_type] || b.source_type; });
-            data = d.by_source_type.map(function(b){ return b.reach_sum; });
-            colors = d.by_source_type.map(function(b){ return PLATFORM_COLOR[b.source_type] || '#888'; });
-            tooltipFmt = function(ctx){
-              var b = d.by_source_type[ctx.dataIndex];
-              return (PLATFORM_LABEL[b.source_type] || b.source_type) + ': reach ' + fmtReach(b.reach_sum) +
-                     ' · ' + b.mention_count + ' 条 · 每条均值 ' + fmtReach(b.reach_avg);
+            labels = grp.by_source.map(function(b){ return b.name; });
+            data = grp.by_source.map(function(b){ return b.reach; });
+            colors = grp.by_source.map(function(b){ return PLATFORM_COLOR[b.platform] || '#888'; });
+            tooltipFmt = function(c){
+              var b = grp.by_source[c.dataIndex];
+              var avg = b.count ? Math.round(b.reach / b.count) : 0;
+              return b.name + ' (' + (PLATFORM_LABEL[b.platform] || b.platform || '?') + ')' +
+                     ': reach ' + fmtReach(b.reach) +
+                     ' · ' + b.count + ' 条 · 均值 ' + fmtReach(avg) +
+                     ' (' + unitTxt + ')';
             };
           }
           if (reachChart) reachChart.destroy();
@@ -2121,6 +2243,7 @@
       // ========== feat-025 Custom layout (module show/hide + drag-reorder) ==========
       var LAYOUT_KEY = 'btcmine_media_layout_v2';  // v2 = added quickchart/heatmap/wordcloud/reports/alerts
       var MODULE_META = [
+        {key:'kpi-hero',        label:'📊 KPI Hero Bar (5指标)', default:true},
         {key:'overview-cards',  label:'8 家公司一览',   default:true},
         {key:'quickchart',      label:'🔍 QuickChart 自由探索', default:true},
         {key:'sentiment-reach', label:'情感 & Reach 分布', default:true},
@@ -2366,6 +2489,18 @@
           state.reachMode = m;
           document.querySelectorAll('#mediaReachModeChips .time-chip').forEach(function(x){
             x.classList.toggle('active', x.dataset.reachMode === m);
+          });
+          renderReachDist();
+        });
+      });
+      // feat-034 F03 Reach kind chips (News / Social)
+      document.querySelectorAll('#mediaReachKindChips .time-chip').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var k = btn.dataset.reachKind;
+          if (state.reachKind === k) return;
+          state.reachKind = k;
+          document.querySelectorAll('#mediaReachKindChips .time-chip').forEach(function(x){
+            x.classList.toggle('active', x.dataset.reachKind === k);
           });
           renderReachDist();
         });
