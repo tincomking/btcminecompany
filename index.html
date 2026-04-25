@@ -384,6 +384,14 @@
       </div>
     </section>
 
+    <!-- feat-034 F05: Signal Inbox banner (top-of-page) -->
+    <div id="mediaSignalBanner" data-module="signal-banner" class="media-module" style="display:none;margin-bottom:12px;padding:10px 14px;background:linear-gradient(90deg, #2b1818, #1a1010);border:1px solid #5c3030;border-radius:8px;cursor:pointer;align-items:center;gap:14px;">
+      <span style="font-size:18px;">⚠️</span>
+      <span id="signalBannerSummary" style="flex:1;font-size:13px;color:var(--text-primary);font-weight:500;"></span>
+      <span id="signalBannerCounts" style="font-size:11px;color:var(--text-secondary);"></span>
+      <span style="color:var(--accent-blue);font-size:11px;">查看 →</span>
+    </div>
+
     <!-- alerts banner -->
     <div id="mediaAlerts" style="margin-bottom:16px;"></div>
 
@@ -1514,9 +1522,171 @@
         }
       }
 
+      // ═══════════════════════════════════════════════════════════════
+      // feat-034 F05 — Signal Inbox (banner + side drawer + mark-read)
+      // ═══════════════════════════════════════════════════════════════
+      var SIGNAL_READ_KEY = 'btcmine.media.signals.read';
+      var signalState = {
+        signals: [],
+        counts: { negative_t1: 0, alert_triggered: 0, info_vacuum: 0 },
+        total: 0,
+        filter: 'all',
+      };
+      function loadSignalRead() {
+        try { return new Set(JSON.parse(localStorage.getItem(SIGNAL_READ_KEY) || '[]')); }
+        catch (e) { return new Set(); }
+      }
+      function saveSignalRead(set) {
+        try { localStorage.setItem(SIGNAL_READ_KEY, JSON.stringify([...set])); } catch (e) {}
+      }
+      function signalId(s) {
+        if (s.type === 'negative_t1') return 'negative_t1_' + s.mention_id;
+        if (s.type === 'alert_triggered') return 'alert_' + s.alert_event_id;
+        return s.type + '_' + (s.id || '');
+      }
+      function renderSignalItem(s) {
+        var sid = signalId(s);
+        if (s.type === 'negative_t1') {
+          var tierBadge = s.source_tier === 1 ? '<span style="background:#5c3030;color:#fda;padding:1px 5px;border-radius:8px;font-size:9px;">T1</span>' : '';
+          var sentTxt = (typeof s.sentiment === 'number') ? s.sentiment.toFixed(2) : '';
+          return '<div class="signal-item" data-signal-id="' + esc(sid) + '" style="padding:10px;margin-bottom:6px;background:var(--bg-card);border:1px solid #5c3030;border-radius:6px;">' +
+              '<div style="display:flex;gap:6px;align-items:center;margin-bottom:4px;">' +
+                '<span style="background:var(--red);color:white;padding:1px 6px;border-radius:8px;font-size:9px;font-weight:600;">负面</span>' +
+                tierBadge +
+                '<span style="font-size:10px;color:var(--text-muted);">' + esc(s.ticker || '') + '</span>' +
+                '<span style="flex:1;"></span>' +
+                '<span style="font-size:9px;color:var(--text-muted);">' + fmtRel(s.ts) + '</span>' +
+              '</div>' +
+              '<div style="font-size:12px;color:var(--text-primary);margin-bottom:6px;line-height:1.4;">' + esc(s.title_cn || s.title || '') + '</div>' +
+              '<div style="display:flex;gap:6px;align-items:center;font-size:10px;color:var(--text-muted);">' +
+                '<span>' + esc(s.source_name || '') + '</span>' +
+                '<span>·</span>' +
+                '<span style="color:var(--red);">sent: ' + sentTxt + '</span>' +
+                '<span style="flex:1;"></span>' +
+                (s.url ? '<a href="' + esc(s.url) + '" target="_blank" rel="noopener" style="color:var(--accent-blue);">原文</a>' : '') +
+                '<button class="signal-mark-read" data-signal-id="' + esc(sid) + '" style="background:none;border:1px solid var(--border-default);color:var(--text-secondary);padding:1px 6px;border-radius:4px;cursor:pointer;font-size:9px;">标已读</button>' +
+              '</div>' +
+            '</div>';
+        }
+        if (s.type === 'alert_triggered') {
+          return '<div class="signal-item" data-signal-id="' + esc(sid) + '" style="padding:10px;margin-bottom:6px;background:var(--bg-card);border:1px solid #4d3a18;border-radius:6px;">' +
+              '<div style="display:flex;gap:6px;align-items:center;margin-bottom:4px;">' +
+                '<span style="background:#d97706;color:white;padding:1px 6px;border-radius:8px;font-size:9px;font-weight:600;">Alert</span>' +
+                '<span style="font-size:10px;color:var(--text-muted);">' + esc(s.ticker || '') + '</span>' +
+                '<span style="flex:1;"></span>' +
+                '<span style="font-size:9px;color:var(--text-muted);">' + fmtRel(s.ts) + '</span>' +
+              '</div>' +
+              '<div style="font-size:12px;">规则 "' + esc(s.rule_name || '') + '" 命中 ' + (s.match_count || 1) + ' 条' +
+                ' <button class="signal-mark-read" data-signal-id="' + esc(sid) + '" style="margin-left:6px;background:none;border:1px solid var(--border-default);color:var(--text-secondary);padding:1px 6px;border-radius:4px;cursor:pointer;font-size:9px;">标已读</button>' +
+              '</div>' +
+            '</div>';
+        }
+        return '';
+      }
+      function renderSignalDrawerList() {
+        var listEl = document.getElementById('signalDrawerList');
+        if (!listEl) return;
+        var readSet = loadSignalRead();
+        var visible = signalState.signals.filter(function (s) { return !readSet.has(signalId(s)); });
+        if (signalState.filter !== 'all') {
+          visible = visible.filter(function (s) { return s.type === signalState.filter; });
+        }
+        var countEl = document.getElementById('signalDrawerCount');
+        if (countEl) countEl.textContent = '(' + visible.length + ')';
+        if (!visible.length) {
+          listEl.innerHTML = '<div style="padding:24px 12px;text-align:center;color:var(--text-muted);font-size:12px;">无待处理信号</div>';
+          return;
+        }
+        listEl.innerHTML = visible.map(renderSignalItem).join('');
+      }
+      function openSignalDrawer() {
+        var d = document.getElementById('mediaSignalDrawer');
+        var ov = document.getElementById('signalDrawerOverlay');
+        if (d) d.style.right = '0';
+        if (ov) ov.style.display = 'block';
+        renderSignalDrawerList();
+      }
+      function closeSignalDrawer() {
+        var d = document.getElementById('mediaSignalDrawer');
+        var ov = document.getElementById('signalDrawerOverlay');
+        if (d) d.style.right = '-380px';
+        if (ov) ov.style.display = 'none';
+      }
+      async function renderSignalBanner() {
+        var banner = document.getElementById('mediaSignalBanner');
+        if (!banner) return;
+        try {
+          var path = '/api/btcmine/media/signals?hours=' + state.hours +
+            (hasAnyTicker() ? '&ticker=' + encodeURIComponent(tickersCSV()) : '') +
+            '&limit=20';
+          var d = await j(path);
+          signalState.signals = d.signals || [];
+          signalState.counts = d.counts || { negative_t1: 0, alert_triggered: 0, info_vacuum: 0 };
+          // Apply read-set so banner total reflects unread only
+          var readSet = loadSignalRead();
+          var unread = signalState.signals.filter(function (s) { return !readSet.has(signalId(s)); });
+          signalState.total = unread.length;
+          var sumEl = document.getElementById('signalBannerSummary');
+          var cntEl = document.getElementById('signalBannerCounts');
+          if (signalState.total > 0) {
+            banner.style.display = 'flex';
+            if (sumEl) sumEl.textContent = signalState.total + ' 条信号待处理';
+            // Count unread by type for the badge text
+            var byType = { negative_t1: 0, alert_triggered: 0 };
+            unread.forEach(function (s) { if (byType[s.type] !== undefined) byType[s.type]++; });
+            if (cntEl) cntEl.textContent = '· 负面 T1: ' + byType.negative_t1 + ' · Alert: ' + byType.alert_triggered;
+          } else {
+            banner.style.display = 'none';
+          }
+          // Refresh drawer if open
+          var drawer = document.getElementById('mediaSignalDrawer');
+          if (drawer && drawer.style.right === '0px') renderSignalDrawerList();
+        } catch (e) {
+          banner.style.display = 'none';
+        }
+      }
+      // Wire events once
+      (function wireSignalInbox(){
+        var banner = document.getElementById('mediaSignalBanner');
+        if (banner) banner.addEventListener('click', openSignalDrawer);
+        var closeBtn = document.getElementById('signalDrawerClose');
+        if (closeBtn) closeBtn.addEventListener('click', closeSignalDrawer);
+        var overlay = document.getElementById('signalDrawerOverlay');
+        if (overlay) overlay.addEventListener('click', closeSignalDrawer);
+        var drawer = document.getElementById('mediaSignalDrawer');
+        if (drawer) {
+          drawer.addEventListener('click', function (ev) {
+            var fbtn = ev.target.closest('.signal-filter');
+            if (fbtn) {
+              signalState.filter = fbtn.getAttribute('data-signal-filter') || 'all';
+              drawer.querySelectorAll('.signal-filter').forEach(function (b) {
+                var active = b === fbtn;
+                b.classList.toggle('active', active);
+                b.style.background = active ? 'var(--accent-blue)' : 'transparent';
+                b.style.color = active ? 'white' : 'var(--text-secondary)';
+                b.style.border = active ? 'none' : '1px solid var(--border-default)';
+              });
+              renderSignalDrawerList();
+              return;
+            }
+            var mr = ev.target.closest('.signal-mark-read');
+            if (mr) {
+              ev.stopPropagation();
+              var sid = mr.getAttribute('data-signal-id');
+              var set = loadSignalRead();
+              set.add(sid);
+              saveSignalRead(set);
+              renderSignalDrawerList();
+              renderSignalBanner();
+            }
+          });
+        }
+      })();
+
       function refreshAll(){
         renderFilterBar();
         renderKpiHero();     // feat-034 F02
+        renderSignalBanner();// feat-034 F05
         renderAlerts();
         renderCards();
         renderSentimentPie();
@@ -3589,5 +3759,20 @@
 <script src="Analysis/kmv.js"></script>
 <script src="Analysis/montecarlo.js"></script>
 <script src="js/app.js"></script>
+
+<!-- feat-034 F05: Signal Inbox side drawer -->
+<aside id="mediaSignalDrawer" style="position:fixed;top:0;right:-380px;width:360px;height:100vh;background:var(--bg-elevated);border-left:1px solid var(--border-default);box-shadow:-4px 0 20px rgba(0,0,0,0.3);transition:right 0.25s ease;z-index:1000;display:flex;flex-direction:column;">
+  <div style="padding:16px;border-bottom:1px solid var(--border-default);display:flex;align-items:center;justify-content:space-between;">
+    <div style="font-size:14px;font-weight:600;">📡 Signal Inbox <span id="signalDrawerCount" class="text-mono" style="color:var(--text-muted);font-weight:400;font-size:11px;"></span></div>
+    <button id="signalDrawerClose" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;">×</button>
+  </div>
+  <div style="padding:8px 16px;border-bottom:1px solid var(--border-default);font-size:11px;color:var(--text-muted);display:flex;gap:8px;">
+    <button class="signal-filter active" data-signal-filter="all" style="background:var(--accent-blue);color:white;border:none;padding:3px 8px;border-radius:10px;cursor:pointer;font-size:11px;">全部</button>
+    <button class="signal-filter" data-signal-filter="negative_t1" style="background:transparent;color:var(--text-secondary);border:1px solid var(--border-default);padding:3px 8px;border-radius:10px;cursor:pointer;font-size:11px;">负面 T1</button>
+    <button class="signal-filter" data-signal-filter="alert_triggered" style="background:transparent;color:var(--text-secondary);border:1px solid var(--border-default);padding:3px 8px;border-radius:10px;cursor:pointer;font-size:11px;">Alert</button>
+  </div>
+  <div id="signalDrawerList" style="flex:1;overflow-y:auto;padding:8px;"></div>
+</aside>
+<div id="signalDrawerOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:999;"></div>
 </body>
 </html>
