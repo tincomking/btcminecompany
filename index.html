@@ -576,6 +576,19 @@
       <div id="alertsList" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;"></div>
     </section>
 
+    <!-- MODULE: briefing (feat-034 F13 IR Briefing) -->
+    <section data-module="briefing" class="media-module mb-24">
+      <div class="section-header mb-16">
+        <div class="section-title" style="font-size:13px;">📰 昨日 IR Briefing
+          <span data-tip="每日 08:00 UTC 由 LLM 自动生成的 IR/PR 简报。基于昨日全量数据：top mentions、负面 T1、KOL 动向。" style="color:var(--text-muted);cursor:help;font-size:11px;margin-left:4px;">ⓘ</span>
+        </div>
+        <span class="text-mono text-muted" style="font-size:10px;" id="briefingHint"></span>
+      </div>
+      <div id="briefingContent" style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:16px;line-height:1.6;font-size:12px;">
+        <div class="text-muted">尚未生成</div>
+      </div>
+    </section>
+
     <style>
       .qc-chip-group { }
       .qc-brand-chip { padding:3px 8px;font-size:10px;border:1px solid var(--border-default);border-radius:12px;cursor:pointer;font-family:monospace;color:var(--text-secondary);background:transparent; }
@@ -687,6 +700,7 @@
             <div id="mediaTimelineModeChips" style="display:inline-flex;gap:4px;">
               <button type="button" class="time-chip active" data-mode="bar" style="font-size:10px;padding:2px 8px;" data-i18n="media.chart.stacked">堆叠柱</button>
               <button type="button" class="time-chip" data-mode="line" style="font-size:10px;padding:2px 8px;" data-i18n="media.chart.line">折线</button>
+              <button type="button" id="timelineBenchToggle" class="time-chip" data-bench="off" style="font-size:10px;padding:2px 8px;" title="叠加 SPX 大盘走势 (虚线, 右轴 % 变化)">📊 大盘对比</button>
             </div>
           </div>
         </div>
@@ -1448,7 +1462,43 @@
             });
             chartType = mode === 'bar' ? 'bar' : 'line';
           }
-          if (timelineChart) timelineChart.destroy();
+          // F14 benchmark overlay (SPX as dashed % change line on right axis)
+          try {
+            var bbtn = document.getElementById('timelineBenchToggle');
+            var benchOn = bbtn && bbtn.getAttribute('data-bench') === 'on';
+            if (benchOn) {
+              var bd = await j('/api/btcmine/media/benchmarks');
+              var spx = bd && bd.data && bd.data['^GSPC'] || [];
+              if (spx.length) {
+                var dateMap = {};
+                spx.forEach(function(p){ dateMap[p.ts] = p.close; });
+                var base = null;
+                var pctSeries = labels.map(function(lab){
+                  var dt = (lab||'').slice(0,10);
+                  var c = dateMap[dt];
+                  if (c == null) return null;
+                  if (base == null) base = c;
+                  return base ? ((c - base) / base * 100) : null;
+                });
+                if (pctSeries.some(function(v){ return v !== null; })) {
+                  datasets.push({
+                    label: 'SPX %',
+                    type: 'line',
+                    data: pctSeries,
+                    borderColor: '#fbbf24',
+                    borderDash: [6,4],
+                    borderWidth: 1.4,
+                    fill: false,
+                    tension: 0.25,
+                    pointRadius: 0,
+                    yAxisID: 'y2',
+                    spanGaps: true
+                  });
+                }
+              }
+            }
+          } catch(_be) { console.warn('benchmark overlay', _be); }
+                    if (timelineChart) timelineChart.destroy();
           timelineChart = new Chart(ctx, {
             type: chartType,
             data: {labels: labels, datasets: datasets},
@@ -1458,7 +1508,8 @@
               scales: {
                 x: {ticks:{color:'#606060', font:{size:9}}, grid:{color:'rgba(255,255,255,0.04)'}, stacked: (mode === 'bar' && !_tlSingle)},
                 y: {ticks:{color:'#606060', font:{size:9}}, grid:{color:'rgba(255,255,255,0.04)'}, beginAtZero:true, stacked: (mode === 'bar' && !_tlSingle)},
-                y1: _tlSingle ? {position:'right', ticks:{color:'#606060', font:{size:9}}, grid:{display:false}, min:-1, max:1} : undefined
+                y1: _tlSingle ? {position:'right', ticks:{color:'#606060', font:{size:9}}, grid:{display:false}, min:-1, max:1} : undefined,
+                y2: (document.getElementById('timelineBenchToggle') && document.getElementById('timelineBenchToggle').getAttribute('data-bench')==='on') ? {position:'right', ticks:{color:'#fbbf24', font:{size:9}, callback:function(v){return v.toFixed(0)+'%';}}, grid:{display:false}} : undefined
               },
               onClick: function(evt, elements){
                 if (!elements || !elements.length) return;
@@ -1875,6 +1926,41 @@
         }
       })();
 
+      // feat-034 F13: IR Briefing renderer
+      async function renderBriefing(){
+        try {
+          var d = await j('/api/btcmine/media/briefing?date=latest');
+          var box = document.getElementById('briefingContent');
+          var hintEl = document.getElementById('briefingHint');
+          if (!box) return;
+          if (!d.exists) {
+            box.innerHTML = '<div class="text-muted">尚未生成（每日 08:00 UTC 自动生成）</div>';
+            if (hintEl) hintEl.textContent = '';
+            return;
+          }
+          if (hintEl) hintEl.textContent = d.date || '';
+          var html = (d.content_md || '')
+            .replace(/^## (.+)$/gm, '<h3 style="font-size:12px;margin:12px 0 6px;color:var(--accent-blue);">$1</h3>')
+            .replace(/^- (.+)$/gm, '<div style="margin:3px 0;padding-left:14px;text-indent:-10px;">• $1</div>');
+          box.innerHTML = html;
+        } catch (e) {
+          var box = document.getElementById('briefingContent');
+          if (box) box.innerHTML = '<div style="color:var(--red);">加载失败: ' + (e && e.message || e) + '</div>';
+        }
+      }
+
+      // F14 benchmark toggle wiring  // timelineBenchToggle click
+      (function(){
+        document.addEventListener('click', function(ev){
+          var b = ev.target && ev.target.closest && ev.target.closest('#timelineBenchToggle');
+          if (!b) return;
+          var on = b.getAttribute('data-bench') === 'on';
+          b.setAttribute('data-bench', on ? 'off' : 'on');
+          if (on) { b.classList.remove('active'); } else { b.classList.add('active'); }
+          if (typeof renderTimeline === 'function') renderTimeline();
+        });
+      })();
+
       function refreshAll(){
         renderFilterBar();
         renderKpiHero();     // feat-034 F02
@@ -1896,6 +1982,7 @@
         renderWordcloud();
         renderReportsList();
         renderAlertRules();
+        renderBriefing();    // feat-034 F13
       }
 
       // ═══════════════════════════════════════════════════════════════
@@ -2514,6 +2601,10 @@
         } else if (t === 'sentiment_flip') {
           box.innerHTML = '<label style="font-size:11px;color:var(--text-muted);">④ 窗口小时数</label>'
             + '<input id="alertPresetWindow" type="number" min="1" max="48" value="6" class="qc-input" style="width:100%;margin-top:4px;" placeholder="window_hours"/>';
+        } else if (t === 'info_vacuum') {
+          // F15 info_vacuum: ticker required + days_threshold
+          box.innerHTML = '<label style="font-size:11px;color:var(--text-muted);">④ 真空天数阈值（必须先在③选定 ticker）</label>'
+            + '<input id="alertPresetDaysThreshold" type="number" min="1" max="60" value="7" class="qc-input" style="width:100%;margin-top:4px;" placeholder="days_threshold"/>';
         } else {
           box.innerHTML = '<div style="font-size:10px;color:var(--text-muted);">无额外参数</div>';
         }
@@ -2769,6 +2860,7 @@
         {key:'kol',             label:'KOL 影响力榜',    default:true},
         {key:'reports',         label:'💾 我的报表',     default:true},
         {key:'alerts',          label:'🔔 监听规则',     default:true},
+        {key:'briefing',        label:'📰 IR Briefing',   default:true, visible:true},
         {key:'sources-feed',    label:'来源 & 报道流',   default:true},
       ];
       function loadLayout(){
@@ -4119,6 +4211,7 @@
           <option value="t1_first">📰 T1 首次报道</option>
           <option value="sentiment_flip">🔄 情感反转 +→−</option>
           <option value="kol_critical">⚠️ KOL 新批评</option>
+          <option value="info_vacuum">🕳️ 信息真空（>N 天无 T1）</option>
         </select>
       </div>
       <div style="margin-bottom:12px;">
