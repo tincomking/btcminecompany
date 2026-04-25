@@ -384,6 +384,19 @@
       </div>
     </section>
 
+    <!-- feat-034 F08: Top Mentions golden slot (本周最热 5 条) -->
+    <section data-module="top-mentions" class="media-module mb-16">
+      <div class="section-header mb-12">
+        <div class="section-title" style="font-size:13px;">🔥 本周最热 5 条
+          <span data-tip="按 (engagement+1) × log(reach+10) × (|sentiment|+0.1) 综合打分排序，找出本周影响力最大的内容。" style="color:var(--text-muted);cursor:help;font-size:11px;margin-left:4px;">ⓘ</span>
+        </div>
+        <span class="text-mono text-muted" style="font-size:10px;" id="topMentionsHint">7d</span>
+      </div>
+      <div id="topMentionsList" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;">
+        <div class="text-muted" style="grid-column:1/-1;font-size:11px;">加载中...</div>
+      </div>
+    </section>
+
     <!-- feat-034 F05: Signal Inbox banner (top-of-page) -->
     <div id="mediaSignalBanner" data-module="signal-banner" class="media-module" style="display:none;margin-bottom:12px;padding:10px 14px;background:linear-gradient(90deg, #2b1818, #1a1010);border:1px solid #5c3030;border-radius:8px;cursor:pointer;align-items:center;gap:14px;">
       <span style="font-size:18px;">⚠️</span>
@@ -788,14 +801,15 @@
       var SENT_LABEL = {positive:'正面', neutral:'中性', negative:'负面'};
       var PLATFORM_LABEL = {news:'新闻', twitter:'Twitter/X', reddit:'Reddit', youtube:'YouTube', blog:'Blog/IR', facebook:'Facebook', instagram:'Instagram', seekingalpha:'Seeking Alpha'};
       var PLATFORM_COLOR = {news:'#60a5fa', twitter:'#1DA1F2', reddit:'#ff4500', youtube:'#ff0000', blog:'#8b5cf6', facebook:'#4267B2', instagram:'#E4405F', seekingalpha:'#ec8b2d'};
-      // feat-023 compare metric definitions
+      // feat-023 compare metric definitions (feat-034 F06: +Weighted SoV)
       var COMPARE_METRICS = [
-        {key:'mentions',      label:'声量',       tip:'该窗口内的提及总条数', raw:function(d){return d.mentions;}},
-        {key:'sov_pct',       label:'SoV份额',    tip:'Share of Voice：该公司占 8 家矿企总声量的百分比', raw:function(d){return d.sov_pct;}, unit:'%'},
-        {key:'positive_pct',  label:'正面率',     tip:'正面情感条数占该公司全部提及的百分比', raw:function(d){return d.positive_pct;}, unit:'%'},
-        {key:'reach_sum',     label:'Reach',      tip:'潜在阅读人数的加总（单位:千）', raw:function(d){return d.reach_sum;}, fmt:function(v){return fmtReach(v);}},
-        {key:'kol_count',     label:'KOL数',      tip:'该公司在最新 KOL 榜单中出现的独立作者数', raw:function(d){return d.kol_count;}},
-        {key:'alert_count',   label:'预警数',     tip:'该窗口内触发的情感/声量预警次数', raw:function(d){return d.alert_count;}},
+        {key:'mentions',          label:'声量',         tip:'该窗口内的提及总条数', raw:function(d){return d.mentions;}},
+        {key:'sov_pct',           label:'SoV份额',      tip:'Share of Voice：该公司占 8 家矿企总声量的百分比', raw:function(d){return d.sov_pct;}, unit:'%'},
+        {key:'weighted_sov_pct',  label:'Weighted SoV', tip:'按媒体 Tier 加权后的 SoV：T1=3, T2=2, T3=1, T4=0.5。突显高质量媒体的影响力', raw:function(d){return d.weighted_sov_pct;}, unit:'%'},
+        {key:'positive_pct',      label:'正面率',       tip:'正面情感条数占该公司全部提及的百分比', raw:function(d){return d.positive_pct;}, unit:'%'},
+        {key:'reach_sum',         label:'Reach',        tip:'潜在阅读人数的加总（单位:千）', raw:function(d){return d.reach_sum;}, fmt:function(v){return fmtReach(v);}},
+        {key:'kol_count',         label:'KOL数',        tip:'该公司在最新 KOL 榜单中出现的独立作者数', raw:function(d){return d.kol_count;}},
+        {key:'alert_count',       label:'预警数',       tip:'该窗口内触发的情感/声量预警次数', raw:function(d){return d.alert_count;}},
       ];
       var TICKER_NAME = {FUFU:'BitFuFu', BTDR:'Bitdeer', IREN:'Iris Energy', MARA:'Marathon', CLSK:'CleanSpark', RIOT:'Riot', CAN:'Canaan', CANG:'Cango'};
       var TICKER_COLORS = {
@@ -1008,6 +1022,26 @@
         return d.toLocaleDateString('zh-CN');
       }
       function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+      // feat-034 F07 — sample-confidence helpers (n-suffix dimming + CI bar)
+      function withCount(percent, n, opts){
+        opts = opts || {};
+        var minN = opts.minN || 30;
+        var dim = (n||0) < minN;
+        var tip = dim ? 'data-tip="样本过少 (n='+(n||0)+')，参考意义有限"' : '';
+        var color = dim ? 'color:var(--text-muted);' : '';
+        return '<span style="'+color+'" '+tip+'>'+percent+' <span style="font-size:9px;opacity:0.7;">(n='+(n||0)+')</span></span>';
+      }
+      function ciBar(score, halfWidth){
+        if (score == null) return '';
+        var hw = (halfWidth == null) ? 0 : halfWidth;
+        var lo = Math.max(0, score - hw) * 100;
+        var hi = Math.min(1, score + hw) * 100;
+        var center = Math.max(0, Math.min(100, score * 100));
+        return '<div style="position:relative;height:4px;background:var(--bg-elevated);border-radius:2px;margin-top:2px;width:80px;">'+
+          '<div style="position:absolute;left:'+lo+'%;width:'+(hi-lo)+'%;height:100%;background:var(--accent-blue);opacity:0.6;border-radius:2px;"></div>'+
+          '<div style="position:absolute;left:'+center+'%;top:-1px;width:1px;height:6px;background:var(--accent-blue);"></div>'+
+        '</div>';
+      }
       function sentBar(s){
         if (s == null) return '<div style="height:3px;background:var(--border-default);border-radius:2px;margin-top:6px;"></div>';
         var pct = Math.max(0, Math.min(100, (s + 1) * 50));
@@ -1155,6 +1189,67 @@
         }
       }
 
+      // ========== feat-034 F08: Top Mentions (本周最热 5 条) ==========
+      async function renderTopMentions(){
+        var listEl = document.getElementById('topMentionsList');
+        var hintEl = document.getElementById('topMentionsHint');
+        if (!listEl) return;
+        try {
+          var parts = ['hours='+state.hours, 'limit=5'];
+          if (hasAnyTicker()) parts.push('ticker='+encodeURIComponent(tickersCSV()));
+          var d = await j('/api/btcmine/media/top?' + parts.join('&'));
+          if (hintEl) {
+            var hr = state.hours;
+            var hrLbl = hr >= 168 ? Math.round(hr/24)+'d' : hr+'h';
+            hintEl.textContent = hrLbl + (hasAnyTicker() ? ' · '+tickersCSV() : '');
+          }
+          var items = d.items || [];
+          if (!items.length) {
+            listEl.innerHTML = '<div class="text-muted" style="grid-column:1/-1;font-size:11px;padding:12px;text-align:center;">暂无热门内容</div>';
+            return;
+          }
+          listEl.innerHTML = items.map(function(it){
+            var tk = it.ticker || (it.tickers && it.tickers[0]) || '';
+            var tkColor = TICKER_COLORS[tk] || '#888';
+            var s = (typeof it.sentiment === 'number') ? it.sentiment : 0;
+            var sentDot = s > 0.15 ? 'var(--green)' : (s < -0.15 ? 'var(--red)' : 'var(--text-muted)');
+            var title = it.title_cn || it.title || '';
+            var hot = (typeof it.hotness === 'number') ? it.hotness.toFixed(0) : '0';
+            var tierBadge = it.source_tier === 1
+              ? '<span style="background:#5c3030;color:#fda;padding:1px 4px;border-radius:6px;font-size:9px;">T1</span>'
+              : (it.source_tier === 2 ? '<span style="background:#3a3a5c;color:#a0c8ff;padding:1px 4px;border-radius:6px;font-size:9px;">T2</span>' : '');
+            var url = it.url || '#';
+            return '<div class="top-mention-card" data-url="'+esc(url)+'" style="padding:10px;background:var(--bg-card);border:1px solid var(--border-default);border-radius:6px;cursor:pointer;display:flex;flex-direction:column;gap:6px;transition:border-color 0.15s;">'+
+                '<div style="display:flex;gap:6px;align-items:center;">'+
+                  (tk ? '<span class="ticker-chip" style="font-size:10px;padding:1px 5px;background:'+tkColor+';color:white;border-radius:8px;font-weight:600;">$'+esc(tk)+'</span>' : '')+
+                  '<span class="sent-dot" style="width:6px;height:6px;border-radius:50%;background:'+sentDot+';"></span>'+
+                  tierBadge +
+                  '<span style="flex:1;"></span>'+
+                  '<span class="text-muted" style="font-size:9px;">'+fmtRel(it.ts)+'</span>'+
+                '</div>'+
+                '<div style="font-size:12px;line-height:1.4;color:var(--text-primary);min-height:34px;">'+esc(title.substring(0, 140))+'</div>'+
+                '<div style="display:flex;gap:6px;align-items:center;font-size:10px;color:var(--text-muted);">'+
+                  '<span>'+esc(it.source_name||'')+'</span>'+
+                  '<span class="text-mono">·</span>'+
+                  '<span data-tip="hotness 综合分">'+hot+'🔥</span>'+
+                '</div>'+
+              '</div>';
+          }).join('');
+          // Click → open url in new tab
+          listEl.querySelectorAll('.top-mention-card').forEach(function(card){
+            card.addEventListener('click', function(){
+              var u = card.getAttribute('data-url');
+              if (u && u !== '#') window.open(u, '_blank', 'noopener');
+            });
+            card.addEventListener('mouseenter', function(){ card.style.borderColor = 'var(--accent-blue)'; });
+            card.addEventListener('mouseleave', function(){ card.style.borderColor = 'var(--border-default)'; });
+          });
+        } catch (e) {
+          listEl.innerHTML = '<div style="grid-column:1/-1;color:var(--red);font-size:11px;">加载失败: ' + esc(e.message) + '</div>';
+          console.error('top-mentions', e);
+        }
+      }
+
       // ========== Sentiment doughnut (feat-011 + F04 delta) ==========
       async function renderSentimentPie(){
         var hintEl = document.getElementById('mediaSentimentHint');
@@ -1176,9 +1271,13 @@
             if (sentimentChart) { sentimentChart.destroy(); sentimentChart = null; }
             return;
           }
+          // feat-034 F07: dim if sample too small (n<30)
+          var dimCenter = total < 30;
+          var centerColor = dimCenter ? 'var(--text-muted)' : 'var(--text-primary)';
+          var centerTip = dimCenter ? ' data-tip="样本过少 (n='+total+')，参考意义有限"' : '';
           centerEl.innerHTML =
-            '<div style="font-size:24px;font-weight:700;color:var(--text-primary);">' + total + '</div>' +
-            '<div style="font-size:10px;color:var(--text-muted);">总量</div>';
+            '<div'+centerTip+' style="font-size:24px;font-weight:700;color:'+centerColor+';">' + total + '</div>' +
+            '<div style="font-size:10px;color:var(--text-muted);">总量 (n=' + total + ')</div>';
           if (sentimentChart) sentimentChart.destroy();
           sentimentChart = new Chart(ctx, {
             type: 'doughnut',
@@ -1346,7 +1445,11 @@
             var lbl = THEME_LABEL[t.theme] || t.theme;
             // feat-034 F04: per-theme delta vs prev period
             var dHtml = (t.prev !== undefined) ? deltaBadge(t.cnt||0, t.prev||0, 'pct', false) : '';
-            return '<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);margin-bottom:2px;"><span>'+esc(lbl)+dHtml+'</span><span style="font-family:monospace;color:var(--text-primary);">'+t.cnt+'</span></div><div style="height:6px;background:var(--border-default);border-radius:3px;overflow:hidden;"><div style="height:100%;width:'+pct+'%;background:var(--accent-blue);"></div></div></div>';
+            // feat-034 F07: dim cnt when sample too small
+            var dim = (t.cnt||0) < 10;
+            var cntStyle = dim ? 'color:var(--text-muted);' : 'color:var(--text-primary);';
+            var cntTip = dim ? ' data-tip="样本过少 (n='+t.cnt+')，参考意义有限"' : '';
+            return '<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);margin-bottom:2px;"><span>'+esc(lbl)+dHtml+'</span><span'+cntTip+' style="font-family:monospace;'+cntStyle+'">'+t.cnt+'</span></div><div style="height:6px;background:var(--border-default);border-radius:3px;overflow:hidden;"><div style="height:100%;width:'+pct+'%;background:var(--accent-blue);"></div></div></div>';
           }).join('');
         } catch (e) { document.getElementById('mediaThemes').innerHTML = '<div style="color:var(--red);">加载失败</div>'; }
       }
@@ -1497,14 +1600,27 @@
             var ss = r.avg_sentiment;
             var sCol = ss == null ? 'var(--text-muted)' : (ss > 0.15 ? 'var(--green)' : (ss < -0.15 ? 'var(--red)' : 'var(--text-secondary)'));
             var sTxt = ss == null ? '—' : (ss > 0 ? '+' : '') + ss.toFixed(2);
+            // feat-034 F07: dim mention_count if too small + render CI bar under score
+            var n = r.count != null ? r.count : (r.mention_count || 0);
+            var dim = n < 5;
+            var nStyle = dim ? 'color:var(--text-muted);' : 'color:var(--text-secondary);';
+            var nTip = dim ? ' data-tip="样本过少 (n='+n+')，参考意义有限"' : '';
+            var scoreCell;
+            if (r.score == null) {
+              scoreCell = '<span style="color:'+boardColor+';">—</span>';
+            } else {
+              var ciHtml = ciBar(r.score, r.score_ci_half || 0);
+              var scoreTip = (r.score_ci_half != null) ? (' data-tip="95% CI: ±' + r.score_ci_half + ' (n=' + n + ')"') : '';
+              scoreCell = '<div'+scoreTip+' style="display:flex;flex-direction:column;align-items:flex-end;gap:1px;"><span style="color:'+boardColor+';font-weight:600;">'+r.score.toFixed(2)+'</span>'+ciHtml+'</div>';
+            }
             return '<tr style="border-bottom:1px solid var(--border-default);">'+
               '<td style="padding:6px 8px;color:var(--text-muted);font-family:monospace;">'+(i+1)+'</td>'+
               '<td style="padding:6px 8px;color:var(--text-primary);font-size:12px;">'+icon+' '+esc(r.author)+'</td>'+
               '<td style="padding:6px 8px;color:var(--text-secondary);font-size:11px;">'+esc(r.ticker)+'</td>'+
-              '<td style="padding:6px 8px;text-align:right;color:var(--text-secondary);font-family:monospace;font-size:11px;">'+r.mention_count+'</td>'+
+              '<td'+nTip+' style="padding:6px 8px;text-align:right;'+nStyle+'font-family:monospace;font-size:11px;">'+n+'</td>'+
               '<td style="padding:6px 8px;text-align:right;color:var(--text-secondary);font-family:monospace;font-size:11px;">'+fmtReach(r.author_reach)+'</td>'+
               '<td style="padding:6px 8px;text-align:right;font-family:monospace;font-size:11px;color:'+sCol+';">'+sTxt+'</td>'+
-              '<td style="padding:6px 8px;text-align:right;color:'+boardColor+';font-family:monospace;font-weight:600;font-size:12px;">'+(r.score!=null?r.score.toFixed(2):'—')+'</td>'+
+              '<td style="padding:6px 8px;text-align:right;font-family:monospace;font-size:12px;">'+scoreCell+'</td>'+
             '</tr>';
           }).join('');
           el.innerHTML = '<table style="width:100%;border-collapse:collapse;">' +
@@ -1686,6 +1802,7 @@
       function refreshAll(){
         renderFilterBar();
         renderKpiHero();     // feat-034 F02
+        renderTopMentions(); // feat-034 F08
         renderSignalBanner();// feat-034 F05
         renderAlerts();
         renderCards();
@@ -2375,6 +2492,11 @@
                       var m = COMPARE_METRICS[ctx.dataIndex];
                       var raw = m.raw(row) || 0;
                       var val = m.fmt ? m.fmt(raw) : raw;
+                      // F06: weighted_sov shows raw SoV alongside for clarity
+                      if (m.key === 'weighted_sov_pct') {
+                        var rawSov = (row.sov_pct != null) ? row.sov_pct : 0;
+                        return ctx.dataset.label + ' — Weighted SoV: ' + val + '% (raw: ' + rawSov + '%)';
+                      }
                       return ctx.dataset.label + ' — ' + m.label + ': ' + val + (m.unit || '') + '  (归一化 ' + ctx.parsed.r + ')';
                     }
                   }
@@ -2414,6 +2536,7 @@
       var LAYOUT_KEY = 'btcmine_media_layout_v2';  // v2 = added quickchart/heatmap/wordcloud/reports/alerts
       var MODULE_META = [
         {key:'kpi-hero',        label:'📊 KPI Hero Bar (5指标)', default:true},
+        {key:'top-mentions',    label:'🔥 本周最热 (Top 5)',     default:true, desc:'Top mentions by hotness score', visible:true},
         {key:'overview-cards',  label:'8 家公司一览',   default:true},
         {key:'quickchart',      label:'🔍 QuickChart 自由探索', default:true},
         {key:'sentiment-reach', label:'情感 & Reach 分布', default:true},
