@@ -374,8 +374,39 @@
         <button type="button" id="mediaPresetDelete" class="filter-btn" style="padding:4px 10px;display:none;" title="删除当前预设">🗑️</button>
         <!-- feat-025: Custom layout (module show/hide + drag) -->
         <button type="button" id="mediaLayoutBtn" class="filter-btn" style="padding:4px 10px;margin-left:4px;" title="自定义看板：开关模块 + 拖拽排序">🧩 看板</button>
+        <!-- feat-034 F16: Crisis Mode toggle -->
+        <button type="button" id="crisisModeBtn" class="filter-btn crisis-toggle-btn" style="padding:4px 10px;font-size:11px;border-color:#5c3030;color:#fda;" title="Crisis Mode：四分屏 Signal-first 布局">🚨 应急</button>
+        <!-- feat-034 F18: Print/Export weekly report -->
+        <button type="button" id="exportReportBtn" class="filter-btn" style="padding:4px 10px;font-size:11px;" title="导出 IR 周报为 PDF（浏览器打印）">📄 导出周报</button>
       </div>
     </div>
+
+    <!-- feat-034 F18: Print-only header (visible only when printing) -->
+    <div id="printHeader" style="display:none;">
+      <h1 style="text-align:center;font-size:24pt;margin-bottom:8px;">btcmine.info IR 周报</h1>
+      <div style="text-align:center;font-size:12pt;color:#666;" id="printDate"></div>
+      <hr style="margin:12px 0;"/>
+    </div>
+
+    <!-- feat-034 F16: Crisis four-pane grid (display:none unless body.crisis-mode) -->
+    <section data-module="crisis-grid" class="media-module crisis-grid" style="display:none;">
+      <div class="crisis-pane" id="crisisNegFeed">
+        <div class="crisis-pane-header">📉 负面流 <span style="flex:1;"></span><span class="text-mono text-muted" id="crisisNegCount" style="font-size:9px;"></span></div>
+        <div class="crisis-pane-body" id="crisisNegFeedBody"><div class="text-muted">加载中...</div></div>
+      </div>
+      <div class="crisis-pane" id="crisisSignals">
+        <div class="crisis-pane-header">📡 Signal Inbox <span style="flex:1;"></span><span class="text-mono text-muted" id="crisisSignalsCount" style="font-size:9px;"></span></div>
+        <div class="crisis-pane-body" id="crisisSignalsBody"><div class="text-muted">加载中...</div></div>
+      </div>
+      <div class="crisis-pane" id="crisisT1">
+        <div class="crisis-pane-header">📰 T1 监控 <span style="flex:1;"></span><span class="text-mono text-muted" id="crisisT1Count" style="font-size:9px;"></span></div>
+        <div class="crisis-pane-body" id="crisisT1Body"><div class="text-muted">加载中...</div></div>
+      </div>
+      <div class="crisis-pane" id="crisisKol">
+        <div class="crisis-pane-header">⚠️ KOL 批评 <span style="flex:1;"></span><span class="text-mono text-muted" id="crisisKolCount" style="font-size:9px;"></span></div>
+        <div class="crisis-pane-body" id="crisisKolBody"><div class="text-muted">加载中...</div></div>
+      </div>
+    </section>
 
     <!-- feat-034 F02: KPI Hero Bar (volume / sentiment / negative% / negative-T1 / alerts) -->
     <section data-module="kpi-hero" class="media-module mb-16">
@@ -837,6 +868,85 @@
       #mediaLayoutList .lay-handle { color:var(--text-muted);font-size:13px;cursor:grab;user-select:none; }
       #mediaLayoutList .lay-name { flex:1;font-size:12px;color:var(--text-primary); }
       #mediaLayoutList input[type="checkbox"] { accent-color:var(--accent-blue); }
+
+      /* ════════ feat-034 F16: Crisis Mode (four-pane Signal-first layout) ════════ */
+      body.crisis-mode #page-media .media-module:not([data-module="kpi-hero"]):not([data-module="signal-banner"]):not([data-module="crisis-grid"]) {
+        display: none !important;
+      }
+      body.crisis-mode #page-media .crisis-grid {
+        display: grid !important;
+      }
+      .crisis-grid {
+        display: none;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 12px;
+        min-height: 600px;
+        margin-bottom: 16px;
+      }
+      .crisis-pane {
+        background: var(--bg-card);
+        border: 1px solid var(--border-default);
+        border-radius: 8px;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        min-height: 280px;
+      }
+      .crisis-pane-header {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        border-bottom: 1px solid var(--border-default);
+        padding-bottom: 6px;
+      }
+      .crisis-pane-body {
+        flex: 1;
+        overflow-y: auto;
+        font-size: 11px;
+      }
+      .crisis-pane-body .crisis-item {
+        padding: 6px 4px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        font-size: 10px;
+        line-height: 1.4;
+      }
+      .crisis-toggle-btn.active {
+        background: var(--red) !important;
+        color: white !important;
+        border-color: transparent !important;
+      }
+      @media (max-width: 900px) {
+        .crisis-grid { grid-template-columns: 1fr; grid-template-rows: auto; }
+      }
+
+      /* ════════ feat-034 F18: PDF / Print Export ════════ */
+      @media print {
+        .nav-tabs, .top-bar, #footer, #mediaSignalDrawer, #signalDrawerOverlay,
+        .qc-aside-mobile-toggle, button, select, .filter-btn, .filter-select, .modal-overlay,
+        #mediaLayoutDrawer, #mediaFilterBar, .module-drag-handle, .time-chip, .qc-time-chip,
+        [data-module="quickchart"], [data-module="reports"], [data-module="alerts"],
+        [data-module="heatmap"], [data-module="wordcloud"], [data-module="crisis-grid"] {
+          display: none !important;
+        }
+        body { background: white !important; color: black !important; font-size: 10pt; }
+        .page { display: none !important; }
+        .page#page-media { display: block !important; }
+        .media-module { page-break-inside: avoid; margin-bottom: 16px; }
+        #kpiHeroBar { grid-template-columns: repeat(5, 1fr) !important; }
+        #kpiHeroBar > * { background: #f5f5f5 !important; color: black !important; border: 1px solid #ddd !important; }
+        .section-title { color: black !important; }
+        .text-muted, .text-secondary { color: #555 !important; }
+        #printHeader { display: block !important; }
+        a { color: #000 !important; text-decoration: none !important; }
+        canvas { max-width: 100% !important; height: auto !important; }
+      }
+      @page { margin: 1.5cm; size: A4; }
     </style>
 
     <script>
@@ -1983,6 +2093,10 @@
         renderReportsList();
         renderAlertRules();
         renderBriefing();    // feat-034 F13
+        // feat-034 F16: refresh crisis panes if active
+        if (document.body.classList.contains('crisis-mode')) {
+          renderCrisisPanes();
+        }
       }
 
       // ═══════════════════════════════════════════════════════════════
@@ -2849,6 +2963,7 @@
       var LAYOUT_KEY = 'btcmine_media_layout_v2';  // v2 = added quickchart/heatmap/wordcloud/reports/alerts
       var MODULE_META = [
         {key:'kpi-hero',        label:'📊 KPI Hero Bar (5指标)', default:true},
+        {key:'crisis-grid',     label:'🚨 Crisis 四分屏 (应急模式)', default:true, desc:'Crisis Mode signal-first grid', visible:true},
         {key:'top-mentions',    label:'🔥 本周最热 (Top 5)',     default:true, desc:'Top mentions by hotness score', visible:true},
         {key:'overview-cards',  label:'8 家公司一览',   default:true},
         {key:'quickchart',      label:'🔍 QuickChart 自由探索', default:true},
@@ -3200,9 +3315,185 @@
         }
         refreshAll();
       }
+      // ════════ feat-034 F16: Crisis Mode (four-pane Signal-first) ════════
+      var CRISIS_LS_KEY = 'btcmine.media.crisisMode';
+
+      function applyCrisisMode(on){
+        document.body.classList.toggle('crisis-mode', !!on);
+        var btn = document.getElementById('crisisModeBtn');
+        if (btn) btn.classList.toggle('active', !!on);
+        if (on) renderCrisisPanes();
+        try { localStorage.setItem(CRISIS_LS_KEY, on ? '1' : '0'); } catch(e){}
+      }
+
+      async function renderCrisisPanes(){
+        // 1. Negative feed (sentiment < -0.15, 24h)
+        try {
+          var tk = hasAnyTicker() ? '&ticker=' + encodeURIComponent(tickersCSV()) : '';
+          var feed = await j('/api/btcmine/media/feed?hours=24&sentiment=negative&limit=20' + tk);
+          var items = (feed && feed.items) || [];
+          var cnt = document.getElementById('crisisNegCount');
+          if (cnt) cnt.textContent = items.length + ' 条';
+          var body = document.getElementById('crisisNegFeedBody');
+          if (body) {
+            body.innerHTML = items.length ? items.map(function(m){
+              var ts = (typeof formatRelativeTime === 'function') ? formatRelativeTime(m.ts) : '';
+              var sent = (typeof m.sentiment === 'number') ? m.sentiment.toFixed(2) : '';
+              return '<div class="crisis-item"><div style="display:flex;gap:6px;align-items:flex-start;">' +
+                '<span style="color:var(--red);">●</span>' +
+                '<span style="flex:1;">' + esc(m.title_cn || m.title || '') + '</span>' +
+                '<span class="text-muted" style="font-size:9px;">' + esc(ts) + '</span>' +
+                '</div><div class="text-muted" style="font-size:9px;margin-top:2px;">' +
+                esc(m.source_name || '') + (sent ? ' · sent ' + sent : '') + '</div></div>';
+            }).join('') : '<div class="text-muted">无负面</div>';
+          }
+        } catch(e){ /* swallow */ }
+
+        // 2. Signal Inbox (24h)
+        try {
+          var sig = await j('/api/btcmine/media/signals?hours=24&limit=20');
+          var sitems = (sig && sig.signals) || [];
+          var sc = document.getElementById('crisisSignalsCount');
+          if (sc) sc.textContent = sitems.length + ' 条';
+          var sb = document.getElementById('crisisSignalsBody');
+          if (sb) {
+            sb.innerHTML = sitems.length ? sitems.map(function(s){
+              if (s.type === 'negative_t1') {
+                return '<div class="crisis-item"><span style="color:var(--red);">⚠️</span> [' +
+                  esc(s.ticker || '?') + '] ' + esc(s.title_cn || s.title || '') +
+                  '<div class="text-muted" style="font-size:9px;">' + esc(s.source_name || '') + '</div></div>';
+              }
+              if (s.type === 'alert_triggered') {
+                return '<div class="crisis-item"><span style="color:#d97706;">🔔</span> ' +
+                  esc(s.rule_name || '') + ' (' + (s.match_count || 0) + '条)</div>';
+              }
+              if (s.type === 'info_vacuum') {
+                return '<div class="crisis-item"><span style="color:var(--text-muted);">🕳️</span> ' +
+                  esc(s.summary || s.ticker || '') + '</div>';
+              }
+              return '<div class="crisis-item">' + esc(s.summary || s.title || '') + '</div>';
+            }).join('') : '<div class="text-muted">无信号</div>';
+          }
+        } catch(e){}
+
+        // 3. T1 monitor (source_tier=1, 24h)
+        try {
+          var tk2 = hasAnyTicker() ? '&ticker=' + encodeURIComponent(tickersCSV()) : '';
+          var feed2 = await j('/api/btcmine/media/feed?hours=24&source_tier=1&limit=20' + tk2);
+          var t1items = (feed2 && feed2.items) || [];
+          var t1c = document.getElementById('crisisT1Count');
+          if (t1c) t1c.textContent = t1items.length + ' 条';
+          var t1b = document.getElementById('crisisT1Body');
+          if (t1b) {
+            t1b.innerHTML = t1items.length ? t1items.map(function(m){
+              var ts = (typeof formatRelativeTime === 'function') ? formatRelativeTime(m.ts) : '';
+              return '<div class="crisis-item"><div>' + esc(m.title_cn || m.title || '') + '</div>' +
+                '<div class="text-muted" style="font-size:9px;">' + esc(m.source_name || '') +
+                (ts ? ' · ' + esc(ts) : '') + '</div></div>';
+            }).join('') : '<div class="text-muted">24h 内无 T1</div>';
+          }
+        } catch(e){}
+
+        // 4. KOL critical (board=critical, 168h)
+        try {
+          var tk3 = hasAnyTicker() ? '&ticker=' + encodeURIComponent(tickersCSV()) : '';
+          var k = await j('/api/btcmine/media/kol?board=critical&hours=168&limit=15' + tk3);
+          var kitems = (k && (k.items || k.kol)) || [];
+          var kc = document.getElementById('crisisKolCount');
+          if (kc) kc.textContent = kitems.length + ' 位';
+          var kb = document.getElementById('crisisKolBody');
+          if (kb) {
+            kb.innerHTML = kitems.length ? kitems.slice(0, 15).map(function(x){
+              var score = (typeof x.score === 'number') ? x.score.toFixed(2) : '0.00';
+              var n = x.count || x.mention_count || 0;
+              return '<div class="crisis-item"><div style="display:flex;gap:6px;">' +
+                '<span>' + esc(x.author || x.handle || '?') + '</span>' +
+                '<span style="flex:1;"></span>' +
+                '<span class="text-muted" style="font-size:9px;">n=' + n + ' · score ' + score + '</span>' +
+                '</div></div>';
+            }).join('') : '<div class="text-muted">无 KOL 批评</div>';
+          }
+        } catch(e){}
+      }
+
+      // Crisis button click (delegated to survive layout reorder)
+      document.addEventListener('click', function(e){
+        var btn = e.target && e.target.closest && e.target.closest('#crisisModeBtn');
+        if (!btn) return;
+        var isActive = document.body.classList.contains('crisis-mode');
+        applyCrisisMode(!isActive);
+      });
+
+      // Restore crisis state on init (called from init() below)
+      function restoreCrisisMode(){
+        try {
+          if (localStorage.getItem(CRISIS_LS_KEY) === '1') {
+            applyCrisisMode(true);
+          }
+        } catch(e){}
+      }
+
+      // ════════ feat-034 F18: PDF / Print export (weekly report) ════════
+      function exportWeeklyReport(){
+        // Set date in print header
+        try {
+          var d = new Date();
+          var weekAgo = new Date(d.getTime() - 7*24*60*60*1000);
+          var fmt = function(x){ return x.getFullYear() + '-' + String(x.getMonth()+1).padStart(2,'0') + '-' + String(x.getDate()).padStart(2,'0'); };
+          var dateEl = document.getElementById('printDate');
+          if (dateEl) dateEl.textContent = fmt(weekAgo) + '  →  ' + fmt(d) + ' （7天回顾）';
+        } catch(e){}
+
+        var wasHours = state.hours;
+        var needSwitch = state.hours !== 168;
+        if (needSwitch) {
+          state.hours = 168;
+          try { saveState(); } catch(e){}
+          // Sync time-chip UI
+          document.querySelectorAll('#mediaHoursChips .time-chip').forEach(function(c){
+            c.classList.toggle('active', String(c.dataset.hours) === '168');
+          });
+        }
+
+        var afterRefresh = function(){
+          setTimeout(function(){
+            window.print();
+            if (needSwitch) {
+              state.hours = wasHours;
+              try { saveState(); } catch(e){}
+              document.querySelectorAll('#mediaHoursChips .time-chip').forEach(function(c){
+                c.classList.toggle('active', String(c.dataset.hours) === String(wasHours));
+              });
+              refreshAll();
+            }
+          }, 1200);
+        };
+
+        if (needSwitch) {
+          var p = refreshAll();
+          if (p && typeof p.then === 'function') p.then(afterRefresh).catch(afterRefresh);
+          else afterRefresh();
+        } else {
+          afterRefresh();
+        }
+      }
+
+      document.addEventListener('click', function(e){
+        var btn = e.target && e.target.closest && e.target.closest('#exportReportBtn');
+        if (btn) exportWeeklyReport();
+      });
+
       var navBtn = document.querySelector('[data-page="media"]');
       if (navBtn) navBtn.addEventListener('click', init);
       if (document.querySelector('#page-media.active')) init();
+      // feat-034 F16: restore crisis-mode on load (after init wiring)
+      window.addEventListener('DOMContentLoaded', function(){
+        setTimeout(restoreCrisisMode, 600);
+      });
+      // Also try immediately if DOM already loaded
+      if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        setTimeout(restoreCrisisMode, 600);
+      }
     })();
     </script>
   </div>
