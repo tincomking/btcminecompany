@@ -533,6 +533,11 @@
               <label class="qc-check"><input type="checkbox" data-qc-lang="en"/> EN</label>
               <label class="qc-check"><input type="checkbox" data-qc-lang="zh"/> 中文</label>
               <label class="qc-check"><input type="checkbox" data-qc-lang="ja"/> 日本語</label>
+              <label class="qc-check"><input type="checkbox" data-qc-lang="fr"/> FR</label>
+              <label class="qc-check"><input type="checkbox" data-qc-lang="de"/> DE</label>
+              <label class="qc-check"><input type="checkbox" data-qc-lang="es"/> ES</label>
+              <label class="qc-check"><input type="checkbox" data-qc-lang="vi"/> VI</label>
+              <label class="qc-check"><input type="checkbox" data-qc-lang="ko"/> KO</label>
             </div>
           </div>
 
@@ -545,6 +550,11 @@
               <label class="qc-check"><input type="checkbox" data-qc-cn="SG"/> 🇸🇬 SG</label>
               <label class="qc-check"><input type="checkbox" data-qc-cn="JP"/> 🇯🇵 JP</label>
               <label class="qc-check"><input type="checkbox" data-qc-cn="IN"/> 🇮🇳 IN</label>
+              <label class="qc-check"><input type="checkbox" data-qc-cn="FR"/> 🇫🇷 FR</label>
+              <label class="qc-check"><input type="checkbox" data-qc-cn="DE"/> 🇩🇪 DE</label>
+              <label class="qc-check"><input type="checkbox" data-qc-cn="ES"/> 🇪🇸 ES</label>
+              <label class="qc-check"><input type="checkbox" data-qc-cn="VN"/> 🇻🇳 VN</label>
+              <label class="qc-check"><input type="checkbox" data-qc-cn="KR"/> 🇰🇷 KR</label>
             </div>
           </div>
 
@@ -556,6 +566,16 @@
           <div style="margin-bottom:4px;">
             <div class="qc-label">全文关键词</div>
             <input type="text" id="qcQuery" placeholder="例: earnings" class="qc-input" />
+          </div>
+
+          <div id="qcNodeFeedPanel" style="margin-top:14px;border-top:1px solid var(--border-default);padding-top:10px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;">
+              <div style="font-weight:600;color:var(--text-primary);">节点报道</div>
+              <span id="qcNodeFeedTitle" class="text-muted" style="font-size:10px;">未选择日期</span>
+            </div>
+            <div id="qcNodeFeedList" style="display:grid;gap:8px;">
+              <div class="text-muted" style="font-size:11px;line-height:1.5;">暂无节点日期</div>
+            </div>
           </div>
         </aside>
       </div>
@@ -704,8 +724,8 @@
                 <button type="button" class="time-chip" data-reach-kind="social" style="font-size:10px;padding:2px 8px;">📱 Social</button>
               </div>
               <div style="display:inline-flex;gap:4px;" id="mediaReachModeChips">
-                <button type="button" class="time-chip active" data-reach-mode="by_source" style="font-size:10px;padding:2px 8px;">按来源</button>
-                <button type="button" class="time-chip" data-reach-mode="buckets" style="font-size:10px;padding:2px 8px;">按档位</button>
+                <button type="button" class="time-chip active" data-reach-mode="buckets" style="font-size:10px;padding:2px 8px;">按报道触达</button>
+                <button type="button" class="time-chip" data-reach-mode="by_source" style="font-size:10px;padding:2px 8px;">按来源</button>
               </div>
             </div>
           </div>
@@ -835,6 +855,8 @@
               <option value="CAN">Canaan ($CAN)</option>
               <option value="CANG">Cango ($CANG)</option>
             </select>
+            <input id="mediaDateFilter" type="date" class="filter-select" style="font-size:11px;" title="自定义查看某一天的报道（UTC 日期）" />
+            <button type="button" id="mediaDateClear" class="filter-btn" style="display:none;font-size:11px;padding:3px 8px;" title="清除日期，返回时间范围">清除日期</button>
           </div>
         </div>
         <div id="mediaFeed" style="max-height:70vh;overflow-y:auto;padding-right:4px;"><div class="text-muted">加载中...</div></div>
@@ -984,7 +1006,7 @@
       var state = {
         hours:168, tickers:[], sentiment:'', platform:'', sort:'latest',
         date:null, timelineMode:'bar', kolBoard:'positive',
-        reachMode:'by_source',                       // feat-022
+        reachMode:'buckets',                         // feat-022
         reachKind:'news',                            // feat-034 F03: 'news' | 'social'
         theme:'',                                    // feat-034 F09: theme drill-down filter
         compareTickers:['FUFU','MARA','BTDR','IREN'] // feat-023 default selection
@@ -1043,7 +1065,7 @@
         }
       }
       // feat-034 F01: state persistence (URL hash primary, localStorage fallback).
-      var MEDIA_STATE_LS_KEY = 'btcmine.media.state';
+      var MEDIA_STATE_LS_KEY = 'btcmine.media.state.v2';
       function saveState(){
         syncHash();
         try {
@@ -1134,7 +1156,7 @@
       function syncUI(){
         // hours chips
         document.querySelectorAll('#mediaHoursChips .time-chip').forEach(function(b){
-          b.classList.toggle('active', parseInt(b.dataset.hours) === state.hours);
+          b.classList.toggle('active', !state.date && parseInt(b.dataset.hours) === state.hours);
         });
         // timeline mode chips
         document.querySelectorAll('#mediaTimelineModeChips .time-chip').forEach(function(b){
@@ -1144,8 +1166,16 @@
         var tEl = document.getElementById('mediaTickerFilter'); if (tEl) tEl.value = (state.tickers && state.tickers.length === 1) ? state.tickers[0] : '';
         var sEl = document.getElementById('mediaSentimentFilter'); if (sEl) sEl.value = state.sentiment;
         var pEl = document.getElementById('mediaPlatformFilter'); if (pEl) pEl.value = state.platform;
+        var dEl = document.getElementById('mediaDateFilter'); if (dEl) dEl.value = state.date || '';
+        var dcEl = document.getElementById('mediaDateClear'); if (dcEl) dcEl.style.display = state.date ? 'inline-block' : 'none';
         var backBtn = document.getElementById('mediaBackDay');
         if (backBtn) backBtn.style.display = state.date ? 'inline-block' : 'none';
+        document.querySelectorAll('#mediaReachModeChips .time-chip').forEach(function(b){
+          b.classList.toggle('active', b.dataset.reachMode === state.reachMode);
+        });
+        document.querySelectorAll('#mediaReachKindChips .time-chip').forEach(function(b){
+          b.classList.toggle('active', b.dataset.reachKind === state.reachKind);
+        });
       }
 
       // ========== Helpers ==========
@@ -2267,9 +2297,86 @@
         if (qcState.q) p.push('q=' + encodeURIComponent(qcState.q));
         return '/api/btcmine/media/aggregate?' + p.join('&');
       }
+      function qcBucketDate(bucket){
+        if (bucket == null) return null;
+        var s = String(bucket);
+        var m = s.match(/^(\d{4}-\d{2}-\d{2})/);
+        return m ? m[1] : null;
+      }
+      function qcFeedQueryForNode(dateStr, segmentKey){
+        qcCollectFilters();
+        var p = ['date=' + encodeURIComponent(dateStr), 'limit=40'];
+        var brands = qcState.brands.slice();
+        var sources = qcState.sources.slice();
+        var sentiments = qcState.sentiment.slice();
+        var languages = qcState.languages.slice();
+        var countries = qcState.countries.slice();
+        var emotions = qcState.emotions.slice();
+        var hashtag = qcState.hashtag;
+        if (segmentKey) {
+          if (qcState.segment === 'ticker') brands = [String(segmentKey).toUpperCase()];
+          else if (qcState.segment === 'source_type') sources = [String(segmentKey).toLowerCase()];
+          else if (qcState.segment === 'sentiment') sentiments = [String(segmentKey)];
+          else if (qcState.segment === 'topic') p.push('theme=' + encodeURIComponent(String(segmentKey)));
+          else if (qcState.segment === 'lang') languages = [String(segmentKey)];
+          else if (qcState.segment === 'country') countries = [String(segmentKey)];
+          else if (qcState.segment === 'emotion') emotions = [String(segmentKey)];
+          else if (qcState.segment === 'source_tier') p.push('source_tier=' + encodeURIComponent(String(segmentKey)));
+          else if (qcState.segment === 'hashtag') hashtag = String(segmentKey);
+        }
+        if (brands.length) p.push('ticker=' + encodeURIComponent(brands.join(',')));
+        if (sources.length) p.push('source_type=' + encodeURIComponent(sources.join(',')));
+        if (sentiments.length) p.push('sentiment=' + encodeURIComponent(sentiments.join(',')));
+        if (languages.length) p.push('languages=' + encodeURIComponent(languages.join(',')));
+        if (countries.length) p.push('countries=' + encodeURIComponent(countries.join(',')));
+        if (emotions.length) p.push('emotions=' + encodeURIComponent(emotions.join(',')));
+        if (hashtag) p.push('hashtag=' + encodeURIComponent(hashtag));
+        if (qcState.q) p.push('q=' + encodeURIComponent(qcState.q));
+        return '/api/btcmine/media/feed?' + p.join('&');
+      }
+      async function renderQuickChartNodeFeed(dateStr, segmentKey){
+        var titleEl = document.getElementById('qcNodeFeedTitle');
+        var listEl = document.getElementById('qcNodeFeedList');
+        if (!listEl) return;
+        var segText = segmentKey ? (' · ' + qcSegLabel(segmentKey)) : '';
+        if (titleEl) titleEl.textContent = dateStr + segText;
+        listEl.innerHTML = '<div class="text-muted" style="font-size:11px;">加载中...</div>';
+        try {
+          var d = await j(qcFeedQueryForNode(dateStr, segmentKey));
+          var items = d.items || [];
+          if (!items.length) {
+            listEl.innerHTML = '<div class="text-muted" style="font-size:11px;">当天暂无匹配报道</div>';
+            return;
+          }
+          listEl.innerHTML = items.map(function(m){
+            var sLabel = m.sentiment_label;
+            var sChip = sLabel ? '<span style="display:inline-block;padding:1px 5px;background:'+SENT_COLOR[sLabel]+'22;color:'+SENT_COLOR[sLabel]+';border-radius:3px;font-size:10px;">'+esc(SENT_LABEL[sLabel]||sLabel)+'</span>' : '';
+            var tks = (m.tickers||[]).map(function(x){ return '$' + x; }).join(' ');
+            return '<div style="border:1px solid var(--border-default);border-radius:6px;padding:8px;background:var(--bg-elevated);">'
+              + '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:4px;">'
+              + '<span style="font-size:10px;color:var(--text-muted);">' + esc(fmtRel(m.ts)) + '</span>'
+              + '<span style="font-size:10px;color:var(--text-secondary);">' + esc(PLATFORM_LABEL[m.source_type] || m.source_type || '') + '</span>'
+              + (tks ? '<span style="font-size:10px;color:var(--accent-blue);font-family:monospace;">' + esc(tks) + '</span>' : '')
+              + sChip
+              + '</div>'
+              + '<a href="' + esc(m.url || '#') + '" target="_blank" rel="noopener" style="display:block;color:var(--text-primary);font-weight:600;font-size:11px;line-height:1.35;text-decoration:none;">' + esc(m.title_cn || m.title || '(untitled)') + '</a>'
+              + '<div style="margin-top:4px;color:var(--text-muted);font-size:10px;line-height:1.4;">' + esc(m.source_name || m.author || '') + '</div>'
+              + '</div>';
+          }).join('');
+        } catch(e) {
+          listEl.innerHTML = '<div style="color:var(--red);font-size:11px;">加载失败: ' + esc(e && e.message || e) + '</div>';
+        }
+      }
+      function qcResetNodeFeed(){
+        var titleEl = document.getElementById('qcNodeFeedTitle');
+        var listEl = document.getElementById('qcNodeFeedList');
+        if (titleEl) titleEl.textContent = '未选择日期';
+        if (listEl) listEl.innerHTML = '<div class="text-muted" style="font-size:11px;line-height:1.5;">暂无节点日期</div>';
+      }
       async function renderQuickChart(){
         var loadEl = document.getElementById('qcLoading');
         if (loadEl) loadEl.style.display = 'inline';
+        qcResetNodeFeed();
         try {
           var d = await j(qcBuildQueryString());
           var emptyEl = document.getElementById('qcEmpty');
@@ -2301,6 +2408,7 @@
             datasets = segs.map(function(sk, i){
               return {
                 label: qcSegLabel(sk),
+                _segmentKey: sk,
                 data: d.data.map(function(r){ return (r.series && r.series[sk] != null) ? r.series[sk] : 0; }),
                 borderColor: qcSegColor(sk, i, palette),
                 backgroundColor: qcSegColor(sk, i, palette) + (qcState.chart === 'area' ? '44' : 'cc'),
@@ -2344,6 +2452,15 @@
               responsive: true,
               maintainAspectRatio: false,
               indexAxis: qcState.chart === 'horizontal_bar' ? 'y' : 'x',
+              interaction: {mode: 'nearest', intersect: false},
+              onClick: function(evt, elements){
+                if (!elements || !elements.length || !intMode) return;
+                var el = elements[0];
+                var dateStr = qcBucketDate(labels[el.index]);
+                if (!dateStr) return;
+                var ds = datasets[el.datasetIndex] || {};
+                renderQuickChartNodeFeed(dateStr, ds._segmentKey || null);
+              },
               plugins: {
                 legend: {
                   display: segMode || qcState.chart === 'pie' || qcState.chart === 'doughnut' || qcState.chart === 'radar',
@@ -2787,17 +2904,18 @@
           if (!ctx) return;
           var kind = state.reachKind === 'social' ? 'social' : 'news';
           var grp = d[kind] || {total:0, mentions:0, by_source:[], by_bucket:[], unit:''};
-          var unitTxt = grp.unit === 'follower_count' ? '粉丝总数（sum of follower_count）' :
-                        grp.unit === 'estimated_monthly_visits' ? '月访客估算（sum of estimated_monthly_visits）' :
+          var unitTxt = grp.unit === 'follower_count' ? '单条舆情作者粉丝数' :
+                        grp.unit === 'estimated_monthly_visits' ? '单条报道来源月访客估算' :
                         grp.unit;
           var kindIcon = kind === 'news' ? '📰' : '📱';
-          var kindCh   = kind === 'news' ? '新闻 Reach' : '社交 Reach';
+          var kindCh   = kind === 'news' ? '新闻触达分布' : '社交触达分布';
           var hintEl = document.getElementById('mediaReachKindHint');
-          if (hintEl) hintEl.innerHTML = kindIcon + ' <b>' + kindCh + '</b>: ' + fmtReach(grp.total) +
-            ' · ' + grp.mentions + ' 条 · <span style="color:var(--text-muted);">单位: ' + unitTxt + '</span>';
+          if (hintEl) hintEl.innerHTML = kindIcon + ' <b>' + kindCh + '</b>: ' + grp.mentions + ' 条' +
+            ' · 中位 ' + fmtReach(grp.reach_median) + ' · 均值 ' + fmtReach(grp.reach_avg) +
+            ' · <span style="color:var(--text-muted);">单位: ' + unitTxt + '</span>';
           var totalEl = document.getElementById('mediaReachTotal');
           if (totalEl) {
-            totalEl.textContent = fmtReach(grp.total) + ' · ' + grp.mentions + ' 条';
+            totalEl.textContent = grp.mentions + ' 条 · 中位 ' + fmtReach(grp.reach_median);
             totalEl.title = '单位: ' + unitTxt;
           }
           var labels, data, colors, tooltipFmt;
@@ -2807,19 +2925,18 @@
             colors = ['#6b7280','#60a5fa','#10b981','#f59e0b','#ef4444'];
             tooltipFmt = function(c){
               var b = grp.by_bucket[c.dataIndex];
-              return b.label + ': ' + b.count + ' 条 · reach 合计 ' + fmtReach(b.reach_sum) +
+              return b.label + ': ' + b.count + ' 条 · 单条均值 ' + fmtReach(b.reach_avg) + ' · 合计 ' + fmtReach(b.reach_sum) +
                      ' (' + unitTxt + ')';
             };
           } else {
             labels = grp.by_source.map(function(b){ return b.name; });
-            data = grp.by_source.map(function(b){ return b.reach; });
+            data = grp.by_source.map(function(b){ return b.count; });
             colors = grp.by_source.map(function(b){ return PLATFORM_COLOR[b.platform] || '#888'; });
             tooltipFmt = function(c){
               var b = grp.by_source[c.dataIndex];
-              var avg = b.count ? Math.round(b.reach / b.count) : 0;
               return b.name + ' (' + (PLATFORM_LABEL[b.platform] || b.platform || '?') + ')' +
-                     ': reach ' + fmtReach(b.reach) +
-                     ' · ' + b.count + ' 条 · 均值 ' + fmtReach(avg) +
+                     ': ' + b.count + ' 条 · 中位 ' + fmtReach(b.reach_median) +
+                     ' · 均值 ' + fmtReach(b.reach_avg) + ' · 合计 ' + fmtReach(b.reach) +
                      ' (' + unitTxt + ')';
             };
           }
@@ -2835,7 +2952,7 @@
                 tooltip: {callbacks: {label: tooltipFmt}}
               },
               scales: {
-                x: {ticks:{color:'#606060', font:{size:9}, callback:function(v){return fmtReach(v);}}, grid:{color:'rgba(255,255,255,0.04)'}, beginAtZero:true},
+                x: {ticks:{color:'#606060', font:{size:9}, callback:function(v){return v + '条';}}, grid:{color:'rgba(255,255,255,0.04)'}, beginAtZero:true},
                 y: {ticks:{color:'#a0a0a0', font:{size:10}}, grid:{display:false}}
               }
             }
@@ -3201,6 +3318,8 @@
       document.getElementById('mediaTickerFilter').addEventListener('change', function(e){ setFilter('ticker', e.target.value); });
       document.getElementById('mediaSentimentFilter').addEventListener('change', function(e){ setFilter('sentiment', e.target.value); });
       document.getElementById('mediaPlatformFilter').addEventListener('change', function(e){ setFilter('platform', e.target.value); });
+      document.getElementById('mediaDateFilter').addEventListener('change', function(e){ setFilter('date', e.target.value || null); });
+      document.getElementById('mediaDateClear').addEventListener('click', function(){ setFilter('date', null); });
       document.getElementById('mediaBackDay').addEventListener('click', function(){ setFilter('date', null); });
 
       // feat-022 Reach mode chips
