@@ -542,7 +542,7 @@
           </div>
 
           <div style="margin-bottom:12px;">
-            <div class="qc-label">国家</div>
+            <div class="qc-label">市场/地区</div>
             <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">
               <label class="qc-check"><input type="checkbox" data-qc-cn="US"/> 🇺🇸 US</label>
               <label class="qc-check"><input type="checkbox" data-qc-cn="GB"/> 🇬🇧 GB</label>
@@ -855,7 +855,7 @@
               <option value="CAN">Canaan ($CAN)</option>
               <option value="CANG">Cango ($CANG)</option>
             </select>
-            <input id="mediaDateFilter" type="date" class="filter-select" style="font-size:11px;" title="自定义查看某一天的报道（UTC 日期）" />
+            <input id="mediaDateFilter" type="date" class="filter-select" style="font-size:11px;" title="自定义查看某一天的报道（Asia/Shanghai 日期）" />
             <button type="button" id="mediaDateClear" class="filter-btn" style="display:none;font-size:11px;padding:3px 8px;" title="清除日期，返回时间范围">清除日期</button>
           </div>
         </div>
@@ -1065,7 +1065,7 @@
         }
       }
       // feat-034 F01: state persistence (URL hash primary, localStorage fallback).
-      var MEDIA_STATE_LS_KEY = 'btcmine.media.state.v2';
+      var MEDIA_STATE_LS_KEY = 'btcmine.media.state.v3';
       function saveState(){
         syncHash();
         try {
@@ -1739,6 +1739,7 @@
           var parts = ['limit=100'];
           if (state.date) {
             parts.push('date=' + encodeURIComponent(state.date));
+            parts.push('date_tz=' + encodeURIComponent('Asia/Shanghai'));
           } else {
             parts.push('hours=' + state.hours);
           }
@@ -2305,7 +2306,7 @@
       }
       function qcFeedQueryForNode(dateStr, segmentKey){
         qcCollectFilters();
-        var p = ['date=' + encodeURIComponent(dateStr), 'limit=40'];
+        var p = ['date=' + encodeURIComponent(dateStr), 'date_tz=UTC', 'limit=40'];
         var brands = qcState.brands.slice();
         var sources = qcState.sources.slice();
         var sentiments = qcState.sentiment.slice();
@@ -3198,7 +3199,10 @@
       // ========== feat-020: Custom dashboard presets (localStorage) ==========
       var PRESET_KEY = 'btcmine_media_presets_v1';
       var PRESET_ACTIVE_KEY = 'btcmine_media_preset_active_v1';
-      var PRESET_FIELDS = ['hours','ticker','sentiment','platform','sort','timelineMode','kolBoard'];
+      var PRESET_FIELDS = [
+        'hours','tickers','sentiment','platform','sort','date','timelineMode',
+        'kolBoard','reachMode','reachKind','theme','compareTickers'
+      ];
       function loadPresets(){
         try { return JSON.parse(localStorage.getItem(PRESET_KEY) || '{}') || {}; }
         catch(e){ return {}; }
@@ -3215,6 +3219,9 @@
         var presets = loadPresets();
         var p = presets[name];
         if (!p) return;
+        if (p.ticker !== undefined && p.tickers === undefined) {
+          p.tickers = p.ticker ? [String(p.ticker).toUpperCase()] : [];
+        }
         // assign fields then re-render
         PRESET_FIELDS.forEach(function(k){
           if (p[k] !== undefined) state[k] = p[k];
