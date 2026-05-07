@@ -502,6 +502,16 @@
         <aside style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:8px;padding:12px;font-size:11px;max-height:500px;overflow-y:auto;">
           <div style="font-weight:600;color:var(--text-primary);margin-bottom:8px;">筛选条件</div>
 
+          <div id="qcNodeFeedPanel" style="margin-bottom:14px;border:1px solid var(--border-default);border-radius:8px;padding:10px;background:var(--bg-elevated);">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;">
+              <div style="font-weight:600;color:var(--text-primary);">节点报道</div>
+              <span id="qcNodeFeedTitle" class="text-muted" style="font-size:10px;">未选择日期</span>
+            </div>
+            <div id="qcNodeFeedList" style="display:grid;gap:8px;max-height:260px;overflow-y:auto;padding-right:2px;">
+              <div class="text-muted" style="font-size:11px;line-height:1.5;">点击折线图节点查看当天报道</div>
+            </div>
+          </div>
+
           <div style="margin-bottom:12px;">
             <div class="qc-label">数据源 <span data-tip="勾选的平台会进入查询，未勾=不限。点图标切换。" style="color:var(--text-muted);cursor:help;">ⓘ</span></div>
             <div id="qcSourceChips" style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;"></div>
@@ -568,15 +578,6 @@
             <input type="text" id="qcQuery" placeholder="例: earnings" class="qc-input" />
           </div>
 
-          <div id="qcNodeFeedPanel" style="margin-top:14px;border-top:1px solid var(--border-default);padding-top:10px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;">
-              <div style="font-weight:600;color:var(--text-primary);">节点报道</div>
-              <span id="qcNodeFeedTitle" class="text-muted" style="font-size:10px;">未选择日期</span>
-            </div>
-            <div id="qcNodeFeedList" style="display:grid;gap:8px;">
-              <div class="text-muted" style="font-size:11px;line-height:1.5;">暂无节点日期</div>
-            </div>
-          </div>
         </aside>
       </div>
     </section>
@@ -2336,12 +2337,14 @@
         return '/api/btcmine/media/feed?' + p.join('&');
       }
       async function renderQuickChartNodeFeed(dateStr, segmentKey){
+        var panelEl = document.getElementById('qcNodeFeedPanel');
         var titleEl = document.getElementById('qcNodeFeedTitle');
         var listEl = document.getElementById('qcNodeFeedList');
         if (!listEl) return;
         var segText = segmentKey ? (' · ' + qcSegLabel(segmentKey)) : '';
         if (titleEl) titleEl.textContent = dateStr + segText;
         listEl.innerHTML = '<div class="text-muted" style="font-size:11px;">加载中...</div>';
+        if (panelEl && panelEl.scrollIntoView) panelEl.scrollIntoView({block:'nearest', inline:'nearest'});
         try {
           var d = await j(qcFeedQueryForNode(dateStr, segmentKey));
           var items = d.items || [];
@@ -2372,7 +2375,7 @@
         var titleEl = document.getElementById('qcNodeFeedTitle');
         var listEl = document.getElementById('qcNodeFeedList');
         if (titleEl) titleEl.textContent = '未选择日期';
-        if (listEl) listEl.innerHTML = '<div class="text-muted" style="font-size:11px;line-height:1.5;">暂无节点日期</div>';
+        if (listEl) listEl.innerHTML = '<div class="text-muted" style="font-size:11px;line-height:1.5;">点击折线图节点查看当天报道</div>';
       }
       async function renderQuickChart(){
         var loadEl = document.getElementById('qcLoading');
