@@ -406,6 +406,21 @@ const I18N = {
     'av.consensus_mean': '目标价均值',
     'av.consensus_range': '目标价区间',
     'av.consensus_n': '覆盖投行数',
+    'av.matrix_hint': '点击单元格 → 跳到该投行/矿企的研报详情',
+    'av.row_hint': '点击表格行展开估值公式与原始链接',
+    'av.method_unknown': '方法未披露',
+    'av.method_confidence': '方法识别置信度',
+    'av.formula_title': '估值公式',
+    'av.assumptions': '关键假设',
+    'av.rationale': '研报观点',
+    'av.source_link': '原始链接',
+    'av.segment': '业务分部',
+    'av.multiple': '估值倍数',
+    'av.value_per_share': '每股价值',
+    'av.sotp_total': '加总目标价',
+    'av.no_formula_breakdown': '该研报披露了估值方法但未公开分部明细',
+    'av.close': '关闭',
+
 
 
     // Whale & Strike
@@ -734,6 +749,21 @@ const I18N = {
     'av.consensus_mean': 'Mean Target',
     'av.consensus_range': 'Range',
     'av.consensus_n': 'Banks Covering',
+    'av.matrix_hint': 'Click a cell to jump to the report detail for that bank × ticker',
+    'av.row_hint': 'Click a row to expand the valuation formula and source link',
+    'av.method_unknown': 'Method not disclosed',
+    'av.method_confidence': 'Method extraction confidence',
+    'av.formula_title': 'Valuation Formula',
+    'av.assumptions': 'Key Assumptions',
+    'av.rationale': 'Analyst View',
+    'av.source_link': 'Source Link',
+    'av.segment': 'Segment',
+    'av.multiple': 'Multiple',
+    'av.value_per_share': 'Value / Share',
+    'av.sotp_total': 'Sum-of-Parts Total',
+    'av.no_formula_breakdown': 'Report cites a methodology but did not publish a segment breakdown',
+    'av.close': 'Close',
+
 
 
     // Predictions tab (institutional)
