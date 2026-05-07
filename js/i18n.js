@@ -420,6 +420,18 @@ const I18N = {
     'av.sotp_total': '加总目标价',
     'av.no_formula_breakdown': '该研报披露了估值方法但未公开分部明细',
     'av.close': '关闭',
+    'av.bank_profiles_title': '投行方法学画像',
+    'av.bank_profiles_desc': '按 (投行 × 估值方法) 聚合，看每家投行偏好哪些方法、典型公式，以及对哪些公司什么时候用过。点击行展开完整记录。',
+    'av.uses': '用过',
+    'av.formula_template': '典型公式',
+    'av.coverage_examples': '覆盖示例（最近 6 条）',
+    'av.total_in_method_db': '该投行带方法学记录共',
+    'av.of_bank': '占该投行',
+    'av.tpl_no_breakdown': '研报披露了方法但未公开拆解',
+    'av.tpl_example': '示例',
+    'av.tpl_avg_pt': '平均目标价',
+    'av.formula_sample': '示例 SOTP 拆解',
+
 
 
 
@@ -763,6 +775,18 @@ const I18N = {
     'av.sotp_total': 'Sum-of-Parts Total',
     'av.no_formula_breakdown': 'Report cites a methodology but did not publish a segment breakdown',
     'av.close': 'Close',
+    'av.bank_profiles_title': 'Bank Methodology Profiles',
+    'av.bank_profiles_desc': 'Grouped by (bank × method) — see which methods each bank prefers, the typical formula template, and which tickers/dates the bank applied it to. Click a row to expand the full record list.',
+    'av.uses': 'Uses',
+    'av.formula_template': 'Formula Template',
+    'av.coverage_examples': 'Coverage examples (latest 6)',
+    'av.total_in_method_db': 'Bank total w/ method',
+    'av.of_bank': 'of bank',
+    'av.tpl_no_breakdown': 'Method cited but no breakdown disclosed',
+    'av.tpl_example': 'Example',
+    'av.tpl_avg_pt': 'Avg PT',
+    'av.formula_sample': 'Sample SOTP Breakdown',
+
 
 
 

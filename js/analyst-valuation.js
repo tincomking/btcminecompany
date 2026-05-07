@@ -167,34 +167,110 @@ function renderCoverageMatrix() {
   });
 }
 
+// State for method distribution view
+let currentBankProfileKey = null;  // `${bank}|${method}`
+
 function renderMethodDistribution() {
   const data = window.ANALYST_VALUATION || { coverage: [] };
-  const cov = (data.coverage || []).filter(c => c.valuation_method);
+  const allCov = data.coverage || [];
+  const cov = allCov.filter(c => c.valuation_method);
   if (cov.length === 0) {
     document.getElementById('avContent').innerHTML = `<div class="empty-state">${t('av.no_data')}</div>`;
     return;
   }
 
+  // ─── 1. Aggregate method counts (the original chart) ───
   const counts = {};
   for (const m of VALUATION_METHODS) counts[m] = 0;
   for (const c of cov) counts[c.valuation_method] = (counts[c.valuation_method] || 0) + 1;
   const total = cov.length;
-
   const ranked = Object.entries(counts)
     .filter(([_, n]) => n > 0)
     .sort((a, b) => b[1] - a[1]);
 
+  // ─── 2. Per-bank methodology profile ───
+  // Group records by (bank, method)
+  const byBankMethod = {};
+  for (const r of cov) {
+    const k = `${r.bank}|${r.valuation_method}`;
+    if (!byBankMethod[k]) byBankMethod[k] = [];
+    byBankMethod[k].push(r);
+  }
+  // Bank-level totals (for sorting)
+  const bankTotals = {};
+  for (const r of cov) {
+    bankTotals[r.bank] = (bankTotals[r.bank] || 0) + 1;
+  }
+  // Sort bank|method rows: by bank total desc, then by method count desc within a bank
+  const bankMethodRows = Object.entries(byBankMethod)
+    .map(([k, recs]) => {
+      const [bank, method] = k.split('|');
+      return { key: k, bank, method, recs, bankTotal: bankTotals[bank] };
+    })
+    .sort((a, b) =>
+      b.bankTotal - a.bankTotal ||
+      a.bank.localeCompare(b.bank) ||
+      b.recs.length - a.recs.length
+    );
+
+  // ─── 3. Build HTML ───
   let html = `<div class="av-method-summary">`;
   html += `<p class="av-method-desc">${t('av.method_desc')}</p>`;
-  html += `<div class="chart-container" style="max-width:720px;"><canvas id="avMethodChart" height="120"></canvas></div>`;
+  html += `<div class="chart-container" style="max-width:720px;"><canvas id="avMethodChart" height="100"></canvas></div>`;
   html += `<table class="av-method-table"><thead><tr><th>${t('av.method')}</th><th class="td-right">${t('av.count')}</th><th class="td-right">${t('av.pct')}</th></tr></thead><tbody>`;
   for (const [m, n] of ranked) {
     html += `<tr><td><span class="av-legend-swatch" style="background:${METHOD_COLORS[m]}"></span> ${methodLabel(m)}</td><td class="td-right">${n}</td><td class="td-right">${(100 * n / total).toFixed(1)}%</td></tr>`;
   }
   html += `</tbody></table></div>`;
 
+  // ─── 4. Bank methodology profile section ───
+  html += `<div class="av-bank-profiles">`;
+  html += `<div class="section-header mt-24"><div class="section-title">${t('av.bank_profiles_title')}</div></div>`;
+  html += `<p class="av-method-desc">${t('av.bank_profiles_desc')}</p>`;
+  html += `<div class="table-wrapper"><table class="av-bank-profile-table"><thead><tr>
+    <th>${t('av.bank')}</th>
+    <th>${t('av.method')}</th>
+    <th class="td-right">${t('av.uses')}</th>
+    <th>${t('av.formula_template')}</th>
+    <th>${t('av.coverage_examples')}</th>
+  </tr></thead><tbody>`;
+
+  for (const row of bankMethodRows) {
+    const tpl = inferFormulaTemplate(row.recs);
+    const examples = formatCoverageExamples(row.recs);
+    const swatch = `<span class="av-legend-swatch" style="background:${METHOD_COLORS[row.method] || '#cbd5e1'}"></span>`;
+    const isSelected = row.key === currentBankProfileKey ? ' selected' : '';
+    html += `<tr class="av-bank-profile-row${isSelected}" data-key="${escapeAttr(row.key)}">
+      <td><b>${escapeHtml(row.bank)}</b><br><small class="av-bank-total">${t('av.total_in_method_db')}: ${row.bankTotal}</small></td>
+      <td>${swatch}<b>${methodLabel(row.method)}</b></td>
+      <td class="td-right"><b>${row.recs.length}</b><br><small>${(100 * row.recs.length / row.bankTotal).toFixed(0)}% ${t('av.of_bank')}</small></td>
+      <td class="av-formula-tpl">${tpl}</td>
+      <td class="av-coverage-examples">${examples}</td>
+    </tr>`;
+  }
+  html += `</tbody></table></div></div>`;
+
+  // ─── 5. Bank profile detail panel placeholder (rendered below) ───
+  html += `<div id="avBankProfileDetail"></div>`;
+
   document.getElementById('avContent').innerHTML = html;
 
+  // Wire bank profile row clicks
+  document.querySelectorAll('.av-bank-profile-row').forEach(tr => {
+    tr.onclick = () => {
+      currentBankProfileKey = tr.dataset.key;
+      // Update selected styling
+      document.querySelectorAll('.av-bank-profile-row').forEach(r => r.classList.toggle('selected', r === tr));
+      renderBankProfileDetail(byBankMethod[tr.dataset.key]);
+    };
+  });
+
+  // If a profile was already selected from earlier, render it
+  if (currentBankProfileKey && byBankMethod[currentBankProfileKey]) {
+    renderBankProfileDetail(byBankMethod[currentBankProfileKey]);
+  }
+
+  // Chart
   if (analystValuationChart) { analystValuationChart.destroy(); analystValuationChart = null; }
   const ctx = document.getElementById('avMethodChart');
   if (ctx && window.Chart) {
@@ -380,6 +456,188 @@ function renderDetailPanel() {
     currentSelectedKey = null;
     el.innerHTML = '';
   };
+}
+
+// ─── Bank methodology profile helpers ───
+
+/**
+ * Infer a "formula template" string for a (bank, method) combo from its records.
+ * For SOTP: list the most-common segments/multiples seen
+ * For EV/EBITDA / EV/Revenue: compute mean & range of multiples (parsed from key_assumptions)
+ * For DCF: list discount-rate hints
+ * Otherwise: show the most representative key_assumptions line
+ */
+function inferFormulaTemplate(recs) {
+  if (!recs || recs.length === 0) return '—';
+  const method = recs[0].valuation_method;
+
+  // SOTP: aggregate segment templates
+  if (method === 'SOTP') {
+    const segCounter = {};   // segment name -> {count, methods:Set, multiples:Set}
+    let withBreakdown = 0;
+    for (const r of recs) {
+      if (!r.sotp_breakdown || !r.sotp_breakdown.length) continue;
+      withBreakdown++;
+      for (const s of r.sotp_breakdown) {
+        const seg = (s.segment || '').trim();
+        if (!seg) continue;
+        if (!segCounter[seg]) segCounter[seg] = { count: 0, methods: new Set(), multiples: new Set() };
+        segCounter[seg].count++;
+        if (s.method) segCounter[seg].methods.add(s.method);
+        if (s.multiple) segCounter[seg].multiples.add(s.multiple);
+      }
+    }
+    if (withBreakdown === 0) {
+      const sample = recs.find(r => r.key_assumptions);
+      return sample ? `<small>${escapeHtml(sample.key_assumptions)}</small>` : `<small class="av-tpl-empty">${t('av.tpl_no_breakdown')}</small>`;
+    }
+    const segs = Object.entries(segCounter).sort((a, b) => b[1].count - a[1].count).slice(0, 4);
+    let out = `<div class="av-tpl-sotp">`;
+    for (const [seg, info] of segs) {
+      const mlist = [...info.methods].slice(0, 2).join(' / ');
+      const xlist = [...info.multiples].slice(0, 2).join(', ');
+      out += `<div class="av-tpl-line"><b>${escapeHtml(seg)}</b> · ${escapeHtml(mlist || '?')} ${xlist ? `(${escapeHtml(xlist)})` : ''} <small>×${info.count}</small></div>`;
+    }
+    out += `</div>`;
+    return out;
+  }
+
+  // EV/EBITDA, EV/Revenue: extract numeric multiples from key_assumptions
+  if (method === 'EV_EBITDA' || method === 'EV_REVENUE') {
+    const re = method === 'EV_EBITDA' ? /(\d+(?:\.\d+)?)\s*x\s*(?:20\d\d[EAa]?|FY\+?\d|fwd|trail|NTM|LTM)?\s*(?:EV[/-])?EBITDA/i
+                                       : /(\d+(?:\.\d+)?)\s*x\s*(?:20\d\d[EAa]?|FY\+?\d|fwd|trail|NTM|LTM)?\s*(?:EV[/-])?(?:Revenue|Sales)/i;
+    const multiples = [];
+    for (const r of recs) {
+      const text = (r.key_assumptions || '') + ' ' + (r.note || '');
+      const m = text.match(re);
+      if (m) multiples.push(parseFloat(m[1]));
+    }
+    let out = `<div class="av-tpl-multi">`;
+    if (multiples.length) {
+      const mean = multiples.reduce((s, x) => s + x, 0) / multiples.length;
+      const lo = Math.min(...multiples);
+      const hi = Math.max(...multiples);
+      const tag = method === 'EV_EBITDA' ? 'EBITDA' : 'Revenue';
+      out += `<div class="av-tpl-line"><b>${mean.toFixed(1)}x</b> EV/${tag} <small>(range ${lo}x-${hi}x, n=${multiples.length})</small></div>`;
+    }
+    const sample = recs.find(r => r.key_assumptions);
+    if (sample) out += `<div class="av-tpl-line"><small>${t('av.tpl_example')}: ${escapeHtml(sample.key_assumptions.slice(0, 140))}${sample.key_assumptions.length > 140 ? '…' : ''}</small></div>`;
+    out += `</div>`;
+    return out;
+  }
+
+  // DCF/OTHER/NAV: show first key_assumptions
+  const sample = recs.find(r => r.key_assumptions);
+  if (sample) return `<small>${escapeHtml(sample.key_assumptions.slice(0, 200))}${sample.key_assumptions.length > 200 ? '…' : ''}</small>`;
+  return `<small class="av-tpl-empty">${t('av.tpl_no_breakdown')}</small>`;
+}
+
+/**
+ * Render a compact list of (ticker · date · target) examples for the bank-method row's last column.
+ */
+function formatCoverageExamples(recs) {
+  if (!recs || !recs.length) return '—';
+  // Sort by date desc, take top 6
+  const sorted = [...recs].sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 6);
+  let html = `<div class="av-cov-list">`;
+  for (const r of sorted) {
+    const pt = r.target_price_usd != null ? `$${r.target_price_usd}` : '—';
+    html += `<span class="av-cov-tag" title="${escapeAttr(r.bank + ' on ' + r.ticker + ', ' + (r.date||'') + ' → ' + pt)}"><b>${escapeHtml(r.ticker)}</b> <small>${r.date || ''}</small> · ${pt}</span>`;
+  }
+  if (recs.length > 6) html += `<span class="av-cov-more">+${recs.length - 6} more</span>`;
+  html += `</div>`;
+  return html;
+}
+
+/**
+ * Render the per-bank-method detail panel below the bank profile table.
+ * Lists every record using this (bank, method) combo with full source links + assumptions.
+ */
+function renderBankProfileDetail(recs) {
+  const el = document.getElementById('avBankProfileDetail');
+  if (!el || !recs) return;
+  const sorted = [...recs].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const bank = recs[0].bank;
+  const method = recs[0].valuation_method;
+  const swatch = `<span class="av-legend-swatch" style="background:${METHOD_COLORS[method] || '#cbd5e1'}"></span>`;
+
+  let html = `<div class="av-detail-panel av-bank-detail">
+    <div class="av-detail-header">
+      <div class="av-detail-title">
+        <span class="av-detail-bank">${escapeHtml(bank)}</span>
+        <span class="av-detail-bank-method">${swatch}${methodLabel(method)}</span>
+        <span class="av-detail-date">· ${recs.length} ${t('av.records')}</span>
+      </div>
+      <button class="av-detail-close" title="${t('av.close')}">×</button>
+    </div>`;
+
+  // Aggregate metrics
+  const targets = recs.map(r => r.target_price_usd).filter(v => v != null);
+  if (targets.length) {
+    const mean = targets.reduce((s, v) => s + v, 0) / targets.length;
+    const median = medianOf(targets);
+    html += `<div class="av-detail-summary">
+      <span class="av-detail-pill">${t('av.tpl_avg_pt')}: <b>$${mean.toFixed(2)}</b></span>
+      <span class="av-detail-pill">${t('av.consensus_median')}: <b>$${median.toFixed(2)}</b></span>
+      <span class="av-detail-pill">${t('av.consensus_range')}: <b>$${Math.min(...targets)} — $${Math.max(...targets)}</b></span>
+    </div>`;
+  }
+
+  // Per-record table
+  html += `<div class="table-wrapper" style="margin-top:12px;"><table class="av-bank-detail-table"><thead><tr>
+    <th>${t('av.ticker')}</th>
+    <th>${t('av.date')}</th>
+    <th>${t('av.analyst')}</th>
+    <th>${t('av.rating')}</th>
+    <th class="td-right">${t('av.target_price')}</th>
+    <th>${t('av.assumptions')}</th>
+    <th>${t('av.source_link')}</th>
+  </tr></thead><tbody>`;
+  for (const r of sorted) {
+    const src = r.source_url
+      ? `<a href="${escapeAttr(r.source_url)}" target="_blank" rel="noopener" class="av-src-link">${shortDomain(r.source_url)} ↗</a>`
+      : (r.source || '—');
+    const ka = r.key_assumptions
+      ? `<small>${escapeHtml(r.key_assumptions.length > 220 ? r.key_assumptions.slice(0, 220) + '…' : r.key_assumptions)}</small>`
+      : '—';
+    html += `<tr>
+      <td><b>${escapeHtml(r.ticker)}</b></td>
+      <td>${r.date || '—'}</td>
+      <td>${escapeHtml(r.analyst || '—')}</td>
+      <td>${escapeHtml(r.rating || '—')}</td>
+      <td class="td-right">${r.target_price_usd != null ? '$' + r.target_price_usd : '—'}</td>
+      <td class="av-assumptions-cell">${ka}</td>
+      <td>${src}</td>
+    </tr>`;
+  }
+  html += `</tbody></table></div>`;
+
+  // Sample SOTP breakdown (first record with one)
+  const sampleSotp = sorted.find(r => r.sotp_breakdown && r.sotp_breakdown.length);
+  if (sampleSotp) {
+    const total = sampleSotp.sotp_breakdown.reduce((s, seg) => s + (seg.value_per_share || 0), 0);
+    html += `<div class="av-formula" style="margin-top:16px;"><h4>${t('av.formula_sample')} (${escapeHtml(sampleSotp.ticker)} · ${sampleSotp.date || ''})</h4>`;
+    html += `<table class="av-sotp-table"><thead><tr><th>${t('av.segment')}</th><th>${t('av.method')}</th><th>${t('av.multiple')}</th><th class="td-right">${t('av.value_per_share')}</th></tr></thead><tbody>`;
+    for (const seg of sampleSotp.sotp_breakdown) {
+      html += `<tr>
+        <td><b>${escapeHtml(seg.segment || '—')}</b></td>
+        <td>${escapeHtml(seg.method || '—')}</td>
+        <td>${escapeHtml(seg.multiple || '—')}</td>
+        <td class="td-right">${seg.value_per_share != null ? '$' + Number(seg.value_per_share).toFixed(2) : '—'}</td>
+      </tr>`;
+    }
+    html += `<tr class="av-sotp-total"><td colspan="3"><b>${t('av.sotp_total')}</b></td><td class="td-right"><b>$${total.toFixed(2)}</b></td></tr>`;
+    html += `</tbody></table></div>`;
+  }
+
+  html += `</div>`;
+  el.innerHTML = html;
+  el.querySelector('.av-detail-close').onclick = () => {
+    currentBankProfileKey = null;
+    el.innerHTML = '';
+    document.querySelectorAll('.av-bank-profile-row').forEach(r => r.classList.remove('selected'));
+  };
+  setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
 }
 
 function methodLabel(m) {

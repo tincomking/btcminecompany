@@ -309,3 +309,107 @@
   color: var(--text-secondary, #6b7280);
   font-style: italic;
 }
+
+/* ─── Bank methodology profile (Phase 1.3) ─── */
+
+.av-bank-profiles { margin-top: 24px; }
+
+.av-bank-profile-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.av-bank-profile-table th {
+  background: var(--bg-tertiary, #f3f4f6);
+  font-weight: 600;
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 2px solid var(--border, #e5e7eb);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.av-bank-profile-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  vertical-align: top;
+}
+.av-bank-profile-row {
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.av-bank-profile-row:hover { background: var(--bg-tertiary, #f3f4f6); }
+.av-bank-profile-row.selected {
+  background: rgba(37, 99, 235, 0.08);
+  box-shadow: inset 4px 0 0 var(--accent, #2563eb);
+}
+.av-bank-total { color: var(--text-secondary, #6b7280); font-weight: 400; }
+
+.av-formula-tpl { max-width: 320px; font-size: 12px; }
+.av-tpl-sotp .av-tpl-line,
+.av-tpl-multi .av-tpl-line {
+  margin: 2px 0;
+  padding: 2px 0;
+  border-bottom: 1px dashed var(--border-light, #f3f4f6);
+}
+.av-tpl-line:last-child { border-bottom: none; }
+.av-tpl-line small { color: var(--text-secondary, #6b7280); }
+.av-tpl-empty { color: var(--text-secondary, #9ca3af); font-style: italic; }
+
+.av-coverage-examples { max-width: 360px; }
+.av-cov-list { display: flex; flex-wrap: wrap; gap: 4px; }
+.av-cov-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  background: var(--bg-tertiary, #f3f4f6);
+  border-radius: 4px;
+  font-size: 11px;
+  white-space: nowrap;
+  border: 1px solid var(--border, #e5e7eb);
+}
+.av-cov-tag b { color: var(--accent, #2563eb); }
+.av-cov-tag small { color: var(--text-secondary, #6b7280); }
+.av-cov-more {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 11px;
+  color: var(--text-secondary, #6b7280);
+  font-style: italic;
+}
+
+/* Bank detail panel (different from individual record detail) */
+.av-bank-detail .av-detail-bank-method {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 12px;
+  padding: 2px 10px;
+  background: var(--bg-tertiary, #f3f4f6);
+  border-radius: 4px;
+  font-weight: 600;
+}
+.av-bank-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.av-bank-detail-table th {
+  background: var(--bg-tertiary, #f3f4f6);
+  padding: 6px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.av-bank-detail-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  vertical-align: top;
+}
+.av-bank-detail-table .av-assumptions-cell {
+  max-width: 360px;
+  white-space: normal;
+  color: var(--text-secondary, #6b7280);
+}
