@@ -15,6 +15,7 @@
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/analyst-valuation.css">
 </head>
 <body>
 
@@ -3705,39 +3706,43 @@
   <!-- ─────────────────────── PAGE: ANALYSIS ─────────────────────── -->
   <div class="page" id="page-analysis">
     <div class="section-header">
-      <div class="section-title" data-i18n="analysis.title">财务分析模型</div>
-      <span class="data-badge" data-i18n="analysis.subtitle">基于公开财务数据的量化分析</span>
+      <div class="section-title" data-i18n="analysis.title">财务分析</div>
+      <span class="data-badge" data-i18n="analysis.subtitle_v2">六大量化模型 + 卖方分析师估值方法</span>
     </div>
 
-    <!-- Model Selector Tabs -->
-    <div class="analysis-model-selector" id="analysisModelSelector"></div>
-
-    <!-- Model Info Panel -->
-    <div class="analysis-info-panel" id="analysisInfoPanel"></div>
-
-    <!-- Results Table -->
-    <div class="section-header mt-16">
-      <div class="section-title" data-i18n="analysis.results">分析结果</div>
-    </div>
-    <div class="table-wrapper mb-24" id="analysisTableWrapper">
-      <table id="analysisTable">
-        <thead id="analysisTableHead"></thead>
-        <tbody id="analysisTableBody"></tbody>
-      </table>
+    <div class="analysis-top-tabs">
+      <button class="analysis-top-tab active" data-tab="model" data-i18n="analysis.tab_model">方法预测</button>
+      <button class="analysis-top-tab" data-tab="analyst" data-i18n="analysis.tab_analyst">分析师预测</button>
     </div>
 
-    <!-- Monte Carlo Chart Area -->
-    <div id="mcChartArea" style="display:none;">
-      <div class="section-header mb-16">
-        <div class="section-title" data-i18n="analysis.mc_chart_title">Monte Carlo 营收模拟（12个月）</div>
-        <div class="section-actions">
-          <select class="filter-select" id="mc-company-select"></select>
+    <div class="analysis-tab-pane active" id="analysisTabModel">
+      <div class="analysis-model-selector" id="analysisModelSelector"></div>
+      <div class="analysis-info-panel" id="analysisInfoPanel"></div>
+      <div class="section-header mt-16">
+        <div class="section-title" data-i18n="analysis.results">分析结果</div>
+      </div>
+      <div class="table-wrapper mb-24" id="analysisTableWrapper">
+        <table id="analysisTable">
+          <thead id="analysisTableHead"></thead>
+          <tbody id="analysisTableBody"></tbody>
+        </table>
+      </div>
+      <div id="mcChartArea" style="display:none;">
+        <div class="section-header mb-16">
+          <div class="section-title" data-i18n="analysis.mc_chart_title">Monte Carlo 营收模拟（12个月）</div>
+          <div class="section-actions">
+            <select class="filter-select" id="mc-company-select"></select>
+          </div>
+        </div>
+        <div class="chart-container">
+          <div class="chart-title" data-i18n="analysis.mc_note">基于 GBM 模型的 1000 次随机路径模拟</div>
+          <canvas id="mcChart" height="100"></canvas>
         </div>
       </div>
-      <div class="chart-container">
-        <div class="chart-title" data-i18n="analysis.mc_note">基于 GBM 模型的 1000 次随机路径模拟</div>
-        <canvas id="mcChart" height="100"></canvas>
-      </div>
+    </div>
+
+    <div class="analysis-tab-pane" id="analysisTabAnalyst">
+      <div id="analystValuationRoot"></div>
     </div>
   </div>
 
@@ -4687,6 +4692,7 @@
 <script src="Analysis/altman.js"></script>
 <script src="Analysis/kmv.js"></script>
 <script src="Analysis/montecarlo.js"></script>
+<script src="js/analyst-valuation.js"></script>
 <script src="js/app.js"></script>
 <script>
       // F17: zh/en title toggle in feed items

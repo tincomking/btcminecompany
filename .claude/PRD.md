@@ -816,3 +816,149 @@ curl -s http://100.111.111.111:8000/api/dashboard | python3 -m json.tool | head 
 ---
 
 *本文档由 Claude Code 生成，用于为 Claude Code Agent 提供完整项目上下文。修改项目后请同步更新本文档中受影响的章节。*
+
+---
+
+### 5.6.A 财务分析双 tab 重构 (v2.0507)
+
+> **变更日期**: 2026-05-07
+> **状态**: Phase 1 已实现（前端 + 种子数据）； Phase 2 待开发（自动化 collector）
+
+#### 背景
+
+财务分析页面原本只有"六大量化模型"一种估值视角。Leo 提出新增"卖方分析师估值方法"维度，参考 BitFuFu 公开资料，让用户可以同时对比：
+
+- **方法预测**：基于公开财务数据，由六大量化模型（Altman/Beneish/Jones/KMV/Monte Carlo/Piotroski）输出综合评级（已有）
+- **分析师预测**：基于卖方研报，汇总各投行使用的估值方法（SOTP / EV-EBITDA / EV/Revenue / DCF / NAV / Other）、目标价、评级（新增）
+
+#### 页面结构变更
+
+```
+page-analysis/
+├── section-header (财务分析 + 双视角说明)
+├── analysis-top-tabs
+│   ├── tab[方法预测]  (data-tab="model")
+│   └── tab[分析师预测] (data-tab="analyst")
+├── analysis-tab-pane[id=analysisTabModel]   ← 旧内容整体迁入
+│   ├── analysis-model-selector
+│   ├── analysis-info-panel
+│   ├── analysisTable
+│   └── mcChartArea
+└── analysis-tab-pane[id=analysisTabAnalyst]
+    └── analystValuationRoot                  ← 新模块
+        ├── av-sub-tabs (覆盖矩阵 / 方法分布 / 个股下钻)
+        ├── av-meta (投行数 / 矿企数 / 记录数 / 方法覆盖率 / 更新日期)
+        └── av-content (随子 tab 渲染)
+```
+
+#### 分析师预测 — 三个子视图
+
+| 子 tab | 内容 | 数据形态 |
+|---|---|---|
+| 覆盖矩阵 | 投行（行）× 矿企（列）矩阵；单元格颜色编码估值方法，显示目标价 | bank × ticker 透视 |
+| 方法分布 | 各估值方法占比横向条形图 + 数据表 | 全部 coverage 聚合 |
+| 个股下钻 | 选中矿企 → 共识卡片（中位数/均值/区间/覆盖数）+ 各投行明细表 | 按 ticker filter |
+
+#### 文件清单
+
+新增:
+- `js/analyst-valuation.js` — 三视图渲染逻辑
+- `css/analyst-valuation.css` — 双 tab + 矩阵/共识卡样式
+- `data/analyst-valuation.json` — 静态数据，前端 fetch
+- `scripts/seed_analyst_valuation.py` — 从 sentiment.json 生成种子
+- `thinkpad:~/datacenter/collectors/analyst_research_reports.py` — Phase 2 collector 骨架
+
+修改:
+- `index.html` — 页面结构重组 + CSS/JS 引用
+- `js/i18n.js` — 新增 31 个 i18n key (`av.*` 命名空间) × zh/en
+- `js/app.js` — `_wireAnalysisTopTabs()` + `renderAnalysis()` 入口
+
+#### 数据 Schema (`data/analyst-valuation.json`)
+
+```json
+{
+  "_meta": {
+    "description": "Sell-side analyst valuation methodologies for US Bitcoin mining companies",
+    "last_updated": "YYYY-MM-DD",
+    "source_agent": "...",
+    "phase": 1,
+    "method_coverage_pct": 0,
+    "note": "..."
+  },
+  "coverage": [
+    {
+      "ticker": "MARA",
+      "bank": "H.C. Wainwright",
+      "analyst": "Kevin Dede",
+      "rating": "Buy",
+      "rating_normalized": "buy",
+      "target_price_usd": 35.0,
+      "prev_target_price_usd": 28.0,
+      "date": "2024-11-08",
+      "action": "maintain",
+      "valuation_method": null,           // SOTP / EV_EBITDA / EV_REVENUE / DCF / NAV / OTHER / null
+      "method_confidence": null,          // 0.0~1.0 LLM 抽取置信度
+      "sotp_breakdown": null,             // [{segment, method, multiple, value_per_share}] 仅 SOTP
+      "key_assumptions": null,            // 关键假设短描述
+      "note": "...",
+      "source": "sentiment_seed",
+      "source_url": null
+    }
+  ]
+}
+```
+
+#### Phase 1 数据现状（2026-05-07）
+
+- **17 条记录**，从 `data/sentiment.json` 的 `analyst_ratings` 转换
+- **8 家投行**：B. Riley, Canaccord Genuity, Cantor Fitzgerald, Compass Point, H.C. Wainwright, Needham, Roth Capital, Seeking Alpha
+- **11 家矿企**：MARA / RIOT / CLSK / CORZ / CIFR / HUT / WULF / IREN / APLD / BITF / FUFU
+- **方法覆盖率 0%**：所有 `valuation_method=null`（诚实标注，不臆测；前端显示"—"）
+
+#### Phase 2 路线图（自动化估值方法采集）
+
+**Collector**: `collectors/analyst_research_reports.py` (已落地骨架)
+
+待接入数据源（按优先级）:
+
+| # | 源 | 类型 | 难点 |
+|---|---|------|------|
+| 1 | TheFlyOnTheWall RSS | 升降级 + 简短理由 | 免费 RSS，方法学常出现一句话 |
+| 2 | StreetInsider 公开评级页 | 各家 PT 列表 | 需要 HTML 解析 |
+| 3 | Benzinga RSS（免费档） | 升降级速报 | 需 API key 限流 |
+| 4 | SeekingAlpha 公开 Wall Street Ratings | PT 历史 | 反爬严格 |
+| 5 | Yahoo Finance Research | PT + 升降级 | yfinance `upgrades_downgrades` 已有 |
+| 6 | Google News + LLM 兜底 | 任意未覆盖 ticker | 通用，但需 LLM 抽取 |
+
+**LLM 抽取**: 用 `llm/pool.py` 的 `chat()` 把新闻正文/研报摘要抽成结构化 JSON：
+
+```python
+{
+  "valuation_method": "SOTP",
+  "method_confidence": 0.92,
+  "sotp_breakdown": [...],
+  "key_assumptions": "Mining EV/EBITDA 8x 2026E, HPC EV/Rev 12x"
+}
+```
+
+**调度**: scheduler/jobs.py 注册 `analyst_research_reports` 任务，频率 weekly（与研报发布节奏一致）。
+
+**数据持久化**: 写入 `btcmine_data` 表 `data_type='analyst_valuation'`。 
+
+**API 端点**（Phase 2 启用）: `GET /api/btcmine/analyst-valuation` — 读取该 data_type 行返回 JSON。前端的 `loadAnalystValuation()` 切换为 API 调用，静态 JSON 退为 fallback。
+
+#### 验收
+
+Phase 1 (本次):
+- [x] 财务分析页有"方法预测 / 分析师预测"两个顶级 tab
+- [x] 分析师预测 tab 有三个子视图（覆盖矩阵 / 方法分布 / 个股下钻）
+- [x] 显示 17 条真实分析师评级记录（来自现有 sentiment.json）
+- [x] 方法字段为 null 时前端显示"—"，不编造
+- [x] zh/en 双语支持
+
+Phase 2 (后续):
+- [ ] 至少接入 3 个免费数据源 collector
+- [ ] LLM 抽取方法学字段，覆盖率 ≥ 60%
+- [ ] 周度调度任务运行并写入 DB
+- [ ] API 端点上线
+- [ ] BitFuFu 同款矩阵视图饱和度 ≥ 50%

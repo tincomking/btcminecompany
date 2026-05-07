@@ -2025,7 +2025,25 @@ document.getElementById('companyModal').addEventListener('click', (e) => {
 
 let currentAnalysisModel = 'montecarlo';
 
+function _wireAnalysisTopTabs() {
+  const tabs = document.querySelectorAll('.analysis-top-tab');
+  if (!tabs.length || tabs[0]._wired) return;
+  tabs.forEach(btn => {
+    btn._wired = true;
+    btn.onclick = () => {
+      tabs.forEach(b => b.classList.toggle('active', b === btn));
+      const which = btn.dataset.tab;
+      document.getElementById('analysisTabModel').classList.toggle('active', which === 'model');
+      document.getElementById('analysisTabAnalyst').classList.toggle('active', which === 'analyst');
+      if (which === 'analyst' && typeof renderAnalystValuation === 'function') {
+        renderAnalystValuation();
+      }
+    };
+  });
+}
+
 function renderAnalysis() {
+  _wireAnalysisTopTabs();
   if (!window.ANALYSIS_MODELS || !Object.keys(window.ANALYSIS_MODELS).length) {
     document.getElementById('analysisInfoPanel').innerHTML =
       '<div class="empty-state"><div class="empty-text">Loading models...</div></div>';
