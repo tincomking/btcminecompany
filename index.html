@@ -1221,6 +1221,12 @@
         if (diff < 86400*7) return Math.floor(diff/86400) + '天前';
         return d.toLocaleDateString('zh-CN');
       }
+      // feat: 绝对抓取时间 (SGT / Asia/Singapore) — 用于舆情新闻卡片信源时间标注
+      function fmtAbs(iso){
+        if (!iso) return '';
+        try { return new Date(iso).toLocaleString('zh-CN', {timeZone:'Asia/Singapore', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false}).replace(',', ''); }
+        catch(e){ return ''; }
+      }
       function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
       // feat-034 F07 — sample-confidence helpers (n-suffix dimming + CI bar)
       function withCount(percent, n, opts){
@@ -2359,13 +2365,15 @@
             var tks = (m.tickers||[]).map(function(x){ return '$' + x; }).join(' ');
             return '<div style="border:1px solid var(--border-default);border-radius:6px;padding:8px;background:var(--bg-elevated);">'
               + '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:4px;">'
-              + '<span style="font-size:10px;color:var(--text-muted);">' + esc(fmtRel(m.ts)) + '</span>'
+              + '<span style="color:' + (TIER_COLOR[m.source_tier]||'var(--text-muted)') + ';font-weight:600;font-size:10px;" title="信源可信度等级 T' + (m.source_tier||3) + '（T1 最权威）">T' + (m.source_tier||3) + '</span>'
+              + '<span style="font-size:11px;color:var(--text-primary);font-weight:600;" title="来源站点 / 媒体">' + esc(m.outlet || m.source_name || m.author || '未知来源') + '</span>'
               + '<span style="font-size:10px;color:var(--text-secondary);">' + esc(PLATFORM_LABEL[m.source_type] || m.source_type || '') + '</span>'
+              + '<span style="font-size:10px;color:var(--text-muted);" title="抓取时间（SGT）· ' + esc(fmtRel(m.fetched_at || m.ts)) + '">🕒 ' + esc(fmtAbs(m.fetched_at || m.ts)) + '</span>'
               + (tks ? '<span style="font-size:10px;color:var(--accent-blue);font-family:monospace;">' + esc(tks) + '</span>' : '')
               + sChip
               + '</div>'
               + '<a href="' + esc(m.url || '#') + '" target="_blank" rel="noopener" style="display:block;color:var(--text-primary);font-weight:600;font-size:11px;line-height:1.35;text-decoration:none;">' + esc(m.title_cn || m.title || '(untitled)') + '</a>'
-              + '<div style="margin-top:4px;color:var(--text-muted);font-size:10px;line-height:1.4;">' + esc(m.source_name || m.author || '') + '</div>'
+              + ((m.author && m.author !== m.source_name) ? '<div style="margin-top:4px;color:var(--text-muted);font-size:10px;line-height:1.4;">✍ ' + esc(m.author) + '</div>' : '')
               + '</div>';
           }).join('');
         } catch(e) {
