@@ -2001,7 +2001,7 @@
       function closeSignalDrawer() {
         var d = document.getElementById('mediaSignalDrawer');
         var ov = document.getElementById('signalDrawerOverlay');
-        if (d) d.style.right = '-380px';
+        if (d) d.style.right = '-100vw';
         if (ov) ov.style.display = 'none';
       }
       async function renderSignalBanner() {
@@ -2068,6 +2068,9 @@
               var set = loadSignalRead();
               set.add(sid);
               saveSignalRead(set);
+              if (sid.indexOf('alert_') === 0) {
+                fetch(API + '/api/btcmine/media/alert_events/' + encodeURIComponent(sid.slice(6)) + '/ack', { method: 'POST' }).catch(function () {});
+              }
               renderSignalDrawerList();
               renderSignalBanner();
             }
